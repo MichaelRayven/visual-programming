@@ -2,7 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach, MockedFunction } from 
 import { csvToJSON, formatCSVFileToJSONFile } from './lab_3';
 import { readFile, writeFile } from "node:fs/promises"
 
-vi.mock('node:fs/promises', { spy: true });
+vi.mock('node:fs/promises', () => ({
+    readFile: vi.fn(),
+    writeFile: vi.fn()
+}));
 
 describe('csvToJSON', () => {
     it('should convert CSV to JSON correctly with semicolon delimiter', () => {
@@ -109,17 +112,8 @@ describe('csvToJSON', () => {
 });
 
 describe('formatCSVFileToJSONFile', () => {
-    let mockReadFile: MockedFunction<typeof readFile> = vi.fn();
-    let mockWriteFile: MockedFunction<typeof writeFile> = vi.fn();
-
-    // Mock
-    beforeEach(() => {
-        vi.mocked(readFile).mockImplementation(mockReadFile);
-        vi.mocked(writeFile).mockImplementation(mockWriteFile);
-    });
-
     // Cleanup
-    afterEach(() => {
+    beforeEach(() => {
         vi.clearAllMocks();
     });
 
@@ -130,36 +124,36 @@ describe('formatCSVFileToJSONFile', () => {
             { name: 'Jane', age: 25 }
         ], null, 2);
 
-        mockReadFile.mockResolvedValue(csvContent);
-        mockWriteFile.mockResolvedValue(undefined);
+        vi.mocked(readFile).mockResolvedValue(csvContent);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
 
         await formatCSVFileToJSONFile('input.csv', 'output.json', ',');
 
-        expect(mockReadFile).toHaveBeenCalledOnce();
-        expect(mockReadFile).toHaveBeenCalledWith('input.csv', 'utf-8');
+        expect(readFile).toHaveBeenCalledOnce();
+        expect(readFile).toHaveBeenCalledWith('input.csv', 'utf-8');
 
-        expect(mockWriteFile).toHaveBeenCalledOnce();
-        expect(mockWriteFile).toHaveBeenCalledWith('output.json', expectedJson);
+        expect(writeFile).toHaveBeenCalledOnce();
+        expect(writeFile).toHaveBeenCalledWith('output.json', expectedJson);
     });
 
     it('should handle errors from readFile', async () => {
-        mockReadFile.mockRejectedValue(new Error('File not found'));
+        vi.mocked(readFile).mockRejectedValue(new Error('File not found'));
 
         await expect(
             formatCSVFileToJSONFile('input.csv', 'output.json', ',')
         ).rejects.toThrow('Error processing CSV file: File not found');
 
-        expect(mockWriteFile).not.toHaveBeenCalled();
+        expect(writeFile).not.toHaveBeenCalled();
     });
 
     it('should handle errors from csvToJSON', async () => {
-        mockReadFile.mockResolvedValue('');
+        vi.mocked(readFile).mockResolvedValue('');
 
         await expect(
             formatCSVFileToJSONFile('input.csv', 'output.json', ',')
         ).rejects.toThrow('Error processing CSV file: Input array is empty');
 
-        expect(mockWriteFile).not.toHaveBeenCalled();
+        expect(writeFile).not.toHaveBeenCalled();
     });
 
     it('should handle different delimiters', async () => {
@@ -169,12 +163,12 @@ describe('formatCSVFileToJSONFile', () => {
             { p1: 2, p2: 'B', p3: 'v' }
         ], null, 2);
 
-        mockReadFile.mockResolvedValue(csvContent);
-        mockWriteFile.mockResolvedValue(undefined);
+        vi.mocked(readFile).mockResolvedValue(csvContent);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
 
         await formatCSVFileToJSONFile('input.csv', 'output.json', ';');
 
-        expect(mockWriteFile).toHaveBeenCalledWith('output.json', expectedJson);
+        expect(writeFile).toHaveBeenCalledWith('output.json', expectedJson);
     });
 
     it('should handle multiple calls correctly', async () => {
@@ -184,20 +178,20 @@ describe('formatCSVFileToJSONFile', () => {
         const csvContent2 = 'x,y,z\n10,20,30';
         const expectedJson2 = JSON.stringify([{ x: 10, y: 20, z: 30 }], null, 2);
 
-        mockReadFile
+        vi.mocked(readFile)
             .mockResolvedValueOnce(csvContent1)
             .mockResolvedValueOnce(csvContent2);
-        mockWriteFile.mockResolvedValue(undefined);
+        vi.mocked(writeFile).mockResolvedValue(undefined);
 
         await formatCSVFileToJSONFile('input1.csv', 'output1.json', ',');
         await formatCSVFileToJSONFile('input2.csv', 'output2.json', ',');
 
-        expect(mockReadFile).toHaveBeenCalledTimes(2);
-        expect(mockReadFile).toHaveBeenNthCalledWith(1, 'input1.csv', 'utf-8');
-        expect(mockReadFile).toHaveBeenNthCalledWith(2, 'input2.csv', 'utf-8');
+        expect(readFile).toHaveBeenCalledTimes(2);
+        expect(readFile).toHaveBeenNthCalledWith(1, 'input1.csv', 'utf-8');
+        expect(readFile).toHaveBeenNthCalledWith(2, 'input2.csv', 'utf-8');
 
-        expect(mockWriteFile).toHaveBeenCalledTimes(2);
-        expect(mockWriteFile).toHaveBeenNthCalledWith(1, 'output1.json', expectedJson1);
-        expect(mockWriteFile).toHaveBeenNthCalledWith(2, 'output2.json', expectedJson2);
+        expect(writeFile).toHaveBeenCalledTimes(2);
+        expect(writeFile).toHaveBeenNthCalledWith(1, 'output1.json', expectedJson1);
+        expect(writeFile).toHaveBeenNthCalledWith(2, 'output2.json', expectedJson2);
     });
 });
