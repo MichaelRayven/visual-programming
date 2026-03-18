@@ -65,9 +65,13 @@ type IsValidOrder<
       : false)
   ) : true;
 
+/** Shown in the TypeScript error when operations are given in the wrong order. */
+type OrderError =
+  'TypeError: Operations are out of order — valid sequence is: where -> groupBy -> having -> sort';
+
 export type ValidOperationOrder<
   Ops extends readonly Operation<any>[],
-> = IsValidOrder<Ops> extends true ? Ops : never;
+> = IsValidOrder<Ops> extends true ? Ops : OrderError;
 
 // Factory functions
 

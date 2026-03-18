@@ -32,8 +32,6 @@ describe("lab 5 — query pipeline with ordered operations", () => {
     },
   ];
 
-  // ── Runtime tests ─────────────────────────────────────────────────────
-
   it("where + sort: filters then sorts", () => {
     const pipeline = query(where("city", "Moscow"), sort("age"));
     expect(pipeline(users)).toEqual([
@@ -137,11 +135,9 @@ describe("lab 5 — query pipeline with ordered operations", () => {
     expect(result).toBeDefined();
   });
 
-  // ── Type-level tests ──────────────────────────────────────────────────
-
   describe("type-level: factory function return types", () => {
     it("where() returns WhereOp<User>", () => {
-      expectTypeOf(where("city", "Moscow")).toMatchTypeOf<WhereOp<User>>();
+      expectTypeOf(where("city", "Moscow")).toExtend<WhereOp<User>>();
     });
 
     it("sort() returns SortOp<User>", () => {
