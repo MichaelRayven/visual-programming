@@ -4,7 +4,7 @@
   "description": "",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "test": "vitest",
+    "test": "vitest --typecheck",
     "test:watch": "vitest --watch",
     "test:coverage": "vitest run --coverage"
   },
