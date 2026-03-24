@@ -5,7 +5,7 @@ interface Book {
   title: string;
   isbn: string;
   authors: string[];
-  imageUrl: string;
+  imageUrl?: string;
 }
 
 const BookCard = ({ title, authors, imageUrl }: Book) => {
