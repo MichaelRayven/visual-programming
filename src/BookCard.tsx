@@ -1,6 +1,14 @@
 import "./BookCard.css";
 
-const BookCard = ({ title, authors, imageUrl }) => {
+interface Book {
+  id: number;
+  title: string;
+  isbn: string;
+  authors: string[];
+  imageUrl: string;
+}
+
+const BookCard = ({ title, authors, imageUrl }: Book) => {
   return (
     <div className="book-card">
       <div className="book-card__image-container">
@@ -8,10 +16,11 @@ const BookCard = ({ title, authors, imageUrl }) => {
           <img
             src={imageUrl}
             alt={title}
+            loading="lazy"
             className="book-card__image"
             onError={(e) => {
-              e.target.src =
-                "https://via.placeholder.com/150x200?text=No+Cover";
+              const element = e.target as HTMLImageElement;
+              element.src = "https://placehold.co/150x200?text=No+Cover";
             }}
           />
         ) : (

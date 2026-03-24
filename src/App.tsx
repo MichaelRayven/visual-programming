@@ -5,6 +5,7 @@ import "./App.css";
 const App = () => {
   const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -22,6 +23,7 @@ const App = () => {
         setBooks(booksWithUrls);
       } catch (err) {
         console.error("Ошибка загрузки данных:", err);
+        setError(true);
       } finally {
         setLoading(false);
       }
@@ -32,6 +34,10 @@ const App = () => {
 
   if (loading) {
     return <div className="status-message">Загрузка библиотеки...</div>;
+  }
+
+  if (error) {
+    return <div className="status-message">Ошибка загрузки данных.</div>;
   }
 
   return (
