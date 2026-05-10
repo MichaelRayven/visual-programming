@@ -1,6 +1,11 @@
 .table {
   width: 100%;
   overflow: hidden;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+
+  user-select: none;
   border-spacing: 0;
   border-collapse: separate;
   background-color: var(--color-background);
@@ -21,7 +26,6 @@
 
 /* Table header */
 .table-header {
-
   position: sticky;
   z-index: var(--z-sticky);
 
@@ -68,16 +72,17 @@
 
 /* Table cell */
 .table-cell {
-
+  position: relative;
   padding: var(--spacing-3) var(--spacing-4);
+
   font-family: var(--font-family-primary);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-regular);
   vertical-align: middle;
+
   color: var(--color-text-primary);
 
   text-align: left;
-
   border: 1px solid var(--color-border-light);
 
   transition: all var(--transition-fast) var(--transition-smooth);
@@ -96,10 +101,7 @@
   border-bottom: none;
 }
 
-/* ============================================
-   RESPONSIVE DESIGN
-   ============================================ */
-
+/* Responsiveness */
 @media (max-width: 768px) {
   .table-header,
   .table-cell {
@@ -107,7 +109,6 @@
     font-size: var(--font-size-xs);
   }
 
-  /* Option: Make table horizontally scrollable on mobile */
   .table-wrapper {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
@@ -118,57 +119,42 @@
   }
 }
 
-/* ============================================
-   NARROW COLUMN SUPPORT
-   ============================================ */
-
-/* For tables with many columns, reduce padding */
-.table-compact .table-header,
-.table-compact .table-cell {
-  padding: var(--spacing-1_5) var(--spacing-2);
-}
-
-/* For spacious tables */
-.table-spacious .table-header,
-.table-spacious .table-cell {
-  padding: var(--spacing-4) var(--spacing-6);
-}
-
 /* Selection */
-.table-cell.selected {
-  position: relative;
+.table-header.header-selected {
+  background-color: var(--color-primary-500);
+  border-color: var(--color-primary-600);
 }
 
-.table-cell.selected::after {
+.table-cell.selection::after {
   position: absolute;
   inset: -1px;
   z-index: calc(var(--z-sticky) + 5);
-  pointer-events: none; /* Allows clicking through to the cell */
+  pointer-events: none;
   content: "";
-  border: 2px solid var(--color-primary-500);
 }
 
-/* ============================================
-   BORDERED VARIANT (stronger borders)
-   ============================================ */
-
-.table-bordered {
-  border: 2px solid var(--color-border-dark);
+.table-cell.selection.selection-row-start::after {
+  border-top: 1px solid var(--color-primary-500);
 }
 
-.table-bordered .table-header,
-.table-bordered .table-cell {
-  border: 1px solid var(--color-border-dark);
+.table-cell.selection.selection-row-end::after {
+  border-bottom: 1px solid var(--color-primary-500);
 }
 
-.table-bordered .table-header {
-  border-bottom-width: 2px;
+.table-cell.selection.selection-col-start::after {
+  border-left: 1px solid var(--color-primary-500);
 }
 
-/* ============================================
-   ACCESSIBILITY & FOCUS STATES
-   ============================================ */
+.table-cell.selection.selection-col-end::after {
+  border-right: 1px solid var(--color-primary-500);
+}
 
+/* Selected cell */
+.table-cell.selection.selected::after {
+  border: 3px solid var(--color-primary-500);
+}
+
+/* Accessability */
 .table-row:focus-within {
   position: relative;
   z-index: var(--z-sticky);
