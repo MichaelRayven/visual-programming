@@ -1,12 +1,33 @@
-.table {
+.table-wrapper {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+
+  --row-header-width: 4rem;
+  --row-header-height: 2rem;
+  --col-header-width: 6rem;
+  --col-header-height: 2rem;
+}
+
+.table-scrollable {
+  flex: 1 0 0;
   width: 100%;
-  overflow: hidden;
+  overflow: auto;
+}
+
+.table {
+
+  position: relative;
+
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
 
   user-select: none;
+  table-layout: fixed;
   border-spacing: 0;
+  border-spacing: 0;
+  border-collapse: separate;
   border-collapse: separate;
   background-color: var(--color-background);
 }
@@ -28,8 +49,8 @@
 .table-header {
   position: sticky;
   z-index: var(--z-sticky);
+  padding: 0;
 
-  padding: var(--spacing-3) var(--spacing-4);
   font-family: var(--font-family-primary);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
@@ -43,15 +64,22 @@
   background-color: var(--color-primary-600);
 
   border: 1px solid var(--color-primary-800);
+}
+
+/* Column headers */
+.table-row:first-child .table-header {
+  top: 0;
+  width: var(--col-header-width);
+  height: var(--col-header-height);
   border-bottom: 2px solid var(--color-primary-800);
 }
 
-.table-row:first-child .table-header {
-  top: 0;
-}
-
+/* Row headers */
 .table-header:first-child {
   left: 0;
+  width: var(--row-header-width);
+  height: var(--row-header-height);
+  border-right: 2px solid var(--color-primary-800);
 }
 
 /* Top left corner header */
@@ -59,6 +87,8 @@
   top: 0;
   left: 0;
   z-index: calc(var(--z-sticky) + 10); /* Higher z-index */
+  width: var(--row-header-width);
+  height: var(--col-header-height);
 }
 
 .table-header {
@@ -184,4 +214,34 @@
   .table-cell {
     border-color: CanvasText;
   }
+}
+
+/* Table top bar */
+.table-top-bar {
+  display: flex;
+
+  height: var(--col-header-height);
+
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
+}
+
+.table-top-bar-address {
+  display: flex;
+
+  flex: 0 0 var(--row-header-width);
+  align-items: center;
+  justify-content: center;
+
+  font-weight: var(--font-weight-semibold);
+
+  text-transform: uppercase;
+  border-right: 2px solid var(--color-border-light);
+}
+
+.table-top-bar-input {
+  flex: 1 0 0;
+  color: var(--color-text-primary);
+  border: 0;
+  border-radius: 0;
 }

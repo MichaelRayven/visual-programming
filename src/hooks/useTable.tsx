@@ -6,10 +6,10 @@ import {
 } from "@/lib/table";
 
 type TableContextType = {
-  selectedCell: CellPosition | null;
-  selection: TableSelection | null;
-  setSelectedCell: (cell: CellPosition | null) => void;
-  setSelection: (selection: TableSelection | null) => void;
+  selectedCell: CellPosition;
+  selection: TableSelection;
+  setSelectedCell: (cell: CellPosition) => void;
+  setSelection: (selection: TableSelection) => void;
   clearSelection: () => void;
 
   data: Record<string, string>;

@@ -22,10 +22,22 @@ type TableProps = {
   };
 } & React.ComponentProps<"table">;
 
+const initSelected = {
+  col: 0,
+  row: 0,
+};
+
+const initSelection = {
+  rowStart: 0,
+  rowEnd: 0,
+  colStart: 0,
+  colEnd: 0,
+};
+
 export const Table = ({ size, className, ...props }: TableProps) => {
   const selectedInputRef = useRef<HTMLInputElement>(null);
-  const [selectedCell, setSelectedCell] = useState<CellPosition | null>(null);
-  const [selection, setSelection] = useState<TableSelection | null>(null);
+  const [selectedCell, setSelectedCell] = useState<CellPosition>(initSelected);
+  const [selection, setSelection] = useState<TableSelection>(initSelection);
   const [data, setData] = useState<Record<string, string>>({});
 
   const updateCell = (cellId: string, value: string) => {
@@ -36,13 +48,13 @@ export const Table = ({ size, className, ...props }: TableProps) => {
     return evaluateCell(cellId, data);
   };
 
-  const setSelectionBounds = (selection: TableSelection | null) => {
-    setSelection(selection ? getSelectionBounds(selection) : null);
+  const setSelectionBounds = (selection: TableSelection) => {
+    setSelection(getSelectionBounds(selection));
   };
 
   const clearSelection = () => {
-    setSelectedCell(null);
-    setSelection(null);
+    setSelectedCell(initSelected);
+    setSelection(initSelection);
   };
 
   useEffect(() => {
@@ -89,34 +101,40 @@ export const Table = ({ size, className, ...props }: TableProps) => {
         getCellData,
       }}
     >
-      <table className={clsx("table", className)} {...props}>
-        {/* A-Z column headers */}
-        <TableRow>
-          <TableHeader />
-          {Array.from({ length: size.cols }).map((_, col) => (
-            <TableHeader key={col} col={col}>
-              {getColumnHeader(col)}
-            </TableHeader>
-          ))}
-        </TableRow>
-        {Array.from({ length: size.rows }).map((_, row) => (
-          <TableRow key={row}>
-            <TableHeader row={row}>{row + 1}</TableHeader>
-            {Array.from({ length: size.cols }).map((_, col) => {
-              const isSelectedCell =
-                col === selectedCell?.col && row === selectedCell?.row;
-              return (
-                <TableCell
-                  key={col}
-                  row={row}
-                  col={col}
-                  inputRef={isSelectedCell ? selectedInputRef : undefined}
-                />
-              );
-            })}
-          </TableRow>
-        ))}
-      </table>
+      <div className="table-wrapper">
+        <TableTopBar />
+
+        <div className="table-scrollable">
+          <table className={clsx("table", className)} {...props}>
+            {/* A-Z column headers */}
+            <TableRow>
+              <TableHeader />
+              {Array.from({ length: size.cols }).map((_, col) => (
+                <TableHeader key={col} col={col}>
+                  {getColumnHeader(col)}
+                </TableHeader>
+              ))}
+            </TableRow>
+            {Array.from({ length: size.rows }).map((_, row) => (
+              <TableRow key={row}>
+                <TableHeader row={row}>{row + 1}</TableHeader>
+                {Array.from({ length: size.cols }).map((_, col) => {
+                  const isSelectedCell =
+                    col === selectedCell?.col && row === selectedCell?.row;
+                  return (
+                    <TableCell
+                      key={col}
+                      row={row}
+                      col={col}
+                      inputRef={isSelectedCell ? selectedInputRef : undefined}
+                    />
+                  );
+                })}
+              </TableRow>
+            ))}
+          </table>
+        </div>
+      </div>
     </TableContext.Provider>
   );
 };
@@ -242,3 +260,21 @@ export const TableCell = ({
     </td>
   );
 };
+
+export function TableTopBar() {
+  const { selectedCell, getCellData, updateCell } = useTable();
+
+  const cellId = getCellId(selectedCell.row, selectedCell.col);
+  const { rawValue } = getCellData(cellId);
+
+  return (
+    <div className="table-top-bar">
+      <div className="table-top-bar-address">{cellId}</div>
+      <Input
+        className="table-top-bar-input"
+        value={rawValue}
+        onChange={(e) => updateCell(cellId, e.target.value)}
+      />
+    </div>
+  );
+}
