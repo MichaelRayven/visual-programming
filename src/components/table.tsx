@@ -1,13 +1,16 @@
 import clsx from "clsx";
-import { TableContextProvider, useTable } from "@/hooks/useTable";
+import { TableContext, useTable } from "@/hooks/useTable";
 import {
   getColumnHeader,
+  getSelectionBounds,
   isCellInSelection,
   isColumnHeaderInSelection,
   isRowHeaderInSelection,
+  type SelectedCell,
+  type TableSelection,
 } from "@/lib/table";
 import "@/components/table.css";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Input } from "./input";
 
 type TableProps = {
@@ -18,8 +21,59 @@ type TableProps = {
 } & React.ComponentProps<"table">;
 
 export const Table = ({ size, className, ...props }: TableProps) => {
+  const selectedInputRef = useRef<HTMLInputElement>(null);
+  const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
+  const [tableSelection, setTableSelection] = useState<TableSelection | null>(
+    null
+  );
+
+  const setSelectionBounds = (selection: TableSelection | null) => {
+    setTableSelection(selection ? getSelectionBounds(selection) : null);
+  };
+
+  const clearSelection = () => {
+    setSelectedCell(null);
+    setTableSelection(null);
+  };
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (!selectedCell) return;
+
+      if (e.key === "Enter" && selectedCell) {
+        e.preventDefault();
+        selectedInputRef.current?.focus();
+      } else if (e.key === "Tab") {
+        e.preventDefault();
+        if (selectedCell.col + 1 < size.cols) {
+          setSelectedCell({
+            col: selectedCell.col + 1,
+            row: selectedCell.row,
+          });
+          setTableSelection({
+            rowStart: selectedCell.row,
+            colStart: selectedCell.col + 1,
+            rowEnd: selectedCell.row,
+            colEnd: selectedCell.col + 1,
+          });
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleGlobalKeyDown);
+    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
+  }, [selectedCell, size]);
+
   return (
-    <TableContextProvider>
+    <TableContext.Provider
+      value={{
+        selectedCell,
+        selection: tableSelection,
+        setSelectedCell,
+        setSelection: setSelectionBounds,
+        clearSelection,
+      }}
+    >
       <table className={clsx("table", className)} {...props}>
         {/* A-Z column headers */}
         <TableRow>
@@ -34,12 +88,21 @@ export const Table = ({ size, className, ...props }: TableProps) => {
           <TableRow key={row}>
             <TableHeader row={row}>{row + 1}</TableHeader>
             {Array.from({ length: size.cols }).map((_, col) => {
-              return <TableCell key={col} row={row} col={col} />;
+              const isSelectedCell =
+                col === selectedCell?.col && row === selectedCell?.row;
+              return (
+                <TableCell
+                  key={col}
+                  row={row}
+                  col={col}
+                  inputRef={isSelectedCell ? selectedInputRef : undefined}
+                />
+              );
             })}
           </TableRow>
         ))}
       </table>
-    </TableContextProvider>
+    </TableContext.Provider>
   );
 };
 
@@ -77,47 +140,27 @@ export const TableHeader = ({
   );
 };
 
-type TableCellProps = { row: number; col: number } & React.ComponentProps<"td">;
+type TableCellProps = {
+  row: number;
+  col: number;
+  inputRef?: React.RefObject<HTMLInputElement | null>;
+} & React.ComponentProps<"td">;
 
 export const TableCell = ({
   className,
   row,
   col,
   onClick,
+  inputRef,
   onDoubleClick,
   ...props
 }: TableCellProps) => {
   const { selection, selectedCell, setSelection, setSelectedCell } = useTable();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const internalInputRef = useRef<HTMLInputElement>(null);
 
   const isInSelection = isCellInSelection(selection, row, col);
   const isSelectedCell = col === selectedCell?.col && row === selectedCell?.row;
-
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (!selectedCell || !isSelectedCell) return;
-
-      if (e.key === "Enter") {
-        e.preventDefault();
-        inputRef.current?.focus();
-      } else if (e.key === "Tab") {
-        e.preventDefault();
-        setSelectedCell({
-          col: selectedCell.col + 1,
-          row: selectedCell.row,
-        });
-        setSelection({
-          rowStart: selectedCell.row,
-          colStart: selectedCell.col + 1,
-          rowEnd: selectedCell.row,
-          colEnd: selectedCell.col + 1,
-        });
-      }
-    };
-
-    document.addEventListener("keydown", handleGlobalKeyDown);
-    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [selectedCell, setSelectedCell, isSelectedCell]);
+  const currentInputRef = inputRef || internalInputRef;
 
   return (
     <td
@@ -134,7 +177,7 @@ export const TableCell = ({
         className
       )}
       onDoubleClick={(e) => {
-        inputRef.current?.focus();
+        currentInputRef.current?.focus();
         onDoubleClick?.(e);
       }}
       onClick={(e) => {
@@ -159,7 +202,7 @@ export const TableCell = ({
       }}
       {...props}
     >
-      <Input ref={inputRef} className="table-cell-input" />
+      <Input ref={currentInputRef} className="table-cell-input" />
     </td>
   );
 };

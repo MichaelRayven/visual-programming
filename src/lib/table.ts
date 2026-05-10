@@ -3,7 +3,7 @@ export type SelectedCell = {
   row: number;
 };
 
-export type Selection = {
+export type TableSelection = {
   colStart: number;
   rowStart: number;
   colEnd: number;
@@ -13,7 +13,9 @@ export type Selection = {
 /**
  * Ensured colStart and rowStart have the minimum index,
  * while colEnd and rowEnd have maximum index */
-export const getSelectionBounds = (selection: Selection): Selection => {
+export const getSelectionBounds = (
+  selection: TableSelection
+): TableSelection => {
   return {
     rowStart: Math.min(selection.rowStart, selection.rowEnd),
     rowEnd: Math.max(selection.rowStart, selection.rowEnd),
@@ -23,7 +25,7 @@ export const getSelectionBounds = (selection: Selection): Selection => {
 };
 
 export const isCellInSelection = (
-  selection: Selection | null,
+  selection: TableSelection | null,
   row: number,
   col: number
 ) => {
@@ -34,7 +36,7 @@ export const isCellInSelection = (
 };
 
 export const isColumnHeaderInSelection = (
-  selection: Selection | null,
+  selection: TableSelection | null,
   col: number
 ) => {
   if (!selection) return false;
@@ -44,7 +46,7 @@ export const isColumnHeaderInSelection = (
 };
 
 export const isRowHeaderInSelection = (
-  selection: Selection | null,
+  selection: TableSelection | null,
   row: number
 ) => {
   if (!selection) return false;
