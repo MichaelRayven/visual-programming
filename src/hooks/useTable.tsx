@@ -15,6 +15,11 @@ type TableContextType = {
   data: Record<string, string>;
   updateCell: (cellId: string, value: string) => void;
   getCellData: (cellId: string) => CellData;
+
+  insertColumn: (col: number, position: "left" | "right") => void;
+  deleteColumn: (col: number) => void;
+  insertRow: (row: number, position: "above" | "below") => void;
+  deleteRow: (row: number) => void;
 };
 
 export const TableContext = createContext<TableContextType | null>(null);

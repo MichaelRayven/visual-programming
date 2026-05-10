@@ -45,11 +45,16 @@ type TableProps = {
 
 export const Table = ({ size, className, ...props }: TableProps) => {
   const selectedInputRef = useRef<HTMLInputElement>(null);
+  const [gridSize, setGridSize] = useState(size);
   const [selectedCell, setSelectedCell] = useState<CellPosition>(initSelected);
   const [selection, setSelection] = useState<TableSelection>(initSelection);
   const [colWidths, setColWidths] = useState<Record<number, number>>({});
   const [rowHeights, setRowHeights] = useState<Record<number, number>>({});
   const [data, setData] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setGridSize(size);
+  }, [size]);
 
   const handleColResize = (col: number, width: number) => {
     setColWidths((prev) => ({ ...prev, [col]: width }));
@@ -76,6 +81,253 @@ export const Table = ({ size, className, ...props }: TableProps) => {
     setSelection(initSelection);
   };
 
+  const insertColumn = (colIndex: number, position: "left" | "right") => {
+    const insertCol = position === "left" ? colIndex : colIndex + 1;
+    const newCols = gridSize.cols + 1;
+
+    setData((prevData) => {
+      const nextData: Record<string, string> = {};
+      for (let r = 0; r < gridSize.rows; r++) {
+        for (let c = 0; c < newCols; c++) {
+          if (c < insertCol) {
+            const id = getCellId(r, c);
+            if (prevData[id] !== undefined) nextData[id] = prevData[id];
+          } else if (c > insertCol) {
+            const oldId = getCellId(r, c - 1);
+            const newId = getCellId(r, c);
+            if (prevData[oldId] !== undefined)
+              nextData[newId] = prevData[oldId];
+          }
+        }
+      }
+      return nextData;
+    });
+
+    setColWidths((prevWidths) => {
+      const nextWidths: Record<number, number> = {};
+      Object.entries(prevWidths).forEach(([key, val]) => {
+        const c = Number(key);
+        if (c < insertCol) {
+          nextWidths[c] = val;
+        } else {
+          nextWidths[c + 1] = val;
+        }
+      });
+      return nextWidths;
+    });
+
+    setSelectedCell((prev) => {
+      if (!prev) return prev;
+      return {
+        row: prev.row,
+        col: prev.col >= insertCol ? prev.col + 1 : prev.col,
+      };
+    });
+
+    setSelection((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        colStart:
+          prev.colStart >= insertCol ? prev.colStart + 1 : prev.colStart,
+        colEnd: prev.colEnd >= insertCol ? prev.colEnd + 1 : prev.colEnd,
+      };
+    });
+
+    setGridSize((prev) => ({ ...prev, cols: newCols }));
+  };
+
+  const deleteColumn = (colIndex: number) => {
+    if (gridSize.cols <= 1) return;
+    const newCols = gridSize.cols - 1;
+
+    setData((prevData) => {
+      const nextData: Record<string, string> = {};
+      for (let r = 0; r < gridSize.rows; r++) {
+        for (let c = 0; c < newCols; c++) {
+          if (c < colIndex) {
+            const id = getCellId(r, c);
+            if (prevData[id] !== undefined) nextData[id] = prevData[id];
+          } else {
+            const oldId = getCellId(r, c + 1);
+            const newId = getCellId(r, c);
+            if (prevData[oldId] !== undefined)
+              nextData[newId] = prevData[oldId];
+          }
+        }
+      }
+      return nextData;
+    });
+
+    setColWidths((prevWidths) => {
+      const nextWidths: Record<number, number> = {};
+      Object.entries(prevWidths).forEach(([key, val]) => {
+        const c = Number(key);
+        if (c < colIndex) {
+          nextWidths[c] = val;
+        } else if (c > colIndex) {
+          nextWidths[c - 1] = val;
+        }
+      });
+      return nextWidths;
+    });
+
+    setSelectedCell((prev) => {
+      if (!prev) return prev;
+      let nextCol = prev.col;
+      if (prev.col === colIndex) {
+        nextCol = Math.min(prev.col, newCols - 1);
+      } else if (prev.col > colIndex) {
+        nextCol = prev.col - 1;
+      }
+      return { row: prev.row, col: nextCol };
+    });
+
+    setSelection((prev) => {
+      if (!prev) return prev;
+      const colStart =
+        prev.colStart > colIndex
+          ? prev.colStart - 1
+          : Math.min(prev.colStart, newCols - 1);
+      const colEnd =
+        prev.colEnd > colIndex
+          ? prev.colEnd - 1
+          : Math.min(prev.colEnd, newCols - 1);
+      return {
+        ...prev,
+        colStart,
+        colEnd,
+      };
+    });
+
+    setGridSize((prev) => ({ ...prev, cols: newCols }));
+  };
+
+  const insertRow = (rowIndex: number, position: "above" | "below") => {
+    const insertRowIdx = position === "above" ? rowIndex : rowIndex + 1;
+    const newRows = gridSize.rows + 1;
+
+    setData((prevData) => {
+      const nextData: Record<string, string> = {};
+      for (let r = 0; r < newRows; r++) {
+        for (let c = 0; c < gridSize.cols; c++) {
+          if (r < insertRowIdx) {
+            const id = getCellId(r, c);
+            if (prevData[id] !== undefined) nextData[id] = prevData[id];
+          } else if (r > insertRowIdx) {
+            const oldId = getCellId(r - 1, c);
+            const newId = getCellId(r, c);
+            if (prevData[oldId] !== undefined)
+              nextData[newId] = prevData[oldId];
+          }
+        }
+      }
+      return nextData;
+    });
+
+    setRowHeights((prevHeights) => {
+      const nextHeights: Record<number, number> = {};
+      Object.entries(prevHeights).forEach(([key, val]) => {
+        const r = Number(key);
+        if (r < insertRowIdx) {
+          nextHeights[r] = val;
+        } else {
+          nextHeights[r + 1] = val;
+        }
+      });
+      return nextHeights;
+    });
+
+    setSelectedCell((prev) => {
+      if (!prev) return prev;
+      return {
+        col: prev.col,
+        row: prev.row >= insertRowIdx ? prev.row + 1 : prev.row,
+      };
+    });
+
+    setSelection((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        rowStart:
+          prev.rowStart >= insertRowIdx ? prev.rowStart + 1 : prev.rowStart,
+        rowEnd: prev.rowEnd >= insertRowIdx ? prev.rowEnd + 1 : prev.rowEnd,
+      };
+    });
+
+    setGridSize((prev) => ({ ...prev, rows: newRows }));
+  };
+
+  const deleteRow = (rowIndex: number) => {
+    if (gridSize.rows <= 1) return; // Prevent deleting last row
+    const newRows = gridSize.rows - 1;
+
+    // 1. Shift cell data up over the deleted index
+    setData((prevData) => {
+      const nextData: Record<string, string> = {};
+      for (let r = 0; r < newRows; r++) {
+        for (let c = 0; c < gridSize.cols; c++) {
+          if (r < rowIndex) {
+            const id = getCellId(r, c);
+            if (prevData[id] !== undefined) nextData[id] = prevData[id];
+          } else {
+            const oldId = getCellId(r + 1, c);
+            const newId = getCellId(r, c);
+            if (prevData[oldId] !== undefined)
+              nextData[newId] = prevData[oldId];
+          }
+        }
+      }
+      return nextData;
+    });
+
+    // 2. Shift saved row heights up
+    setRowHeights((prevHeights) => {
+      const nextHeights: Record<number, number> = {};
+      Object.entries(prevHeights).forEach(([key, val]) => {
+        const r = Number(key);
+        if (r < rowIndex) {
+          nextHeights[r] = val;
+        } else if (r > rowIndex) {
+          nextHeights[r - 1] = val;
+        }
+      });
+      return nextHeights;
+    });
+
+    // 3. Update/Clamp active selections
+    setSelectedCell((prev) => {
+      if (!prev) return prev;
+      let nextRow = prev.row;
+      if (prev.row === rowIndex) {
+        nextRow = Math.min(prev.row, newRows - 1);
+      } else if (prev.row > rowIndex) {
+        nextRow = prev.row - 1;
+      }
+      return { col: prev.col, row: nextRow };
+    });
+
+    setSelection((prev) => {
+      if (!prev) return prev;
+      const rowStart =
+        prev.rowStart > rowIndex
+          ? prev.rowStart - 1
+          : Math.min(prev.rowStart, newRows - 1);
+      const rowEnd =
+        prev.rowEnd > rowIndex
+          ? prev.rowEnd - 1
+          : Math.min(prev.rowEnd, newRows - 1);
+      return {
+        ...prev,
+        rowStart,
+        rowEnd,
+      };
+    });
+
+    setGridSize((prev) => ({ ...prev, rows: newRows }));
+  };
+
   useEffect(() => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (!selectedCell) return;
@@ -88,7 +340,7 @@ export const Table = ({ size, className, ...props }: TableProps) => {
         e.preventDefault();
 
         selectedInputRef.current?.blur();
-        if (selectedCell.col + 1 < size.cols) {
+        if (selectedCell.col + 1 < gridSize.cols) {
           setSelectedCell({
             col: selectedCell.col + 1,
             row: selectedCell.row,
@@ -105,7 +357,7 @@ export const Table = ({ size, className, ...props }: TableProps) => {
 
     document.addEventListener("keydown", handleGlobalKeyDown);
     return () => document.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [selectedCell, size]);
+  }, [selectedCell, gridSize]);
 
   return (
     <TableContext.Provider
@@ -118,6 +370,10 @@ export const Table = ({ size, className, ...props }: TableProps) => {
         data,
         updateCell,
         getCellData,
+        insertColumn,
+        deleteColumn,
+        insertRow,
+        deleteRow,
       }}
     >
       <div className="table-wrapper">
@@ -128,7 +384,7 @@ export const Table = ({ size, className, ...props }: TableProps) => {
             {/* A-Z column headers */}
             <TableRow>
               <TableHeader />
-              {Array.from({ length: size.cols }).map((_, col) => (
+              {Array.from({ length: gridSize.cols }).map((_, col) => (
                 <TableHeader
                   key={col}
                   col={col}
@@ -143,7 +399,7 @@ export const Table = ({ size, className, ...props }: TableProps) => {
                 </TableHeader>
               ))}
             </TableRow>
-            {Array.from({ length: size.rows }).map((_, row) => (
+            {Array.from({ length: gridSize.rows }).map((_, row) => (
               <TableRow
                 key={row}
                 style={
@@ -156,7 +412,7 @@ export const Table = ({ size, className, ...props }: TableProps) => {
                 >
                   {row + 1}
                 </TableHeader>
-                {Array.from({ length: size.cols }).map((_, col) => {
+                {Array.from({ length: gridSize.cols }).map((_, col) => {
                   const isSelectedCell =
                     col === selectedCell?.col && row === selectedCell?.row;
                   return (
@@ -197,7 +453,8 @@ export const TableHeader = ({
   children,
   ...props
 }: TableHeaderProps) => {
-  const { selection } = useTable();
+  const { selection, insertColumn, deleteColumn, insertRow, deleteRow } =
+    useTable();
   const ref = useRef<HTMLTableCellElement>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -256,10 +513,32 @@ export const TableHeader = ({
           {children}
         </ContextMenuTrigger>
         <ContextMenuContent>
-          <ContextMenuItem>Hi</ContextMenuItem>
-          <ContextMenuItem>Hi</ContextMenuItem>
-          <ContextMenuItem>Hi</ContextMenuItem>
-          <ContextMenuItem>Hi</ContextMenuItem>
+          {isCol && (
+            <>
+              <ContextMenuItem onClick={() => insertColumn(col, "left")}>
+                Insert column left
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => insertColumn(col, "right")}>
+                Insert column right
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => deleteColumn(col)}>
+                Delete column
+              </ContextMenuItem>
+            </>
+          )}
+          {isRow && (
+            <>
+              <ContextMenuItem onClick={() => insertRow(row, "above")}>
+                Insert row above
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => insertRow(row, "below")}>
+                Insert row below
+              </ContextMenuItem>
+              <ContextMenuItem onClick={() => deleteRow(row)}>
+                Delete row
+              </ContextMenuItem>
+            </>
+          )}
         </ContextMenuContent>
       </ContextMenu>
       {isCol && (
