@@ -38,7 +38,17 @@ export const Table = ({ size, className, ...props }: TableProps) => {
   const selectedInputRef = useRef<HTMLInputElement>(null);
   const [selectedCell, setSelectedCell] = useState<CellPosition>(initSelected);
   const [selection, setSelection] = useState<TableSelection>(initSelection);
+  const [colWidths, setColWidths] = useState<Record<number, number>>({});
+  const [rowHeights, setRowHeights] = useState<Record<number, number>>({});
   const [data, setData] = useState<Record<string, string>>({});
+
+  const handleColResize = (col: number, width: number) => {
+    setColWidths((prev) => ({ ...prev, [col]: width }));
+  };
+
+  const handleRowResize = (row: number, height: number) => {
+    setRowHeights((prev) => ({ ...prev, [row]: height }));
+  };
 
   const updateCell = (cellId: string, value: string) => {
     setData((prev) => ({ ...prev, [cellId]: value }));
@@ -110,14 +120,33 @@ export const Table = ({ size, className, ...props }: TableProps) => {
             <TableRow>
               <TableHeader />
               {Array.from({ length: size.cols }).map((_, col) => (
-                <TableHeader key={col} col={col}>
+                <TableHeader
+                  key={col}
+                  col={col}
+                  style={
+                    colWidths[col]
+                      ? { width: colWidths[col], minWidth: colWidths[col] }
+                      : undefined
+                  }
+                  onResize={(width) => handleColResize(col, width)}
+                >
                   {getColumnHeader(col)}
                 </TableHeader>
               ))}
             </TableRow>
             {Array.from({ length: size.rows }).map((_, row) => (
-              <TableRow key={row}>
-                <TableHeader row={row}>{row + 1}</TableHeader>
+              <TableRow
+                key={row}
+                style={
+                  rowHeights[row] ? { height: rowHeights[row] } : undefined
+                }
+              >
+                <TableHeader
+                  row={row}
+                  onResize={(height) => handleRowResize(row, height)}
+                >
+                  {row + 1}
+                </TableHeader>
                 {Array.from({ length: size.cols }).map((_, col) => {
                   const isSelectedCell =
                     col === selectedCell?.col && row === selectedCell?.row;
@@ -148,28 +177,105 @@ export const TableRow = ({ className, ...props }: TableRowProps) => {
 type TableHeaderProps = {
   col?: number;
   row?: number;
+  onResize?: (size: number) => void;
 } & React.ComponentProps<"th">;
 
 export const TableHeader = ({
   className,
   col,
   row,
+  onResize,
+  style,
+  children,
   ...props
 }: TableHeaderProps) => {
   const { selection } = useTable();
+  const ref = useRef<HTMLTableCellElement>(null);
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const startX = e.clientX;
+    const startY = e.clientY;
+    const startWidth = ref.current ? ref.current.offsetWidth : 0;
+    const startHeight = ref.current ? ref.current.offsetHeight : 0;
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      if (col !== undefined && onResize) {
+        const newWidth = Math.max(
+          50,
+          startWidth + (moveEvent.clientX - startX)
+        );
+        onResize(newWidth);
+      } else if (row !== undefined && onResize) {
+        const newHeight = Math.max(
+          20,
+          startHeight + (moveEvent.clientY - startY)
+        );
+        onResize(newHeight);
+      }
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+  };
+
+  const isCol = col !== undefined;
+  const isRow = row !== undefined;
+
   return (
     <th
+      ref={ref}
       className={clsx(
         "table-header",
         {
           "header-selected":
-            (col && isColumnHeaderInSelection(selection, col)) ||
-            (row && isRowHeaderInSelection(selection, row)),
+            (isCol && isColumnHeaderInSelection(selection, col)) ||
+            (isRow && isRowHeaderInSelection(selection, row)),
         },
         className
       )}
+      style={{ position: "relative", ...style }}
       {...props}
-    />
+    >
+      {children}
+      {isCol && (
+        <div
+          className="col-resizer"
+          onMouseDown={handleMouseDown}
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: "6px",
+            cursor: "col-resize",
+            zIndex: 10,
+          }}
+        />
+      )}
+      {isRow && (
+        <div
+          className="row-resizer"
+          onMouseDown={handleMouseDown}
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: "6px",
+            cursor: "row-resize",
+            zIndex: 10,
+          }}
+        />
+      )}
+    </th>
   );
 };
 
