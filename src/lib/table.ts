@@ -1,4 +1,12 @@
-export type SelectedCell = {
+export type CellType = "string" | "number" | "boolean" | "formula";
+
+export interface CellData {
+  value: string | number | boolean;
+  rawValue: string;
+  type: CellType;
+}
+
+export type CellPosition = {
   col: number;
   row: number;
 };
@@ -63,4 +71,24 @@ export const getColumnHeader = (idx: number) => {
     remainder = Math.floor(remainder / 26) - 1;
   }
   return header;
+};
+
+export const getCellId = (row: number, col: number): string => {
+  return `${getColumnHeader(col)}${row + 1}`;
+};
+
+export const parseCellId = (id: string): CellPosition | null => {
+  const match = id.match(/^([A-Z]+)([0-9]+)$/);
+  if (!match) return null;
+  const colsStr = match[1];
+  const rowStr = match[2];
+
+  let col = 0;
+  for (let i = 0; i < colsStr.length; i++) {
+    col = col * 26 + (colsStr.charCodeAt(i) - 64);
+  }
+  col -= 1;
+
+  const row = parseInt(rowStr, 10) - 1;
+  return { row, col };
 };

@@ -1,16 +1,18 @@
 import clsx from "clsx";
 import { TableContext, useTable } from "@/hooks/useTable";
 import {
+  type CellPosition,
+  getCellId,
   getColumnHeader,
   getSelectionBounds,
   isCellInSelection,
   isColumnHeaderInSelection,
   isRowHeaderInSelection,
-  type SelectedCell,
   type TableSelection,
 } from "@/lib/table";
 import "@/components/table.css";
 import { useEffect, useRef, useState } from "react";
+import { evaluateCell } from "@/lib/formula";
 import { Input } from "./input";
 
 type TableProps = {
@@ -22,18 +24,25 @@ type TableProps = {
 
 export const Table = ({ size, className, ...props }: TableProps) => {
   const selectedInputRef = useRef<HTMLInputElement>(null);
-  const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
-  const [tableSelection, setTableSelection] = useState<TableSelection | null>(
-    null
-  );
+  const [selectedCell, setSelectedCell] = useState<CellPosition | null>(null);
+  const [selection, setSelection] = useState<TableSelection | null>(null);
+  const [data, setData] = useState<Record<string, string>>({});
+
+  const updateCell = (cellId: string, value: string) => {
+    setData((prev) => ({ ...prev, [cellId]: value }));
+  };
+
+  const getCellData = (cellId: string) => {
+    return evaluateCell(cellId, data);
+  };
 
   const setSelectionBounds = (selection: TableSelection | null) => {
-    setTableSelection(selection ? getSelectionBounds(selection) : null);
+    setSelection(selection ? getSelectionBounds(selection) : null);
   };
 
   const clearSelection = () => {
     setSelectedCell(null);
-    setTableSelection(null);
+    setSelection(null);
   };
 
   useEffect(() => {
@@ -53,7 +62,7 @@ export const Table = ({ size, className, ...props }: TableProps) => {
             col: selectedCell.col + 1,
             row: selectedCell.row,
           });
-          setTableSelection({
+          setSelection({
             rowStart: selectedCell.row,
             colStart: selectedCell.col + 1,
             rowEnd: selectedCell.row,
@@ -71,10 +80,13 @@ export const Table = ({ size, className, ...props }: TableProps) => {
     <TableContext.Provider
       value={{
         selectedCell,
-        selection: tableSelection,
+        selection,
         setSelectedCell,
         setSelection: setSelectionBounds,
         clearSelection,
+        data,
+        updateCell,
+        getCellData,
       }}
     >
       <table className={clsx("table", className)} {...props}>
@@ -158,12 +170,26 @@ export const TableCell = ({
   onDoubleClick,
   ...props
 }: TableCellProps) => {
-  const { selection, selectedCell, setSelection, setSelectedCell } = useTable();
+  const {
+    selection,
+    selectedCell,
+    setSelection,
+    setSelectedCell,
+    updateCell,
+    getCellData,
+  } = useTable();
+  const [isFocused, setIsFocused] = useState(false);
   const internalInputRef = useRef<HTMLInputElement>(null);
+
+  const cellId = getCellId(row, col);
+  const { value, rawValue } = getCellData(cellId);
 
   const isInSelection = isCellInSelection(selection, row, col);
   const isSelectedCell = col === selectedCell?.col && row === selectedCell?.row;
   const currentInputRef = inputRef || internalInputRef;
+
+  // Display raw value if this cell is selected
+  const displayValue = isFocused ? rawValue : String(value);
 
   return (
     <td
@@ -205,7 +231,14 @@ export const TableCell = ({
       }}
       {...props}
     >
-      <Input ref={currentInputRef} className="table-cell-input" />
+      <Input
+        ref={currentInputRef}
+        className="table-cell-input"
+        value={displayValue}
+        onChange={(e) => updateCell(cellId, e.target.value)}
+        onFocus={() => setIsFocused(true)}
+        onBlur={() => setIsFocused(false)}
+      />
     </td>
   );
 };

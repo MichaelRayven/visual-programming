@@ -1,12 +1,20 @@
 import { createContext, useContext } from "react";
-import { type SelectedCell, type TableSelection } from "@/lib/table";
+import {
+  type CellData,
+  type CellPosition,
+  type TableSelection,
+} from "@/lib/table";
 
 type TableContextType = {
-  selectedCell: SelectedCell | null;
+  selectedCell: CellPosition | null;
   selection: TableSelection | null;
-  setSelectedCell: (cell: SelectedCell | null) => void;
+  setSelectedCell: (cell: CellPosition | null) => void;
   setSelection: (selection: TableSelection | null) => void;
   clearSelection: () => void;
+
+  data: Record<string, string>;
+  updateCell: (cellId: string, value: string) => void;
+  getCellData: (cellId: string) => CellData;
 };
 
 export const TableContext = createContext<TableContextType | null>(null);
