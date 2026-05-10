@@ -6,22 +6,13 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "lint": "biome lint --write",
     "preview": "vite preview",
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
-    ],
-    "*.{json,md,html,yml,yaml}": [
-      "prettier --write"
-    ],
-    "*.{css,scss}": [
-      "stylelint --fix",
-      "prettier --write"
-    ]
+    "*.{js,jsx,ts,tsx,json,md,html,yml,yaml,css,scss}": ["biome check --write"],
+    "*.{css,scss}": ["stylelint --fix"]
   },
   "dependencies": {
     "clsx": "^2.1.1",
@@ -30,7 +21,7 @@
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
-    "@eslint/js": "^10.0.1",
+    "@biomejs/biome": "2.4.15",
     "@rolldown/plugin-babel": "^0.2.3",
     "@types/babel__core": "^7.20.5",
     "@types/node": "^24.12.2",
@@ -44,7 +35,6 @@
     "globals": "^17.5.0",
     "husky": "^9.1.7",
     "lint-staged": "^16.4.0",
-    "prettier": "^3.8.3",
     "stylelint": "^17.9.1",
     "stylelint-config-recess-order": "^7.7.0",
     "stylelint-config-standard": "^40.0.0",
