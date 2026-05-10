@@ -1,46 +1,64 @@
-import { createContext, useContext } from "react";
+import { createContext, type ReactNode, useContext, useState } from "react";
+import {
+  getSelectionBounds,
+  type SelectedCell,
+  type Selection,
+} from "@/lib/table";
 
-type TableSelection = {
-  x1: number;
-  x2: number;
-  y1: number;
-  y2: number;
+type TableContextType = {
+  selectedCell: SelectedCell | null;
+  selection: Selection | null;
+  setSelectedCell: (cell: SelectedCell | null) => void;
+  setSelection: (selection: Selection | null) => void;
+  clearSelection: () => void;
 };
 
-type TableColumn = {
-  width: number;
-  header: string;
-};
-
-type TableContext = {
-  selection: TableSelection | null;
-  columns: TableColumn[];
-};
-
-const TableContext = createContext<TableContext | null>(null);
-const TableRowContext = createContext(null);
-const TableCellContext = createContext(null);
+const TableContext = createContext<TableContextType | null>(null);
 
 export const useTable = () => {
-  const tableData = useContext(TableContext);
-  if (tableData == null) {
-    throw Error("A TableRow must have a Table parent");
+  const context = useContext(TableContext);
+  if (!context) {
+    throw new Error("useTable must be used within a TableProvider");
   }
-  return tableData;
+  return context;
 };
 
-export const useTableRow = () => {
-  const tableRowData = useContext(TableRowContext);
-  if (tableRowData == null) {
-    throw Error("A TabPanel must have a Tabs parent");
-  }
-  return tableRowData;
+type TableProviderProps = {
+  children: ReactNode;
+  initialSelectedCell?: SelectedCell | null;
+  initialSelection?: Selection | null;
 };
 
-export const useTableCell = () => {
-  const tableCellData = useContext(TableCellContext);
-  if (tableCellData == null) {
-    throw Error("A TabList must have a Tabs parent");
-  }
-  return tableCellData;
+export const TableContextProvider = ({
+  children,
+  initialSelectedCell = null,
+  initialSelection = null,
+}: TableProviderProps) => {
+  const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(
+    initialSelectedCell
+  );
+  const [selection, setSelection] = useState<Selection | null>(
+    initialSelection
+  );
+
+  const setSelectionBounds = (selection: Selection | null) => {
+    setSelection(selection ? getSelectionBounds(selection) : null);
+  };
+
+  const clearSelection = () => {
+    setSelectedCell(null);
+    setSelection(null);
+  };
+
+  const value: TableContextType = {
+    selectedCell,
+    selection,
+    setSelectedCell,
+    setSelection: setSelectionBounds,
+    clearSelection,
+  };
+
+  return (
+    <TableContext.Provider value={value}>{children}</TableContext.Provider>
+  );
 };

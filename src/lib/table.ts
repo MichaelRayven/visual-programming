@@ -1,3 +1,8 @@
+export type SelectedCell = {
+  col: number;
+  row: number;
+};
+
 export type Selection = {
   colStart: number;
   rowStart: number;
@@ -5,12 +10,15 @@ export type Selection = {
   rowEnd: number;
 };
 
-export const getSelectionBounds = (selection: Selection) => {
+/**
+ * Ensured colStart and rowStart have the minimum index,
+ * while colEnd and rowEnd have maximum index */
+export const getSelectionBounds = (selection: Selection): Selection => {
   return {
-    minRow: Math.min(selection.rowStart, selection.rowEnd),
-    maxRow: Math.max(selection.rowStart, selection.rowEnd),
-    minCol: Math.min(selection.colStart, selection.colEnd),
-    maxCol: Math.max(selection.colStart, selection.colEnd),
+    rowStart: Math.min(selection.rowStart, selection.rowEnd),
+    rowEnd: Math.max(selection.rowStart, selection.rowEnd),
+    colStart: Math.min(selection.colStart, selection.colEnd),
+    colEnd: Math.max(selection.colStart, selection.colEnd),
   };
 };
 
@@ -19,22 +27,22 @@ export const isCellInSelection = (
   row: number,
   col: number
 ) => {
-  const { minRow, maxRow, minCol, maxCol } = getSelectionBounds(selection);
+  const { rowStart, rowEnd, colStart, colEnd } = getSelectionBounds(selection);
 
-  return row >= minRow && row <= maxRow && col >= minCol && col <= maxCol;
+  return row >= rowStart && row <= rowEnd && col >= colStart && col <= colEnd;
 };
 
 export const isColumnHeaderInSelection = (
   selection: Selection,
   col: number
 ) => {
-  const { minRow, maxRow, minCol, maxCol } = getSelectionBounds(selection);
+  const { rowStart, rowEnd, colStart, colEnd } = getSelectionBounds(selection);
 
-  return col >= minCol && col <= maxCol && minRow <= maxRow;
+  return col >= colStart && col <= colEnd && rowStart <= rowEnd;
 };
 
 export const isRowHeaderInSelection = (selection: Selection, row: number) => {
-  const { minRow, maxRow, minCol, maxCol } = getSelectionBounds(selection);
+  const { rowStart, rowEnd, colStart, colEnd } = getSelectionBounds(selection);
 
-  return row >= minRow && row <= maxRow && minCol <= maxCol;
+  return row >= rowStart && row <= rowEnd && colStart <= colEnd;
 };

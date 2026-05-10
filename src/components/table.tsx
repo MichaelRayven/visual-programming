@@ -1,18 +1,11 @@
 import clsx from "clsx";
-import "./table.css";
-import { useState } from "react";
+import { TableContextProvider, useTable } from "@/hooks/useTable";
 import {
-  getSelectionBounds,
   isCellInSelection,
   isColumnHeaderInSelection,
   isRowHeaderInSelection,
-  type Selection,
 } from "@/lib/table";
-
-type SelectedCell = {
-  col: number;
-  row: number;
-};
+import "./table.css";
 
 type TableProps = {
   size: {
@@ -22,9 +15,6 @@ type TableProps = {
 } & React.ComponentProps<"table">;
 
 export const Table = ({ size, className, ...props }: TableProps) => {
-  const [selectedCell, setSelectedCell] = useState<SelectedCell | null>(null);
-  const [selection, setSelection] = useState<Selection | null>(null);
-
   const getColumnHeader = (idx: number) => {
     let remainder = idx;
     let header = "";
@@ -35,77 +25,32 @@ export const Table = ({ size, className, ...props }: TableProps) => {
     return header;
   };
 
-  const bounds = selection && getSelectionBounds(selection);
-
   return (
-    <table className={clsx("table", className)} {...props}>
-      {/* A-Z column headers */}
-      <TableRow>
-        <TableHeader />
-        {Array.from({ length: size.cols }).map((_, col) => (
-          <TableHeader
-            key={col}
-            className={clsx({
-              "header-selected":
-                selection && isColumnHeaderInSelection(selection, col),
-            })}
-          >
-            {getColumnHeader(col)}
-          </TableHeader>
-        ))}
-      </TableRow>
-      {Array.from({ length: size.rows }).map((_, row) => (
-        <TableRow key={row}>
-          <TableHeader
-            className={clsx({
-              "header-selected":
-                selection && isRowHeaderInSelection(selection, row),
-            })}
-          >
-            {row + 1}
-          </TableHeader>
-          {Array.from({ length: size.cols }).map((_, col) => {
-            const isInSelection =
-              selection && isCellInSelection(selection, row, col);
-            const isSelectedCell =
-              col === selectedCell?.col && row === selectedCell?.row;
-            return (
-              <TableCell
-                key={col}
-                className={clsx({
-                  selected: isSelectedCell,
-                  selection: isInSelection,
-                  "selection-row-start": bounds && row === bounds.minRow,
-                  "selection-row-end": bounds && row === bounds.maxRow,
-                  "selection-col-start": bounds && col === bounds.minCol,
-                  "selection-col-end": bounds && col === bounds.maxCol,
-                })}
-                onClick={(e) => {
-                  if (e.shiftKey && selectedCell) {
-                    setSelection({
-                      rowStart: selectedCell.row,
-                      colStart: selectedCell.col,
-                      rowEnd: row,
-                      colEnd: col,
-                    });
-                  } else {
-                    setSelectedCell({ row, col });
-                    setSelection({
-                      rowStart: row,
-                      colStart: col,
-                      rowEnd: row,
-                      colEnd: col,
-                    });
-                  }
-                }}
-              >
-                Test
-              </TableCell>
-            );
-          })}
+    <TableContextProvider>
+      <table className={clsx("table", className)} {...props}>
+        {/* A-Z column headers */}
+        <TableRow>
+          <TableHeader />
+          {Array.from({ length: size.cols }).map((_, col) => (
+            <TableHeader key={col} col={col}>
+              {getColumnHeader(col)}
+            </TableHeader>
+          ))}
         </TableRow>
-      ))}
-    </table>
+        {Array.from({ length: size.rows }).map((_, row) => (
+          <TableRow key={row}>
+            <TableHeader row={row}>{row + 1}</TableHeader>
+            {Array.from({ length: size.cols }).map((_, col) => {
+              return (
+                <TableCell key={col} row={row} col={col}>
+                  Test
+                </TableCell>
+              );
+            })}
+          </TableRow>
+        ))}
+      </table>
+    </TableContextProvider>
   );
 };
 
@@ -115,14 +60,84 @@ export const TableRow = ({ className, ...props }: TableRowProps) => {
   return <tr className={clsx("table-row", className)} {...props} />;
 };
 
-type TableHeaderProps = {} & React.ComponentProps<"th">;
+type TableHeaderProps = {
+  col?: number;
+  row?: number;
+} & React.ComponentProps<"th">;
 
-export const TableHeader = ({ className, ...props }: TableHeaderProps) => {
-  return <th className={clsx("table-header", className)} {...props} />;
+export const TableHeader = ({
+  className,
+  col,
+  row,
+  ...props
+}: TableHeaderProps) => {
+  const { selection } = useTable();
+  return (
+    <th
+      className={clsx(
+        "table-header",
+        {
+          "header-selected":
+            selection &&
+            ((col && isColumnHeaderInSelection(selection, col)) ||
+              (row && isRowHeaderInSelection(selection, row))),
+        },
+        className
+      )}
+      {...props}
+    />
+  );
 };
 
-type TableCellProps = {} & React.ComponentProps<"td">;
+type TableCellProps = { row: number; col: number } & React.ComponentProps<"td">;
 
-export const TableCell = ({ className, ...props }: TableCellProps) => {
-  return <td className={clsx("table-cell", className)} {...props} />;
+export const TableCell = ({
+  className,
+  row,
+  col,
+  onClick,
+  ...props
+}: TableCellProps) => {
+  const { selection, selectedCell, setSelection, setSelectedCell } = useTable();
+
+  const isInSelection = selection && isCellInSelection(selection, row, col);
+  const isSelectedCell = col === selectedCell?.col && row === selectedCell?.row;
+
+  return (
+    <td
+      className={clsx(
+        "table-cell",
+        {
+          selected: isSelectedCell,
+          selection: isInSelection,
+          "selection-row-start": row === selection?.rowStart,
+          "selection-row-end": row === selection?.rowEnd,
+          "selection-col-start": col === selection?.colStart,
+          "selection-col-end": col === selection?.colEnd,
+        },
+        className
+      )}
+      onClick={(e) => {
+        if (e.shiftKey && selectedCell) {
+          setSelection({
+            rowStart: selectedCell.row,
+            colStart: selectedCell.col,
+            rowEnd: row,
+            colEnd: col,
+          });
+        } else {
+          setSelectedCell({ row, col });
+          setSelection({
+            rowStart: row,
+            colStart: col,
+            rowEnd: row,
+            colEnd: col,
+          });
+        }
+
+        onClick?.(e);
+      }}
+      {...props}
+    />
+  );
 };
