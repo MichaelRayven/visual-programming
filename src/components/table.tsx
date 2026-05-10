@@ -78,9 +78,8 @@ export const TableHeader = ({
         "table-header",
         {
           "header-selected":
-            selection &&
-            ((col && isColumnHeaderInSelection(selection, col)) ||
-              (row && isRowHeaderInSelection(selection, row))),
+            (col && isColumnHeaderInSelection(selection, col)) ||
+            (row && isRowHeaderInSelection(selection, row)),
         },
         className
       )}
@@ -100,7 +99,7 @@ export const TableCell = ({
 }: TableCellProps) => {
   const { selection, selectedCell, setSelection, setSelectedCell } = useTable();
 
-  const isInSelection = selection && isCellInSelection(selection, row, col);
+  const isInSelection = isCellInSelection(selection, row, col);
   const isSelectedCell = col === selectedCell?.col && row === selectedCell?.row;
 
   return (

@@ -23,25 +23,31 @@ export const getSelectionBounds = (selection: Selection): Selection => {
 };
 
 export const isCellInSelection = (
-  selection: Selection,
+  selection: Selection | null,
   row: number,
   col: number
 ) => {
+  if (!selection) return false;
   const { rowStart, rowEnd, colStart, colEnd } = getSelectionBounds(selection);
 
   return row >= rowStart && row <= rowEnd && col >= colStart && col <= colEnd;
 };
 
 export const isColumnHeaderInSelection = (
-  selection: Selection,
+  selection: Selection | null,
   col: number
 ) => {
+  if (!selection) return false;
   const { rowStart, rowEnd, colStart, colEnd } = getSelectionBounds(selection);
 
   return col >= colStart && col <= colEnd && rowStart <= rowEnd;
 };
 
-export const isRowHeaderInSelection = (selection: Selection, row: number) => {
+export const isRowHeaderInSelection = (
+  selection: Selection | null,
+  row: number
+) => {
+  if (!selection) return false;
   const { rowStart, rowEnd, colStart, colEnd } = getSelectionBounds(selection);
 
   return row >= rowStart && row <= rowEnd && colStart <= colEnd;
