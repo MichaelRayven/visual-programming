@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import "input.css";
+import "./input.css";
 
 export const Input = ({
   className,

@@ -1,0 +1,190 @@
+.table {
+  width: 100%;
+  overflow: hidden;
+  border-spacing: 0;
+  border-collapse: separate;
+  background-color: var(--color-background);
+}
+
+/* Table row */
+.table-row {
+  transition: background-color var(--transition-fast) var(--transition-smooth);
+}
+
+.table-row:nth-child(even) {
+  background-color: var(--color-surface);
+}
+
+.table-row:nth-child(odd) {
+  background-color: var(--color-background);
+}
+
+/* Table header */
+.table-header {
+
+  position: sticky;
+  z-index: var(--z-sticky);
+
+  padding: var(--spacing-3) var(--spacing-4);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  vertical-align: middle;
+  color: var(--color-text-inverse);
+
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: var(--letter-spacing-wide);
+
+  background-color: var(--color-primary-600);
+
+  border: 1px solid var(--color-primary-800);
+  border-bottom: 2px solid var(--color-primary-800);
+}
+
+.table-row:first-child .table-header {
+  top: 0;
+}
+
+.table-header:first-child {
+  left: 0;
+}
+
+/* Top left corner header */
+.table-row:first-child .table-header:first-child {
+  top: 0;
+  left: 0;
+  z-index: calc(var(--z-sticky) + 10); /* Higher z-index */
+}
+
+.table-header {
+  border-top: none;
+  border-left: none;
+}
+
+.table-header:last-child {
+  border-right: none;
+}
+
+/* Table cell */
+.table-cell {
+
+  padding: var(--spacing-3) var(--spacing-4);
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-regular);
+  vertical-align: middle;
+  color: var(--color-text-primary);
+
+  text-align: left;
+
+  border: 1px solid var(--color-border-light);
+
+  transition: all var(--transition-fast) var(--transition-smooth);
+}
+
+.table-cell {
+  border-top: none;
+  border-left: none;
+}
+
+.table-cell:last-child {
+  border-right: none;
+}
+
+.table-row:last-child .table-cell {
+  border-bottom: none;
+}
+
+/* ============================================
+   RESPONSIVE DESIGN
+   ============================================ */
+
+@media (max-width: 768px) {
+  .table-header,
+  .table-cell {
+    padding: var(--spacing-2) var(--spacing-2);
+    font-size: var(--font-size-xs);
+  }
+
+  /* Option: Make table horizontally scrollable on mobile */
+  .table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  table {
+    min-width: 600px;
+  }
+}
+
+/* ============================================
+   NARROW COLUMN SUPPORT
+   ============================================ */
+
+/* For tables with many columns, reduce padding */
+.table-compact .table-header,
+.table-compact .table-cell {
+  padding: var(--spacing-1_5) var(--spacing-2);
+}
+
+/* For spacious tables */
+.table-spacious .table-header,
+.table-spacious .table-cell {
+  padding: var(--spacing-4) var(--spacing-6);
+}
+
+/* Selection */
+.table-cell.selected {
+  position: relative;
+}
+
+.table-cell.selected::after {
+  position: absolute;
+  inset: -1px;
+  z-index: calc(var(--z-sticky) + 5);
+  pointer-events: none; /* Allows clicking through to the cell */
+  content: "";
+  border: 2px solid var(--color-primary-500);
+}
+
+/* ============================================
+   BORDERED VARIANT (stronger borders)
+   ============================================ */
+
+.table-bordered {
+  border: 2px solid var(--color-border-dark);
+}
+
+.table-bordered .table-header,
+.table-bordered .table-cell {
+  border: 1px solid var(--color-border-dark);
+}
+
+.table-bordered .table-header {
+  border-bottom-width: 2px;
+}
+
+/* ============================================
+   ACCESSIBILITY & FOCUS STATES
+   ============================================ */
+
+.table-row:focus-within {
+  position: relative;
+  z-index: var(--z-sticky);
+  outline: 2px solid var(--color-focus-ring);
+  outline-offset: -2px;
+}
+
+/* High contrast mode support */
+@media (forced-colors: active) {
+  .table-header {
+    color: Canvas;
+    background-color: CanvasText;
+    border: 1px solid CanvasText;
+  }
+
+  .table-cell {
+    border-color: CanvasText;
+  }
+}
