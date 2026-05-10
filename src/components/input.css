@@ -1,14 +1,5 @@
 .input {
   width: 100%;
   min-width: 0;
-  height: 8em;
   outline: none;
-  background: transparent;
-  border: 1px solid var(--cl-input);
-  border-radius: 4em;
-}
-
-.input[type="file"] {
-  display: inline-flex;
-  border: 0;
 }

@@ -52,3 +52,13 @@ export const isRowHeaderInSelection = (
 
   return row >= rowStart && row <= rowEnd && colStart <= colEnd;
 };
+
+export const getColumnHeader = (idx: number) => {
+  let remainder = idx;
+  let header = "";
+  while (remainder >= 0) {
+    header = String.fromCharCode(65 + (remainder % 26)) + header;
+    remainder = Math.floor(remainder / 26) - 1;
+  }
+  return header;
+};

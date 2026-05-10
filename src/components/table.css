@@ -73,7 +73,7 @@
 /* Table cell */
 .table-cell {
   position: relative;
-  padding: var(--spacing-3) var(--spacing-4);
+  padding: var(--spacing-0);
 
   font-family: var(--font-family-primary);
   font-size: var(--font-size-sm);
@@ -154,12 +154,23 @@
   border: 3px solid var(--color-primary-500);
 }
 
-/* Accessability */
-.table-row:focus-within {
-  position: relative;
-  z-index: var(--z-sticky);
-  outline: 2px solid var(--color-focus-ring);
-  outline-offset: -2px;
+/* Table cell input */
+.table-cell-input {
+  width: 100%;
+  height: 100%;
+
+  padding: 0 var(--spacing-1);
+  margin: 0;
+
+  font-family: var(--font-family-primary);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-primary);
+
+  pointer-events: none;
+  outline: none;
+
+  background: transparent;
+  border: none;
 }
 
 /* High contrast mode support */
