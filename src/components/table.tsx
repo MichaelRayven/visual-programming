@@ -13,14 +13,16 @@ import {
 import "@/components/table.css";
 import { useEffect, useRef, useState } from "react";
 import { evaluateCell } from "@/lib/formula";
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "./context-menu";
 import { Input } from "./input";
 
-type TableProps = {
-  size: {
-    rows: number;
-    cols: number;
-  };
-} & React.ComponentProps<"table">;
+const MIN_COLUMN_WIDTH = 64;
+const MIN_ROW_HEIGHT = 32;
 
 const initSelected = {
   col: 0,
@@ -33,6 +35,13 @@ const initSelection = {
   colStart: 0,
   colEnd: 0,
 };
+
+type TableProps = {
+  size: {
+    rows: number;
+    cols: number;
+  };
+} & React.ComponentProps<"table">;
 
 export const Table = ({ size, className, ...props }: TableProps) => {
   const selectedInputRef = useRef<HTMLInputElement>(null);
@@ -185,7 +194,6 @@ export const TableHeader = ({
   col,
   row,
   onResize,
-  style,
   children,
   ...props
 }: TableHeaderProps) => {
@@ -204,13 +212,13 @@ export const TableHeader = ({
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (col !== undefined && onResize) {
         const newWidth = Math.max(
-          50,
+          MIN_COLUMN_WIDTH,
           startWidth + (moveEvent.clientX - startX)
         );
         onResize(newWidth);
       } else if (row !== undefined && onResize) {
         const newHeight = Math.max(
-          20,
+          MIN_ROW_HEIGHT,
           startHeight + (moveEvent.clientY - startY)
         );
         onResize(newHeight);
@@ -241,10 +249,19 @@ export const TableHeader = ({
         },
         className
       )}
-      style={{ position: "relative", ...style }}
       {...props}
     >
-      {children}
+      <ContextMenu>
+        <ContextMenuTrigger className="table-header-content">
+          {children}
+        </ContextMenuTrigger>
+        <ContextMenuContent>
+          <ContextMenuItem>Hi</ContextMenuItem>
+          <ContextMenuItem>Hi</ContextMenuItem>
+          <ContextMenuItem>Hi</ContextMenuItem>
+          <ContextMenuItem>Hi</ContextMenuItem>
+        </ContextMenuContent>
+      </ContextMenu>
       {isCol && (
         <div
           className="col-resizer"
