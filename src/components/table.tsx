@@ -40,11 +40,14 @@ export const Table = ({ size, className, ...props }: TableProps) => {
     const handleGlobalKeyDown = (e: KeyboardEvent) => {
       if (!selectedCell) return;
 
-      if (e.key === "Enter" && selectedCell) {
+      if (e.key === "Enter") {
         e.preventDefault();
+
         selectedInputRef.current?.focus();
       } else if (e.key === "Tab") {
         e.preventDefault();
+
+        selectedInputRef.current?.blur();
         if (selectedCell.col + 1 < size.cols) {
           setSelectedCell({
             col: selectedCell.col + 1,
