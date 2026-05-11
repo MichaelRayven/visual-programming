@@ -1,4 +1,4 @@
-import { type CellData, getCellId, parseCellId } from "./table";
+import { type CellData, getCellAddress, parseCellAddress } from "./table";
 
 /**
  * Retrieve cell value coerced to a number
@@ -20,8 +20,8 @@ function getCellValueAsNumber(
  * Get array of cell IDs inside a range (e.g., "A1:B3")
  */
 function resolveRange(start: string, end: string): string[] {
-  const startCoords = parseCellId(start);
-  const endCoords = parseCellId(end);
+  const startCoords = parseCellAddress(start);
+  const endCoords = parseCellAddress(end);
   if (!startCoords || !endCoords) return [];
 
   const minRow = Math.min(startCoords.row, endCoords.row);
@@ -32,7 +32,7 @@ function resolveRange(start: string, end: string): string[] {
   const cells: string[] = [];
   for (let r = minRow; r <= maxRow; r++) {
     for (let c = minCol; c <= maxCol; c++) {
-      cells.push(getCellId(r, c));
+      cells.push(getCellAddress(r, c));
     }
   }
   return cells;
@@ -128,11 +128,11 @@ function evaluateFormula(
     const op = arithmeticMatch[2];
     const rightToken = arithmeticMatch[3];
 
-    const leftVal = parseCellId(leftToken)
+    const leftVal = parseCellAddress(leftToken)
       ? getCellValueAsNumber(leftToken, grid, visited)
       : Number(leftToken);
 
-    const rightVal = parseCellId(rightToken)
+    const rightVal = parseCellAddress(rightToken)
       ? getCellValueAsNumber(rightToken, grid, visited)
       : Number(rightToken);
 

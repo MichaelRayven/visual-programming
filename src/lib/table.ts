@@ -73,11 +73,11 @@ export const getColumnHeader = (idx: number) => {
   return header;
 };
 
-export const getCellId = (row: number, col: number): string => {
+export const getCellAddress = (row: number, col: number): string => {
   return `${getColumnHeader(col)}${row + 1}`;
 };
 
-export const parseCellId = (id: string): CellPosition | null => {
+export const parseCellAddress = (id: string): CellPosition | null => {
   const match = id.match(/^([A-Z]+)([0-9]+)$/);
   if (!match) return null;
   const colsStr = match[1];
