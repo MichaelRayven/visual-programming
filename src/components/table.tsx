@@ -133,12 +133,10 @@ export const TableHead = ({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-
     const startX = e.clientX;
     const startY = e.clientY;
-    const startWidth = ref.current ? ref.current.offsetWidth : 0;
-    const startHeight = ref.current ? ref.current.offsetHeight : 0;
+    const startWidth = ref.current?.offsetWidth || 0;
+    const startHeight = ref.current?.offsetHeight || 0;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (isCol) {
