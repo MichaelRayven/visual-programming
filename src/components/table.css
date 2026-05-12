@@ -17,17 +17,14 @@
 
 .table {
   position: relative;
+  table-layout: fixed;
+  border-collapse: separate;
 
   -webkit-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
-
   user-select: none;
-  table-layout: fixed;
-  border-spacing: 0;
-  border-spacing: 0;
-  border-collapse: separate;
-  border-collapse: separate;
+
   background-color: var(--color-background);
 }
 

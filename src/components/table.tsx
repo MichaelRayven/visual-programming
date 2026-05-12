@@ -4,12 +4,11 @@ import {
   useCellData,
   useCellSelection,
   useColWidth,
-  useGridSize,
   useHeaderSelected,
   useRowHeight,
   useSelectedCell,
 } from "@/hooks/useTableStore";
-import { TableStore } from "@/lib/store";
+import { DEFAULT_COL_WIDTH, DEFAULT_ROW_HEIGHT, TableStore } from "@/lib/store";
 import { getCellAddress, getColumnHeader } from "@/lib/table";
 import {
   ContextMenu,
@@ -20,9 +19,7 @@ import {
 import { Input } from "./input";
 import "@/components/table.css";
 import { TableStoreContext, useStore } from "@/hooks/useTable";
-
-const MIN_COLUMN_WIDTH = 64;
-const MIN_ROW_HEIGHT = 32;
+import { useVirtualTable } from "@/hooks/useVirtualTable";
 
 type TableProps = {
   size: {
@@ -32,7 +29,9 @@ type TableProps = {
 } & React.ComponentProps<"table">;
 
 export const Table = ({ size, className, ...props }: TableProps) => {
-  const storeRef = useRef<TableStore | null>(null);
+  const storeRef = useRef<TableStore>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   if (!storeRef.current) {
     storeRef.current = new TableStore(size);
   }
@@ -45,49 +44,156 @@ export const Table = ({ size, className, ...props }: TableProps) => {
     <TableStoreContext.Provider value={storeRef.current}>
       <div className="table-wrapper">
         <TableTopBar />
-        <div className="table-scrollable">
-          <table className={clsx("table", className)} {...props}>
-            <thead>
-              <TableRow row={-1}>
-                <TableHead />
-                <TableHeader />
-              </TableRow>
-            </thead>
-            <TableBody />
-          </table>
+        <div className="table-scrollable" ref={scrollContainerRef}>
+          <TableContent
+            containerRef={scrollContainerRef}
+            className={className}
+            {...props}
+          />
         </div>
       </div>
     </TableStoreContext.Provider>
   );
 };
 
-const TableHeader = () => {
-  const { cols } = useGridSize();
+type TableContentProps = {
+  containerRef: React.RefObject<HTMLDivElement>;
+} & React.ComponentProps<"table">;
+
+const TableContent = ({
+  containerRef,
+  className,
+  ...props
+}: TableContentProps) => {
+  const {
+    startRow,
+    endRow,
+    startCol,
+    endCol,
+    totalHeight,
+    totalWidth,
+    rowOffsets,
+    colOffsets,
+  } = useVirtualTable(containerRef, 50);
+
   return (
-    <>
-      {Array.from({ length: cols }).map((_, col) => (
-        <TableHead key={col} col={col}>
-          {getColumnHeader(col)}
-        </TableHead>
-      ))}
-    </>
+    <div
+      style={{
+        height: `${totalHeight}px`,
+        width: `${totalWidth}px`,
+        position: "relative",
+      }}
+    >
+      <table
+        className={clsx("table", className)}
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          width: "100%",
+          tableLayout: "fixed", // Critical for column widths to behave
+          borderCollapse: "collapse",
+        }}
+        {...props}
+      >
+        <thead style={{ position: "sticky", top: 0, zIndex: 1020 }}>
+          <TableRow row={-1}>
+            <TableHead />
+            <TableHeader
+              start={startCol}
+              end={endCol}
+              colOffsets={colOffsets}
+            />
+          </TableRow>
+        </thead>
+        <tbody>
+          {/* Only render rows in the virtual window */}
+          {Array.from({ length: endRow - startRow + 1 }).map((_, i) => {
+            const rowIdx = startRow + i;
+            return (
+              <TableRow
+                key={rowIdx}
+                row={rowIdx}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  transform: `translateY(${rowOffsets[rowIdx]}px)`,
+                  width: "100%",
+                  display: "flex", // Helps with cell alignment in absolute rows
+                }}
+              >
+                <TableHead row={rowIdx}>{rowIdx + 1}</TableHead>
+                <TableCellsRow
+                  rowIdx={rowIdx}
+                  startCol={startCol}
+                  endCol={endCol}
+                  colOffsets={colOffsets}
+                />
+              </TableRow>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
   );
 };
 
-const TableBody = () => {
-  const { rows, cols } = useGridSize();
-  return (
-    <tbody>
-      {Array.from({ length: rows }).map((_, row) => (
-        <TableRow key={row} row={row}>
-          <TableHead row={row}>{row + 1}</TableHead>
-          {Array.from({ length: cols }).map((_, col) => (
-            <TableCell key={col} row={row} col={col} />
-          ))}
-        </TableRow>
-      ))}
-    </tbody>
-  );
+type TableHeaderProps = {
+  start: number;
+  end: number;
+  colOffsets: Float64Array;
+};
+
+const TableHeader = ({ start, end, colOffsets }: TableHeaderProps) => {
+  const cols = [];
+  for (let i = start; i <= end; i++) {
+    cols.push(
+      <TableHead
+        key={i}
+        col={i}
+        style={{
+          position: "absolute",
+          left: colOffsets[i],
+          width: colOffsets[i + 1] - colOffsets[i],
+        }}
+      >
+        {getColumnHeader(i)}
+      </TableHead>
+    );
+  }
+  return <>{cols}</>;
+};
+
+type TableCellsRowProps = {
+  rowIdx: number;
+  startCol: number;
+  endCol: number;
+  colOffsets: Float64Array;
+};
+
+const TableCellsRow = ({
+  rowIdx,
+  startCol,
+  endCol,
+  colOffsets,
+}: TableCellsRowProps) => {
+  const cells = [];
+  for (let i = startCol; i <= endCol; i++) {
+    cells.push(
+      <TableCell
+        key={i}
+        row={rowIdx}
+        col={i}
+        style={{
+          position: "absolute",
+          left: colOffsets[i],
+          width: colOffsets[i + 1] - colOffsets[i],
+          height: "100%",
+        }}
+      />
+    );
+  }
+  return <>{cells}</>;
 };
 
 type TableRowProps = {
@@ -141,13 +247,13 @@ export const TableHead = ({
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (isCol) {
         const newWidth = Math.max(
-          MIN_COLUMN_WIDTH,
+          DEFAULT_COL_WIDTH,
           startWidth + (moveEvent.clientX - startX)
         );
         store.setColWidth(col, newWidth);
       } else if (isRow) {
         const newHeight = Math.max(
-          MIN_ROW_HEIGHT,
+          DEFAULT_ROW_HEIGHT,
           startHeight + (moveEvent.clientY - startY)
         );
         store.setRowHeight(row, newHeight);

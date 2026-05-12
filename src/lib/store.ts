@@ -5,7 +5,10 @@ import {
   type TableSelection,
 } from "./table";
 
-type Listener = () => void;
+export const DEFAULT_ROW_HEIGHT = 32;
+export const DEFAULT_COL_WIDTH = 64;
+
+export type Listener = () => void;
 
 export type GridSnapshot = {
   cells: Record<string, string>;
@@ -79,7 +82,7 @@ export class TableStore {
   }
 
   // Getters
-  getDataSnapshot = (): GridSnapshot => this.snapshot;
+  getGridSnapshot = (): GridSnapshot => this.snapshot;
   getGridSizeSnapshot = () => this.gridSize;
   getSelectedCellSnapshot = () => this.selectedCell;
   getSelectionSnapshot = () => this.selection;

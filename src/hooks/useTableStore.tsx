@@ -1,4 +1,4 @@
-import { useCallback, useSyncExternalStore } from "react";
+import { useSyncExternalStore } from "react";
 import { useStore } from "@/hooks/useTable";
 import { evaluateCell } from "@/lib/formula";
 import {
@@ -88,7 +88,7 @@ export function useCellData(row: number, col: number) {
       // biome-ignore lint/suspicious/noEmptyBlockStatements: No-op for static data
       return () => {};
     },
-    () => store.getDataSnapshot()
+    () => store.getGridSnapshot()
   );
 
   const displayValue = evaluateCell(getCellAddress(row, col), snapshot).value;
