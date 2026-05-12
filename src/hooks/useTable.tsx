@@ -1,33 +1,11 @@
 import { createContext, useContext } from "react";
-import {
-  type CellData,
-  type CellPosition,
-  type TableSelection,
-} from "@/lib/table";
+import { TableStore } from "@/lib/store";
 
-type TableContextType = {
-  selectedCell: CellPosition;
-  selection: TableSelection;
-  setSelectedCell: (cell: CellPosition) => void;
-  setSelection: (selection: TableSelection) => void;
-  clearSelection: () => void;
+export const TableStoreContext = createContext<TableStore | null>(null);
 
-  data: Record<string, string>;
-  updateCell: (cellId: string, value: string) => void;
-  getCellData: (cellId: string) => CellData;
-
-  insertColumn: (col: number, position: "left" | "right") => void;
-  deleteColumn: (col: number) => void;
-  insertRow: (row: number, position: "above" | "below") => void;
-  deleteRow: (row: number) => void;
-};
-
-export const TableContext = createContext<TableContextType | null>(null);
-
-export const useTable = () => {
-  const context = useContext(TableContext);
-  if (!context) {
-    throw new Error("useTable must be used within a TableProvider");
-  }
-  return context;
+export const useStore = () => {
+  const store = useContext(TableStoreContext);
+  if (!store)
+    throw new Error("useStore must be used within TableStoreProvider");
+  return store;
 };

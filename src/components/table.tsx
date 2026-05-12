@@ -1,18 +1,16 @@
 import clsx from "clsx";
-import { TableContext, useTable } from "@/hooks/useTable";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  type CellPosition,
-  getCellId,
-  getColumnHeader,
-  getSelectionBounds,
-  isCellInSelection,
-  isColumnHeaderInSelection,
-  isRowHeaderInSelection,
-  type TableSelection,
-} from "@/lib/table";
-import "@/components/table.css";
-import { useEffect, useRef, useState } from "react";
-import { evaluateCell } from "@/lib/formula";
+  useCellData,
+  useCellSelection,
+  useColWidth,
+  useGridSize,
+  useHeaderSelected,
+  useRowHeight,
+  useSelectedCell,
+} from "@/hooks/useTableStore";
+import { TableStore } from "@/lib/store";
+import { getCellAddress, getColumnHeader } from "@/lib/table";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -20,21 +18,11 @@ import {
   ContextMenuTrigger,
 } from "./context-menu";
 import { Input } from "./input";
+import "@/components/table.css";
+import { TableStoreContext, useStore } from "@/hooks/useTable";
 
 const MIN_COLUMN_WIDTH = 64;
 const MIN_ROW_HEIGHT = 32;
-
-const initSelected = {
-  col: 0,
-  row: 0,
-};
-
-const initSelection = {
-  rowStart: 0,
-  rowEnd: 0,
-  colStart: 0,
-  colEnd: 0,
-};
 
 type TableProps = {
   size: {
@@ -44,418 +32,104 @@ type TableProps = {
 } & React.ComponentProps<"table">;
 
 export const Table = ({ size, className, ...props }: TableProps) => {
-  const selectedInputRef = useRef<HTMLInputElement>(null);
-  const [gridSize, setGridSize] = useState(size);
-  const [selectedCell, setSelectedCell] = useState<CellPosition>(initSelected);
-  const [selection, setSelection] = useState<TableSelection>(initSelection);
-  const [colWidths, setColWidths] = useState<Record<number, number>>({});
-  const [rowHeights, setRowHeights] = useState<Record<number, number>>({});
-  const [data, setData] = useState<Record<string, string>>({});
+  const storeRef = useRef<TableStore | null>(null);
+  if (!storeRef.current) {
+    storeRef.current = new TableStore(size);
+  }
 
   useEffect(() => {
-    setGridSize(size);
+    storeRef.current?.setGridSize(size);
   }, [size]);
 
-  const handleColResize = (col: number, width: number) => {
-    setColWidths((prev) => ({ ...prev, [col]: width }));
-  };
-
-  const handleRowResize = (row: number, height: number) => {
-    setRowHeights((prev) => ({ ...prev, [row]: height }));
-  };
-
-  const updateCell = (cellId: string, value: string) => {
-    setData((prev) => ({ ...prev, [cellId]: value }));
-  };
-
-  const getCellData = (cellId: string) => {
-    return evaluateCell(cellId, data);
-  };
-
-  const setSelectionBounds = (selection: TableSelection) => {
-    setSelection(getSelectionBounds(selection));
-  };
-
-  const clearSelection = () => {
-    setSelectedCell(initSelected);
-    setSelection(initSelection);
-  };
-
-  const insertColumn = (colIndex: number, position: "left" | "right") => {
-    const insertCol = position === "left" ? colIndex : colIndex + 1;
-    const newCols = gridSize.cols + 1;
-
-    setData((prevData) => {
-      const nextData: Record<string, string> = {};
-      for (let r = 0; r < gridSize.rows; r++) {
-        for (let c = 0; c < newCols; c++) {
-          if (c < insertCol) {
-            const id = getCellId(r, c);
-            if (prevData[id] !== undefined) nextData[id] = prevData[id];
-          } else if (c > insertCol) {
-            const oldId = getCellId(r, c - 1);
-            const newId = getCellId(r, c);
-            if (prevData[oldId] !== undefined)
-              nextData[newId] = prevData[oldId];
-          }
-        }
-      }
-      return nextData;
-    });
-
-    setColWidths((prevWidths) => {
-      const nextWidths: Record<number, number> = {};
-      Object.entries(prevWidths).forEach(([key, val]) => {
-        const c = Number(key);
-        if (c < insertCol) {
-          nextWidths[c] = val;
-        } else {
-          nextWidths[c + 1] = val;
-        }
-      });
-      return nextWidths;
-    });
-
-    setSelectedCell((prev) => {
-      if (!prev) return prev;
-      return {
-        row: prev.row,
-        col: prev.col >= insertCol ? prev.col + 1 : prev.col,
-      };
-    });
-
-    setSelection((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        colStart:
-          prev.colStart >= insertCol ? prev.colStart + 1 : prev.colStart,
-        colEnd: prev.colEnd >= insertCol ? prev.colEnd + 1 : prev.colEnd,
-      };
-    });
-
-    setGridSize((prev) => ({ ...prev, cols: newCols }));
-  };
-
-  const deleteColumn = (colIndex: number) => {
-    if (gridSize.cols <= 1) return;
-    const newCols = gridSize.cols - 1;
-
-    setData((prevData) => {
-      const nextData: Record<string, string> = {};
-      for (let r = 0; r < gridSize.rows; r++) {
-        for (let c = 0; c < newCols; c++) {
-          if (c < colIndex) {
-            const id = getCellId(r, c);
-            if (prevData[id] !== undefined) nextData[id] = prevData[id];
-          } else {
-            const oldId = getCellId(r, c + 1);
-            const newId = getCellId(r, c);
-            if (prevData[oldId] !== undefined)
-              nextData[newId] = prevData[oldId];
-          }
-        }
-      }
-      return nextData;
-    });
-
-    setColWidths((prevWidths) => {
-      const nextWidths: Record<number, number> = {};
-      Object.entries(prevWidths).forEach(([key, val]) => {
-        const c = Number(key);
-        if (c < colIndex) {
-          nextWidths[c] = val;
-        } else if (c > colIndex) {
-          nextWidths[c - 1] = val;
-        }
-      });
-      return nextWidths;
-    });
-
-    setSelectedCell((prev) => {
-      if (!prev) return prev;
-      let nextCol = prev.col;
-      if (prev.col === colIndex) {
-        nextCol = Math.min(prev.col, newCols - 1);
-      } else if (prev.col > colIndex) {
-        nextCol = prev.col - 1;
-      }
-      return { row: prev.row, col: nextCol };
-    });
-
-    setSelection((prev) => {
-      if (!prev) return prev;
-      const colStart =
-        prev.colStart > colIndex
-          ? prev.colStart - 1
-          : Math.min(prev.colStart, newCols - 1);
-      const colEnd =
-        prev.colEnd > colIndex
-          ? prev.colEnd - 1
-          : Math.min(prev.colEnd, newCols - 1);
-      return {
-        ...prev,
-        colStart,
-        colEnd,
-      };
-    });
-
-    setGridSize((prev) => ({ ...prev, cols: newCols }));
-  };
-
-  const insertRow = (rowIndex: number, position: "above" | "below") => {
-    const insertRowIdx = position === "above" ? rowIndex : rowIndex + 1;
-    const newRows = gridSize.rows + 1;
-
-    setData((prevData) => {
-      const nextData: Record<string, string> = {};
-      for (let r = 0; r < newRows; r++) {
-        for (let c = 0; c < gridSize.cols; c++) {
-          if (r < insertRowIdx) {
-            const id = getCellId(r, c);
-            if (prevData[id] !== undefined) nextData[id] = prevData[id];
-          } else if (r > insertRowIdx) {
-            const oldId = getCellId(r - 1, c);
-            const newId = getCellId(r, c);
-            if (prevData[oldId] !== undefined)
-              nextData[newId] = prevData[oldId];
-          }
-        }
-      }
-      return nextData;
-    });
-
-    setRowHeights((prevHeights) => {
-      const nextHeights: Record<number, number> = {};
-      Object.entries(prevHeights).forEach(([key, val]) => {
-        const r = Number(key);
-        if (r < insertRowIdx) {
-          nextHeights[r] = val;
-        } else {
-          nextHeights[r + 1] = val;
-        }
-      });
-      return nextHeights;
-    });
-
-    setSelectedCell((prev) => {
-      if (!prev) return prev;
-      return {
-        col: prev.col,
-        row: prev.row >= insertRowIdx ? prev.row + 1 : prev.row,
-      };
-    });
-
-    setSelection((prev) => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        rowStart:
-          prev.rowStart >= insertRowIdx ? prev.rowStart + 1 : prev.rowStart,
-        rowEnd: prev.rowEnd >= insertRowIdx ? prev.rowEnd + 1 : prev.rowEnd,
-      };
-    });
-
-    setGridSize((prev) => ({ ...prev, rows: newRows }));
-  };
-
-  const deleteRow = (rowIndex: number) => {
-    if (gridSize.rows <= 1) return; // Prevent deleting last row
-    const newRows = gridSize.rows - 1;
-
-    // 1. Shift cell data up over the deleted index
-    setData((prevData) => {
-      const nextData: Record<string, string> = {};
-      for (let r = 0; r < newRows; r++) {
-        for (let c = 0; c < gridSize.cols; c++) {
-          if (r < rowIndex) {
-            const id = getCellId(r, c);
-            if (prevData[id] !== undefined) nextData[id] = prevData[id];
-          } else {
-            const oldId = getCellId(r + 1, c);
-            const newId = getCellId(r, c);
-            if (prevData[oldId] !== undefined)
-              nextData[newId] = prevData[oldId];
-          }
-        }
-      }
-      return nextData;
-    });
-
-    // 2. Shift saved row heights up
-    setRowHeights((prevHeights) => {
-      const nextHeights: Record<number, number> = {};
-      Object.entries(prevHeights).forEach(([key, val]) => {
-        const r = Number(key);
-        if (r < rowIndex) {
-          nextHeights[r] = val;
-        } else if (r > rowIndex) {
-          nextHeights[r - 1] = val;
-        }
-      });
-      return nextHeights;
-    });
-
-    // 3. Update/Clamp active selections
-    setSelectedCell((prev) => {
-      if (!prev) return prev;
-      let nextRow = prev.row;
-      if (prev.row === rowIndex) {
-        nextRow = Math.min(prev.row, newRows - 1);
-      } else if (prev.row > rowIndex) {
-        nextRow = prev.row - 1;
-      }
-      return { col: prev.col, row: nextRow };
-    });
-
-    setSelection((prev) => {
-      if (!prev) return prev;
-      const rowStart =
-        prev.rowStart > rowIndex
-          ? prev.rowStart - 1
-          : Math.min(prev.rowStart, newRows - 1);
-      const rowEnd =
-        prev.rowEnd > rowIndex
-          ? prev.rowEnd - 1
-          : Math.min(prev.rowEnd, newRows - 1);
-      return {
-        ...prev,
-        rowStart,
-        rowEnd,
-      };
-    });
-
-    setGridSize((prev) => ({ ...prev, rows: newRows }));
-  };
-
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: KeyboardEvent) => {
-      if (!selectedCell) return;
-
-      if (e.key === "Enter") {
-        e.preventDefault();
-
-        selectedInputRef.current?.focus();
-      } else if (e.key === "Tab") {
-        e.preventDefault();
-
-        selectedInputRef.current?.blur();
-        if (selectedCell.col + 1 < gridSize.cols) {
-          setSelectedCell({
-            col: selectedCell.col + 1,
-            row: selectedCell.row,
-          });
-          setSelection({
-            rowStart: selectedCell.row,
-            colStart: selectedCell.col + 1,
-            rowEnd: selectedCell.row,
-            colEnd: selectedCell.col + 1,
-          });
-        }
-      }
-    };
-
-    document.addEventListener("keydown", handleGlobalKeyDown);
-    return () => document.removeEventListener("keydown", handleGlobalKeyDown);
-  }, [selectedCell, gridSize]);
-
   return (
-    <TableContext.Provider
-      value={{
-        selectedCell,
-        selection,
-        setSelectedCell,
-        setSelection: setSelectionBounds,
-        clearSelection,
-        data,
-        updateCell,
-        getCellData,
-        insertColumn,
-        deleteColumn,
-        insertRow,
-        deleteRow,
-      }}
-    >
+    <TableStoreContext.Provider value={storeRef.current}>
       <div className="table-wrapper">
         <TableTopBar />
-
         <div className="table-scrollable">
           <table className={clsx("table", className)} {...props}>
-            {/* A-Z column headers */}
-            <TableRow>
-              <TableHeader />
-              {Array.from({ length: gridSize.cols }).map((_, col) => (
-                <TableHeader
-                  key={col}
-                  col={col}
-                  style={
-                    colWidths[col]
-                      ? { width: colWidths[col], minWidth: colWidths[col] }
-                      : undefined
-                  }
-                  onResize={(width) => handleColResize(col, width)}
-                >
-                  {getColumnHeader(col)}
-                </TableHeader>
-              ))}
-            </TableRow>
-            {Array.from({ length: gridSize.rows }).map((_, row) => (
-              <TableRow
-                key={row}
-                style={
-                  rowHeights[row] ? { height: rowHeights[row] } : undefined
-                }
-              >
-                <TableHeader
-                  row={row}
-                  onResize={(height) => handleRowResize(row, height)}
-                >
-                  {row + 1}
-                </TableHeader>
-                {Array.from({ length: gridSize.cols }).map((_, col) => {
-                  const isSelectedCell =
-                    col === selectedCell?.col && row === selectedCell?.row;
-                  return (
-                    <TableCell
-                      key={col}
-                      row={row}
-                      col={col}
-                      inputRef={isSelectedCell ? selectedInputRef : undefined}
-                    />
-                  );
-                })}
+            <thead>
+              <TableRow row={-1}>
+                <TableHead />
+                <TableHeader />
               </TableRow>
-            ))}
+            </thead>
+            <TableBody />
           </table>
         </div>
       </div>
-    </TableContext.Provider>
+    </TableStoreContext.Provider>
   );
 };
 
-type TableRowProps = {} & React.ComponentProps<"tr">;
-
-export const TableRow = ({ className, ...props }: TableRowProps) => {
-  return <tr className={clsx("table-row", className)} {...props} />;
+const TableHeader = () => {
+  const { cols } = useGridSize();
+  return (
+    <>
+      {Array.from({ length: cols }).map((_, col) => (
+        <TableHead key={col} col={col}>
+          {getColumnHeader(col)}
+        </TableHead>
+      ))}
+    </>
+  );
 };
 
-type TableHeaderProps = {
+const TableBody = () => {
+  const { rows, cols } = useGridSize();
+  return (
+    <tbody>
+      {Array.from({ length: rows }).map((_, row) => (
+        <TableRow key={row} row={row}>
+          <TableHead row={row}>{row + 1}</TableHead>
+          {Array.from({ length: cols }).map((_, col) => (
+            <TableCell key={col} row={row} col={col} />
+          ))}
+        </TableRow>
+      ))}
+    </tbody>
+  );
+};
+
+type TableRowProps = {
+  row: number;
+} & React.ComponentProps<"tr">;
+
+export const TableRow = ({
+  row,
+  className,
+  style,
+  ...props
+}: TableRowProps) => {
+  const height = useRowHeight(row);
+  return (
+    <tr
+      className={clsx("table-row", className)}
+      style={{ ...style, height }}
+      {...props}
+    />
+  );
+};
+
+type TableHeadProps = {
   col?: number;
   row?: number;
-  onResize?: (size: number) => void;
 } & React.ComponentProps<"th">;
 
-export const TableHeader = ({
+export const TableHead = ({
   className,
   col,
   row,
-  onResize,
   children,
+  style,
   ...props
-}: TableHeaderProps) => {
-  const { selection, insertColumn, deleteColumn, insertRow, deleteRow } =
-    useTable();
+}: TableHeadProps) => {
+  const store = useStore();
   const ref = useRef<HTMLTableCellElement>(null);
+  const isCol = col !== undefined;
+  const isRow = row !== undefined;
+
+  const isSelected = useHeaderSelected(col, row);
+  const width = useColWidth(col);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -467,18 +141,18 @@ export const TableHeader = ({
     const startHeight = ref.current ? ref.current.offsetHeight : 0;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
-      if (col !== undefined && onResize) {
+      if (isCol) {
         const newWidth = Math.max(
           MIN_COLUMN_WIDTH,
           startWidth + (moveEvent.clientX - startX)
         );
-        onResize(newWidth);
-      } else if (row !== undefined && onResize) {
+        store.setColWidth(col, newWidth);
+      } else if (isRow) {
         const newHeight = Math.max(
           MIN_ROW_HEIGHT,
           startHeight + (moveEvent.clientY - startY)
         );
-        onResize(newHeight);
+        store.setRowHeight(row, newHeight);
       }
     };
 
@@ -491,19 +165,18 @@ export const TableHeader = ({
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  const isCol = col !== undefined;
-  const isRow = row !== undefined;
+  const resolvedStyle = {
+    ...style,
+    ...(isCol && width ? { width, minWidth: width } : {}),
+  };
 
   return (
     <th
       ref={ref}
+      style={resolvedStyle}
       className={clsx(
         "table-header",
-        {
-          "header-selected":
-            (isCol && isColumnHeaderInSelection(selection, col)) ||
-            (isRow && isRowHeaderInSelection(selection, row)),
-        },
+        { "header-selected": isSelected },
         className
       )}
       {...props}
@@ -515,26 +188,26 @@ export const TableHeader = ({
         <ContextMenuContent>
           {isCol && (
             <>
-              <ContextMenuItem onClick={() => insertColumn(col, "left")}>
+              <ContextMenuItem onClick={() => store.insertColumn(col, "left")}>
                 Insert column left
               </ContextMenuItem>
-              <ContextMenuItem onClick={() => insertColumn(col, "right")}>
+              <ContextMenuItem onClick={() => store.insertColumn(col, "right")}>
                 Insert column right
               </ContextMenuItem>
-              <ContextMenuItem onClick={() => deleteColumn(col)}>
+              <ContextMenuItem onClick={() => store.deleteColumn(col)}>
                 Delete column
               </ContextMenuItem>
             </>
           )}
           {isRow && (
             <>
-              <ContextMenuItem onClick={() => insertRow(row, "above")}>
+              <ContextMenuItem onClick={() => store.insertRow(row, "above")}>
                 Insert row above
               </ContextMenuItem>
-              <ContextMenuItem onClick={() => insertRow(row, "below")}>
+              <ContextMenuItem onClick={() => store.insertRow(row, "below")}>
                 Insert row below
               </ContextMenuItem>
-              <ContextMenuItem onClick={() => deleteRow(row)}>
+              <ContextMenuItem onClick={() => store.deleteRow(row)}>
                 Delete row
               </ContextMenuItem>
             </>
@@ -578,104 +251,130 @@ export const TableHeader = ({
 type TableCellProps = {
   row: number;
   col: number;
-  inputRef?: React.RefObject<HTMLInputElement | null>;
 } & React.ComponentProps<"td">;
 
-export const TableCell = ({
-  className,
-  row,
-  col,
-  onClick,
-  inputRef,
-  onDoubleClick,
-  ...props
-}: TableCellProps) => {
-  const {
-    selection,
-    selectedCell,
-    setSelection,
-    setSelectedCell,
-    updateCell,
-    getCellData,
-  } = useTable();
-  const [isFocused, setIsFocused] = useState(false);
-  const internalInputRef = useRef<HTMLInputElement>(null);
+export const TableCell = React.memo(
+  ({
+    className,
+    row,
+    col,
+    onClick,
+    onDoubleClick,
+    ...props
+  }: TableCellProps) => {
+    const store = useStore();
+    const [isFocused, setIsFocused] = useState(false);
+    const internalInputRef = useRef<HTMLInputElement>(null);
 
-  const cellId = getCellId(row, col);
-  const { value, rawValue } = getCellData(cellId);
+    const { rawValue, displayValue } = useCellData(row, col);
+    const {
+      isSelected,
+      isInSelection,
+      isRowStart,
+      isRowEnd,
+      isColStart,
+      isColEnd,
+    } = useCellSelection(row, col);
 
-  const isInSelection = isCellInSelection(selection, row, col);
-  const isSelectedCell = col === selectedCell?.col && row === selectedCell?.row;
-  const currentInputRef = inputRef || internalInputRef;
+    const value = isFocused ? rawValue : String(displayValue);
 
-  // Display raw value if this cell is selected
-  const displayValue = isFocused ? rawValue : String(value);
+    useEffect(() => {
+      if (!isSelected) return;
 
-  return (
-    <td
-      className={clsx(
-        "table-cell",
-        {
-          selected: isSelectedCell,
-          selection: isInSelection,
-          "selection-row-start": row === selection?.rowStart,
-          "selection-row-end": row === selection?.rowEnd,
-          "selection-col-start": col === selection?.colStart,
-          "selection-col-end": col === selection?.colEnd,
-        },
-        className
-      )}
-      onDoubleClick={(e) => {
-        currentInputRef.current?.focus();
-        onDoubleClick?.(e);
-      }}
-      onClick={(e) => {
-        if (e.shiftKey && selectedCell) {
-          setSelection({
-            rowStart: selectedCell.row,
-            colStart: selectedCell.col,
-            rowEnd: row,
-            colEnd: col,
-          });
-        } else {
-          setSelectedCell({ row, col });
-          setSelection({
-            rowStart: row,
-            colStart: col,
-            rowEnd: row,
-            colEnd: col,
-          });
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          internalInputRef.current?.focus();
+        } else if (e.key === "Tab") {
+          e.preventDefault();
+          internalInputRef.current?.blur();
+          const grid = store.getGridSizeSnapshot();
+          if (col + 1 < grid.cols) {
+            store.setSelectedCell({ row, col: col + 1 });
+            store.setSelection({
+              rowStart: row,
+              colStart: col + 1,
+              rowEnd: row,
+              colEnd: col + 1,
+            });
+          }
         }
+      };
 
-        onClick?.(e);
-      }}
-      {...props}
-    >
-      <Input
-        ref={currentInputRef}
-        className="table-cell-input"
-        value={displayValue}
-        onChange={(e) => updateCell(cellId, e.target.value)}
-        onFocus={() => setIsFocused(true)}
-        onBlur={() => setIsFocused(false)}
-      />
-    </td>
-  );
-};
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [isSelected, row, col, store]);
+
+    return (
+      <td
+        className={clsx(
+          "table-cell",
+          {
+            selected: isSelected,
+            selection: isInSelection,
+            "selection-row-start": isRowStart,
+            "selection-row-end": isRowEnd,
+            "selection-col-start": isColStart,
+            "selection-col-end": isColEnd,
+          },
+          className
+        )}
+        onDoubleClick={(e) => {
+          internalInputRef.current?.focus();
+          onDoubleClick?.(e);
+        }}
+        onClick={(e) => {
+          const activeCell = store.getSelectedCellSnapshot();
+          if (e.shiftKey) {
+            store.setSelection({
+              rowStart: activeCell.row,
+              colStart: activeCell.col,
+              rowEnd: row,
+              colEnd: col,
+            });
+          } else {
+            store.setSelectedCell({ row, col });
+            store.setSelection({
+              rowStart: row,
+              colStart: col,
+              rowEnd: row,
+              colEnd: col,
+            });
+          }
+          onClick?.(e);
+        }}
+        {...props}
+      >
+        <Input
+          ref={internalInputRef}
+          className="table-cell-input"
+          value={value}
+          onChange={(e) => store.updateCell(row, col, e.target.value)}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
+      </td>
+    );
+  }
+);
+
+TableCell.displayName = "TableCell";
 
 export function TableTopBar() {
-  const { selectedCell, getCellData, updateCell } = useTable();
-
-  const cellId = getCellId(selectedCell.row, selectedCell.col);
-  const { rawValue } = getCellData(cellId);
+  const store = useStore();
+  const selectedCell = useSelectedCell();
+  const cellAddr = getCellAddress(selectedCell.row, selectedCell.col);
+  const { rawValue } = useCellData(selectedCell.row, selectedCell.col);
 
   return (
     <div className="table-top-bar">
-      <div className="table-top-bar-address">{cellId}</div>
+      <div className="table-top-bar-address">{cellAddr}</div>
       <Input
         className="table-top-bar-input"
         value={rawValue}
-        onChange={(e) => updateCell(cellId, e.target.value)}
+        onChange={(e) =>
+          store.updateCell(selectedCell.row, selectedCell.col, e.target.value)
+        }
       />
     </div>
   );
