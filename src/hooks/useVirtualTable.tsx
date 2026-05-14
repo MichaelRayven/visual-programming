@@ -1,12 +1,6 @@
-import {
-  useState,
-  useMemo,
-  useEffect,
-  useSyncExternalStore,
-  useCallback,
-} from "react";
-import { useStore } from "./useTable";
+import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { DEFAULT_COL_WIDTH, DEFAULT_ROW_HEIGHT } from "@/lib/store";
+import { useStore } from "./useTable";
 
 const findIndex = (offsets: Float64Array, value: number) => {
   let low = 0;
@@ -32,6 +26,11 @@ export function useVirtualTable(
     () => store.getGridSizeSnapshot()
   );
 
+  const { colIds, rowIds } = useSyncExternalStore(
+    (l) => store.subscribeGridMeta(l),
+    () => store.getGridSnapshot()
+  );
+
   const widths = useSyncExternalStore(
     (l) => store.subscribeGridMeta(l),
     () => store.getColWidthsSnapshot()
@@ -42,26 +41,39 @@ export function useVirtualTable(
     () => store.getRowHeightsSnapshot()
   );
 
+  console.log(widths);
+
   const layout = useMemo(() => {
+    const colWidths = new Float64Array(size.cols);
+    const rowHeights = new Float64Array(size.rows);
     const rowOffsets = new Float64Array(size.rows + 1);
     const colOffsets = new Float64Array(size.cols + 1);
 
     let top = 0;
     for (let i = 0; i < size.rows; i++) {
       rowOffsets[i] = top;
-      top += heights[i] || DEFAULT_ROW_HEIGHT;
+      rowHeights[i] = heights[rowIds[i]] || DEFAULT_ROW_HEIGHT;
+      top += heights[rowIds[i]] || DEFAULT_ROW_HEIGHT;
     }
     rowOffsets[size.rows] = top;
 
     let left = 0;
     for (let i = 0; i < size.cols; i++) {
       colOffsets[i] = left;
-      left += widths[i] || DEFAULT_COL_WIDTH;
+      colWidths[i] = widths[colIds[i]] || DEFAULT_COL_WIDTH;
+      left += widths[colIds[i]] || DEFAULT_COL_WIDTH;
     }
     colOffsets[size.cols] = left;
 
-    return { rowOffsets, colOffsets, totalHeight: top, totalWidth: left };
-  }, [size, widths, heights]);
+    return {
+      rowOffsets,
+      colOffsets,
+      rowHeights,
+      colWidths,
+      totalHeight: top,
+      totalWidth: left,
+    };
+  }, [size, widths, heights, colIds, rowIds]);
 
   useEffect(() => {
     const el = containerRef.current;
@@ -106,9 +118,6 @@ export function useVirtualTable(
     endRow,
     startCol,
     endCol,
-    rowOffsets: layout.rowOffsets,
-    colOffsets: layout.colOffsets,
-    totalHeight: layout.totalHeight,
-    totalWidth: layout.totalWidth,
+    ...layout,
   };
 }

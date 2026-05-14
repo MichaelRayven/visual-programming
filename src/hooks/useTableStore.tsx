@@ -32,21 +32,19 @@ export function useSelectedCell() {
   );
 }
 
-export function useColWidth(col?: number) {
+export function useColWidth(col: number) {
   const store = useStore();
   return useSyncExternalStore(
-    // biome-ignore lint/suspicious/noEmptyBlockStatements: No-op for undefined cols
-    (l) => (col !== undefined ? store.subscribeGridMeta(l) : () => {}),
-    () => (col !== undefined ? store.getColWidth(col) : undefined)
+    (l) => store.subscribeGridMeta(l),
+    () => store.getColWidth(col)
   );
 }
 
-export function useRowHeight(row?: number) {
+export function useRowHeight(row: number) {
   const store = useStore();
   return useSyncExternalStore(
-    // biome-ignore lint/suspicious/noEmptyBlockStatements: No-op for undefined rows
-    (l) => (row !== undefined ? store.subscribeGridMeta(l) : () => {}),
-    () => (row !== undefined ? store.getRowHeight(row) : undefined)
+    (l) => store.subscribeGridMeta(l),
+    () => store.getRowHeight(row)
   );
 }
 

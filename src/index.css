@@ -408,7 +408,6 @@ th,
 td {
   padding: var(--spacing-2) var(--spacing-3);
   text-align: left;
-  border-bottom: 1px solid var(--color-border-light);
 }
 
 th {

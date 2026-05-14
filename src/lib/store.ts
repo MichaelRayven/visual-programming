@@ -6,7 +6,9 @@ import {
 } from "./table";
 
 export const DEFAULT_ROW_HEIGHT = 32;
-export const DEFAULT_COL_WIDTH = 64;
+export const DEFAULT_COL_WIDTH = 128;
+export const MIN_ROW_HEIGHT = 32;
+export const MIN_COL_WIDTH = 64;
 
 export type Listener = () => void;
 
@@ -93,8 +95,10 @@ export class TableStore {
     `${this.snapshot.rowIds[row]}_${this.snapshot.colIds[col]}`;
   getCellValue = (row: number, col: number) =>
     this.snapshot.cells[this.getCellId(row, col)] || "";
-  getColWidth = (col: number) => this.colWidths[this.snapshot.colIds[col]];
-  getRowHeight = (row: number) => this.rowHeights[this.snapshot.rowIds[row]];
+  getColWidth = (col: number) =>
+    this.colWidths[this.snapshot.colIds[col]] || DEFAULT_COL_WIDTH;
+  getRowHeight = (row: number) =>
+    this.rowHeights[this.snapshot.rowIds[row]] || DEFAULT_ROW_HEIGHT;
 
   // Setters
   updateCell(row: number, col: number, value: string) {
@@ -142,14 +146,22 @@ export class TableStore {
   }
 
   setColWidth(col: number, width: number) {
-    if (this.colWidths[col] === width) return;
-    this.colWidths = { ...this.colWidths, [col]: width };
+    const colId = this.snapshot.colIds[col];
+    if (this.colWidths[colId] === width) return;
+    this.colWidths = {
+      ...this.colWidths,
+      [colId]: Math.max(width, MIN_COL_WIDTH),
+    };
     this.gridMetaListeners.forEach((l) => l());
   }
 
   setRowHeight(row: number, height: number) {
-    if (this.rowHeights[row] === height) return;
-    this.rowHeights = { ...this.rowHeights, [row]: height };
+    const rowId = this.snapshot.rowIds[row];
+    if (this.rowHeights[rowId] === height) return;
+    this.rowHeights = {
+      ...this.rowHeights,
+      [rowId]: Math.max(height, MIN_ROW_HEIGHT),
+    };
     this.gridMetaListeners.forEach((l) => l());
   }
 

@@ -7,7 +7,7 @@ function App() {
       <main>
         <Table
           size={{
-            rows: 100,
+            rows: 1000,
             cols: 26,
           }}
         />

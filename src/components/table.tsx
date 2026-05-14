@@ -3,12 +3,11 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   useCellData,
   useCellSelection,
-  useColWidth,
   useHeaderSelected,
   useRowHeight,
   useSelectedCell,
 } from "@/hooks/useTableStore";
-import { DEFAULT_COL_WIDTH, DEFAULT_ROW_HEIGHT, TableStore } from "@/lib/store";
+import { MIN_COL_WIDTH, MIN_ROW_HEIGHT, TableStore } from "@/lib/store";
 import { getCellAddress, getColumnHeader } from "@/lib/table";
 import {
   ContextMenu,
@@ -26,7 +25,7 @@ type TableProps = {
     rows: number;
     cols: number;
   };
-} & React.ComponentProps<"table">;
+} & React.ComponentProps<"div">;
 
 export const Table = ({ size, className, ...props }: TableProps) => {
   const storeRef = useRef<TableStore>(null);
@@ -58,7 +57,7 @@ export const Table = ({ size, className, ...props }: TableProps) => {
 
 type TableContentProps = {
   containerRef: React.RefObject<HTMLDivElement>;
-} & React.ComponentProps<"table">;
+} & React.ComponentProps<"div">;
 
 const TableContent = ({
   containerRef,
@@ -74,131 +73,111 @@ const TableContent = ({
     totalWidth,
     rowOffsets,
     colOffsets,
+    colWidths,
+    rowHeights,
   } = useVirtualTable(containerRef, 50);
 
   return (
     <div
+      className={clsx("table", className)}
       style={{
-        height: `${totalHeight}px`,
-        width: `${totalWidth}px`,
+        height: `${totalHeight + MIN_ROW_HEIGHT}px`,
+        width: `${totalWidth + MIN_COL_WIDTH}px`,
         position: "relative",
       }}
+      {...props}
     >
-      <table
-        className={clsx("table", className)}
+      <div
+        className="table-header corner"
         style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: "100%",
-          tableLayout: "fixed", // Critical for column widths to behave
-          borderCollapse: "collapse",
+          width: `${MIN_COL_WIDTH}px`,
+          height: `${MIN_ROW_HEIGHT}px`,
         }}
-        {...props}
-      >
-        <thead style={{ position: "sticky", top: 0, zIndex: 1020 }}>
-          <TableRow row={-1}>
-            <TableHead />
-            <TableHeader
-              start={startCol}
-              end={endCol}
-              colOffsets={colOffsets}
-            />
-          </TableRow>
-        </thead>
-        <tbody>
-          {/* Only render rows in the virtual window */}
-          {Array.from({ length: endRow - startRow + 1 }).map((_, i) => {
-            const rowIdx = startRow + i;
-            return (
-              <TableRow
-                key={rowIdx}
-                row={rowIdx}
-                style={{
-                  position: "absolute",
-                  top: 0,
-                  transform: `translateY(${rowOffsets[rowIdx]}px)`,
-                  width: "100%",
-                  display: "flex", // Helps with cell alignment in absolute rows
-                }}
-              >
-                <TableHead row={rowIdx}>{rowIdx + 1}</TableHead>
-                <TableCellsRow
-                  rowIdx={rowIdx}
-                  startCol={startCol}
-                  endCol={endCol}
-                  colOffsets={colOffsets}
+      />
+
+      <div className="col-headers-sticky-wrapper">
+        {Array.from({ length: endCol - startCol + 1 }).map((_, i) => {
+          const colIdx = startCol + i;
+          return (
+            <TableHead
+              key={`col-${colIdx}`}
+              col={colIdx}
+              style={{
+                position: "absolute",
+                left: `${MIN_COL_WIDTH + colOffsets[colIdx]}px`,
+                top: 0,
+                width: `${colWidths[colIdx]}px`,
+                height: `${MIN_ROW_HEIGHT}px`,
+              }}
+            >
+              {getColumnHeader(colIdx)}
+            </TableHead>
+          );
+        })}
+      </div>
+
+      <div className="row-headers-sticky-wrapper">
+        {Array.from({ length: endRow - startRow + 1 }).map((_, i) => {
+          const rowIdx = startRow + i;
+          return (
+            <TableHead
+              key={`row-header-${rowIdx}`}
+              row={rowIdx}
+              style={{
+                position: "absolute",
+                top: `${MIN_ROW_HEIGHT + rowOffsets[rowIdx]}px`,
+                left: 0,
+                width: `${MIN_COL_WIDTH}px`,
+                height: `${rowHeights[rowIdx]}px`,
+              }}
+            >
+              {rowIdx + 1}
+            </TableHead>
+          );
+        })}
+      </div>
+
+      {Array.from({ length: endRow - startRow + 1 }).map((_, i) => {
+        const rowIdx = startRow + i;
+        return (
+          <TableRow
+            key={`row-${rowIdx}`}
+            row={rowIdx}
+            className="data-row"
+            style={{
+              position: "absolute",
+              top: `${MIN_ROW_HEIGHT + rowOffsets[rowIdx]}px`,
+              left: 0,
+              width: "100%",
+              height: `${rowHeights[rowIdx]}px`,
+            }}
+          >
+            {Array.from({ length: endCol - startCol + 1 }).map((_, j) => {
+              const colIdx = startCol + j;
+              return (
+                <TableCell
+                  key={`cell-${rowIdx}-${colIdx}`}
+                  row={rowIdx}
+                  col={colIdx}
+                  style={{
+                    position: "absolute",
+                    left: `${MIN_COL_WIDTH + colOffsets[colIdx]}px`,
+                    width: `${colWidths[colIdx]}px`,
+                    height: `${rowHeights[rowIdx]}px`,
+                  }}
                 />
-              </TableRow>
-            );
-          })}
-        </tbody>
-      </table>
+              );
+            })}
+          </TableRow>
+        );
+      })}
     </div>
   );
 };
 
-type TableHeaderProps = {
-  start: number;
-  end: number;
-  colOffsets: Float64Array;
-};
-
-const TableHeader = ({ start, end, colOffsets }: TableHeaderProps) => {
-  const cols = [];
-  for (let i = start; i <= end; i++) {
-    cols.push(
-      <TableHead
-        key={i}
-        col={i}
-        style={{
-          position: "absolute",
-          left: colOffsets[i],
-          width: colOffsets[i + 1] - colOffsets[i],
-        }}
-      >
-        {getColumnHeader(i)}
-      </TableHead>
-    );
-  }
-  return <>{cols}</>;
-};
-
-type TableCellsRowProps = {
-  rowIdx: number;
-  startCol: number;
-  endCol: number;
-  colOffsets: Float64Array;
-};
-
-const TableCellsRow = ({
-  rowIdx,
-  startCol,
-  endCol,
-  colOffsets,
-}: TableCellsRowProps) => {
-  const cells = [];
-  for (let i = startCol; i <= endCol; i++) {
-    cells.push(
-      <TableCell
-        key={i}
-        row={rowIdx}
-        col={i}
-        style={{
-          position: "absolute",
-          left: colOffsets[i],
-          width: colOffsets[i + 1] - colOffsets[i],
-          height: "100%",
-        }}
-      />
-    );
-  }
-  return <>{cells}</>;
-};
-
 type TableRowProps = {
   row: number;
-} & React.ComponentProps<"tr">;
+} & React.ComponentProps<"div">;
 
 export const TableRow = ({
   row,
@@ -207,8 +186,9 @@ export const TableRow = ({
   ...props
 }: TableRowProps) => {
   const height = useRowHeight(row);
+
   return (
-    <tr
+    <div
       className={clsx("table-row", className)}
       style={{ ...style, height }}
       {...props}
@@ -219,7 +199,7 @@ export const TableRow = ({
 type TableHeadProps = {
   col?: number;
   row?: number;
-} & React.ComponentProps<"th">;
+} & React.ComponentProps<"div">;
 
 export const TableHead = ({
   className,
@@ -230,12 +210,11 @@ export const TableHead = ({
   ...props
 }: TableHeadProps) => {
   const store = useStore();
-  const ref = useRef<HTMLTableCellElement>(null);
+  const ref = useRef<HTMLDivElement>(null);
   const isCol = col !== undefined;
   const isRow = row !== undefined;
 
   const isSelected = useHeaderSelected(col, row);
-  const width = useColWidth(col);
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -246,16 +225,10 @@ export const TableHead = ({
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (isCol) {
-        const newWidth = Math.max(
-          DEFAULT_COL_WIDTH,
-          startWidth + (moveEvent.clientX - startX)
-        );
+        const newWidth = startWidth + (moveEvent.clientX - startX);
         store.setColWidth(col, newWidth);
       } else if (isRow) {
-        const newHeight = Math.max(
-          DEFAULT_ROW_HEIGHT,
-          startHeight + (moveEvent.clientY - startY)
-        );
+        const newHeight = startHeight + (moveEvent.clientY - startY);
         store.setRowHeight(row, newHeight);
       }
     };
@@ -269,20 +242,15 @@ export const TableHead = ({
     document.addEventListener("mouseup", handleMouseUp);
   };
 
-  const resolvedStyle = {
-    ...style,
-    ...(isCol && width ? { width, minWidth: width } : {}),
-  };
-
   return (
-    <th
+    <div
       ref={ref}
-      style={resolvedStyle}
       className={clsx(
         "table-header",
         { "header-selected": isSelected },
         className
       )}
+      style={style}
       {...props}
     >
       <ContextMenu>
@@ -348,14 +316,14 @@ export const TableHead = ({
           }}
         />
       )}
-    </th>
+    </div>
   );
 };
 
 type TableCellProps = {
   row: number;
   col: number;
-} & React.ComponentProps<"td">;
+} & React.ComponentProps<"div">;
 
 export const TableCell = React.memo(
   ({
@@ -364,6 +332,7 @@ export const TableCell = React.memo(
     col,
     onClick,
     onDoubleClick,
+    style,
     ...props
   }: TableCellProps) => {
     const store = useStore();
@@ -410,7 +379,7 @@ export const TableCell = React.memo(
     }, [isSelected, row, col, store]);
 
     return (
-      <td
+      <div
         className={clsx(
           "table-cell",
           {
@@ -423,6 +392,7 @@ export const TableCell = React.memo(
           },
           className
         )}
+        style={style}
         onDoubleClick={(e) => {
           internalInputRef.current?.focus();
           onDoubleClick?.(e);
@@ -457,22 +427,20 @@ export const TableCell = React.memo(
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
-      </td>
+      </div>
     );
   }
 );
 
-TableCell.displayName = "TableCell";
-
 export function TableTopBar() {
   const store = useStore();
   const selectedCell = useSelectedCell();
-  const cellAddr = getCellAddress(selectedCell.row, selectedCell.col);
+  const cellAddress = getCellAddress(selectedCell.row, selectedCell.col);
   const { rawValue } = useCellData(selectedCell.row, selectedCell.col);
 
   return (
     <div className="table-top-bar">
-      <div className="table-top-bar-address">{cellAddr}</div>
+      <div className="table-top-bar-address">{cellAddress}</div>
       <Input
         className="table-top-bar-input"
         value={rawValue}
