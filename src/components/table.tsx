@@ -218,24 +218,61 @@ export const TableHead = ({
 
   const handleMouseDown = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!ref.current) return;
+
     const startX = e.clientX;
     const startY = e.clientY;
-    const startWidth = ref.current?.offsetWidth || 0;
-    const startHeight = ref.current?.offsetHeight || 0;
+    const startWidth = ref.current.offsetWidth;
+    const startHeight = ref.current.offsetHeight;
+
+    const tableEl = ref.current.closest(".table") as HTMLDivElement;
+    if (!tableEl) return;
+
+    const rect = ref.current.getBoundingClientRect();
+    const tableRect = tableEl.getBoundingClientRect();
+
+    const initialLeft = rect.right - tableRect.left;
+    const initialTop = rect.bottom - tableRect.top;
+
+    const previewLine = document.createElement("div");
+    if (isCol) {
+      previewLine.className = "table-resize-preview-col";
+      previewLine.style.left = `${initialLeft}px`;
+      tableEl.appendChild(previewLine);
+    } else if (isRow) {
+      previewLine.className = "table-resize-preview-row";
+      previewLine.style.top = `${initialTop}px`;
+      tableEl.appendChild(previewLine);
+    }
+
+    let finalWidth = startWidth;
+    let finalHeight = startHeight;
 
     const handleMouseMove = (moveEvent: MouseEvent) => {
       if (isCol) {
-        const newWidth = startWidth + (moveEvent.clientX - startX);
-        store.setColWidth(col, newWidth);
+        const deltaX = moveEvent.clientX - startX;
+        finalWidth = Math.max(MIN_COL_WIDTH, startWidth + deltaX);
+        const currentLeft = rect.left - tableRect.left + finalWidth;
+        previewLine.style.left = `${currentLeft}px`;
       } else if (isRow) {
-        const newHeight = startHeight + (moveEvent.clientY - startY);
-        store.setRowHeight(row, newHeight);
+        const deltaY = moveEvent.clientY - startY;
+        finalHeight = Math.max(MIN_ROW_HEIGHT, startHeight + deltaY);
+        const currentTop = rect.top - tableRect.top + finalHeight;
+        previewLine.style.top = `${currentTop}px`;
       }
     };
 
     const handleMouseUp = () => {
       document.removeEventListener("mousemove", handleMouseMove);
       document.removeEventListener("mouseup", handleMouseUp);
+
+      previewLine.remove();
+
+      if (isCol) {
+        store.setColWidth(col, finalWidth);
+      } else if (isRow) {
+        store.setRowHeight(row, finalHeight);
+      }
     };
 
     document.addEventListener("mousemove", handleMouseMove);
