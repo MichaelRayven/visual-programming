@@ -7,8 +7,13 @@ import {
   useRowHeight,
   useSelectedCell,
 } from "@/hooks/useTableStore";
-import { MIN_COL_WIDTH, MIN_ROW_HEIGHT, TableStore } from "@/lib/store";
 import { getCellAddress, getColumnHeader } from "@/lib/table";
+import {
+  MIN_COL_WIDTH,
+  MIN_ROW_HEIGHT,
+  type TableSnapshot,
+  TableStore,
+} from "@/stores/table";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -17,30 +22,37 @@ import {
 } from "./context-menu";
 import { Input } from "./input";
 import "@/components/table.css";
-import { TableStoreContext, useStore } from "@/hooks/useTable";
+import { TableStoreContext, useTableStore } from "@/hooks/useTableStore";
 import { useVirtualTable } from "@/hooks/useVirtualTable";
 
 type TableProps = {
-  size: {
-    rows: number;
-    cols: number;
-  };
+  store?: TableStore;
+  snapshot: TableSnapshot;
 } & React.ComponentProps<"div">;
 
-export const Table = ({ size, className, ...props }: TableProps) => {
-  const storeRef = useRef<TableStore>(null);
+export const Table = ({
+  store: externalTableStore,
+  snapshot,
+  className,
+  ...props
+}: TableProps) => {
+  const internalTableStoreRef = useRef<TableStore | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  if (!storeRef.current) {
-    storeRef.current = new TableStore(size);
+  if (!externalTableStore && !internalTableStoreRef.current) {
+    internalTableStoreRef.current = new TableStore(
+      snapshot.gridSize || { rows: 100, cols: 26 }
+    );
   }
 
+  const store = externalTableStore || internalTableStoreRef.current!;
+
   useEffect(() => {
-    storeRef.current?.setGridSize(size);
-  }, [size]);
+    if (snapshot) store.loadSavedTable(snapshot);
+  }, [snapshot, store]);
 
   return (
-    <TableStoreContext.Provider value={storeRef.current}>
+    <TableStoreContext.Provider value={store}>
       <div className="table-wrapper">
         <TableTopBar />
         <div className="table-scrollable" ref={scrollContainerRef}>
@@ -56,7 +68,7 @@ export const Table = ({ size, className, ...props }: TableProps) => {
 };
 
 type TableContentProps = {
-  containerRef: React.RefObject<HTMLDivElement>;
+  containerRef: React.RefObject<HTMLDivElement | null>;
 } & React.ComponentProps<"div">;
 
 const TableContent = ({
@@ -209,7 +221,7 @@ export const TableHead = ({
   style,
   ...props
 }: TableHeadProps) => {
-  const store = useStore();
+  const store = useTableStore();
   const ref = useRef<HTMLDivElement>(null);
   const isCol = col !== undefined;
   const isRow = row !== undefined;
@@ -372,7 +384,7 @@ export const TableCell = React.memo(
     style,
     ...props
   }: TableCellProps) => {
-    const store = useStore();
+    const store = useTableStore();
     const [isFocused, setIsFocused] = useState(false);
     const internalInputRef = useRef<HTMLInputElement>(null);
 
@@ -470,7 +482,7 @@ export const TableCell = React.memo(
 );
 
 export function TableTopBar() {
-  const store = useStore();
+  const store = useTableStore();
   const selectedCell = useSelectedCell();
   const cellAddress = getCellAddress(selectedCell.row, selectedCell.col);
   const { rawValue } = useCellData(selectedCell.row, selectedCell.col);

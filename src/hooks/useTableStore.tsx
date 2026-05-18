@@ -1,5 +1,4 @@
-import { useSyncExternalStore } from "react";
-import { useStore } from "@/hooks/useTable";
+import { createContext, useContext, useSyncExternalStore } from "react";
 import { evaluateCell } from "@/lib/formula";
 import {
   getCellAddress,
@@ -7,9 +6,19 @@ import {
   isColumnHeaderInSelection,
   isRowHeaderInSelection,
 } from "@/lib/table";
+import { TableStore } from "@/stores/table";
+
+export const TableStoreContext = createContext<TableStore | null>(null);
+
+export const useTableStore = () => {
+  const store = useContext(TableStoreContext);
+  if (!store)
+    throw new Error("useStore must be used within TableStoreProvider");
+  return store;
+};
 
 export function useGridSize() {
-  const store = useStore();
+  const store = useTableStore();
   return useSyncExternalStore(
     (l) => store.subscribeGridMeta(l),
     () => store.getGridSizeSnapshot()
@@ -17,7 +26,7 @@ export function useGridSize() {
 }
 
 export function useSelection() {
-  const store = useStore();
+  const store = useTableStore();
   return useSyncExternalStore(
     (l) => store.subscribeSelection(l),
     () => store.getSelectionSnapshot()
@@ -25,7 +34,7 @@ export function useSelection() {
 }
 
 export function useSelectedCell() {
-  const store = useStore();
+  const store = useTableStore();
   return useSyncExternalStore(
     (l) => store.subscribeSelection(l),
     () => store.getSelectedCellSnapshot()
@@ -33,7 +42,7 @@ export function useSelectedCell() {
 }
 
 export function useColWidth(col: number) {
-  const store = useStore();
+  const store = useTableStore();
   return useSyncExternalStore(
     (l) => store.subscribeGridMeta(l),
     () => store.getColWidth(col)
@@ -41,7 +50,7 @@ export function useColWidth(col: number) {
 }
 
 export function useRowHeight(row: number) {
-  const store = useStore();
+  const store = useTableStore();
   return useSyncExternalStore(
     (l) => store.subscribeGridMeta(l),
     () => store.getRowHeight(row)
@@ -70,7 +79,7 @@ export function useCellSelection(row: number, col: number) {
 }
 
 export function useCellData(row: number, col: number) {
-  const store = useStore();
+  const store = useTableStore();
 
   const rawValue = useSyncExternalStore(
     (l) => store.subscribeCell(row, col, l),

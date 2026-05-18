@@ -3,7 +3,7 @@ import {
   type CellPosition,
   getSelectionBounds,
   type TableSelection,
-} from "./table";
+} from "@/lib/table";
 
 export const DEFAULT_ROW_HEIGHT = 32;
 export const DEFAULT_COL_WIDTH = 128;
@@ -18,8 +18,15 @@ export type GridSnapshot = {
   colIds: string[];
 };
 
+export type TableSnapshot = {
+  gridSnapshot: GridSnapshot;
+  colWidths: Record<string, number>;
+  rowHeights: Record<string, number>;
+  gridSize: { rows: number; cols: number };
+};
+
 export class TableStore {
-  private snapshot: GridSnapshot;
+  private gridSnapshot: GridSnapshot;
   private gridSize: { rows: number; cols: number };
   private selectedCell: CellPosition = { row: 0, col: 0 };
   private selection: TableSelection = {
@@ -38,7 +45,7 @@ export class TableStore {
 
   constructor(initialSize: { rows: number; cols: number }) {
     this.gridSize = { ...initialSize };
-    this.snapshot = {
+    this.gridSnapshot = {
       cells: {},
       rowIds: Array.from({ length: initialSize.rows }, () => uuidv4()),
       colIds: Array.from({ length: initialSize.cols }, () => uuidv4()),
@@ -84,7 +91,7 @@ export class TableStore {
   }
 
   // Getters
-  getGridSnapshot = (): GridSnapshot => this.snapshot;
+  getGridSnapshot = (): GridSnapshot => this.gridSnapshot;
   getGridSizeSnapshot = () => this.gridSize;
   getSelectedCellSnapshot = () => this.selectedCell;
   getSelectionSnapshot = () => this.selection;
@@ -92,23 +99,36 @@ export class TableStore {
   getRowHeightsSnapshot = () => this.rowHeights;
 
   getCellId = (row: number, col: number) =>
-    `${this.snapshot.rowIds[row]}_${this.snapshot.colIds[col]}`;
+    `${this.gridSnapshot.rowIds[row]}_${this.gridSnapshot.colIds[col]}`;
   getCellValue = (row: number, col: number) =>
-    this.snapshot.cells[this.getCellId(row, col)] || "";
+    this.gridSnapshot.cells[this.getCellId(row, col)] || "";
   getColWidth = (col: number) =>
-    this.colWidths[this.snapshot.colIds[col]] || DEFAULT_COL_WIDTH;
+    this.colWidths[this.gridSnapshot.colIds[col]] || DEFAULT_COL_WIDTH;
   getRowHeight = (row: number) =>
-    this.rowHeights[this.snapshot.rowIds[row]] || DEFAULT_ROW_HEIGHT;
+    this.rowHeights[this.gridSnapshot.rowIds[row]] || DEFAULT_ROW_HEIGHT;
 
   // Setters
+  loadSavedTable({
+    gridSnapshot,
+    colWidths,
+    rowHeights,
+    gridSize,
+  }: TableSnapshot) {
+    this.gridSnapshot = gridSnapshot;
+    this.colWidths = colWidths;
+    this.rowHeights = rowHeights;
+    this.gridSize = gridSize;
+    this.notifyAll();
+  }
+
   updateCell(row: number, col: number, value: string) {
     const cellId = this.getCellId(row, col);
-    if (this.snapshot.cells[cellId] === value) return;
+    if (this.gridSnapshot.cells[cellId] === value) return;
 
-    this.snapshot = {
-      ...this.snapshot,
+    this.gridSnapshot = {
+      ...this.gridSnapshot,
       cells: {
-        ...this.snapshot.cells,
+        ...this.gridSnapshot.cells,
         [cellId]: value,
       },
     };
@@ -146,7 +166,7 @@ export class TableStore {
   }
 
   setColWidth(col: number, width: number) {
-    const colId = this.snapshot.colIds[col];
+    const colId = this.gridSnapshot.colIds[col];
     if (this.colWidths[colId] === width) return;
     this.colWidths = {
       ...this.colWidths,
@@ -156,7 +176,7 @@ export class TableStore {
   }
 
   setRowHeight(row: number, height: number) {
-    const rowId = this.snapshot.rowIds[row];
+    const rowId = this.gridSnapshot.rowIds[row];
     if (this.rowHeights[rowId] === height) return;
     this.rowHeights = {
       ...this.rowHeights,
@@ -176,12 +196,12 @@ export class TableStore {
     const insertCol = position === "left" ? col : col + 1;
     const newCols = this.gridSize.cols + 1;
 
-    this.snapshot = {
-      ...this.snapshot,
+    this.gridSnapshot = {
+      ...this.gridSnapshot,
       colIds: [
-        ...this.snapshot.colIds.slice(0, insertCol),
+        ...this.gridSnapshot.colIds.slice(0, insertCol),
         uuidv4(),
-        ...this.snapshot.colIds.slice(insertCol),
+        ...this.gridSnapshot.colIds.slice(insertCol),
       ],
     };
 
@@ -216,17 +236,18 @@ export class TableStore {
     if (this.gridSize.cols <= 1) return;
     const newCols = this.gridSize.cols - 1;
 
-    this.snapshot = {
+    this.gridSnapshot = {
       cells: Object.fromEntries(
-        Object.entries(this.snapshot.cells).filter(
-          ([key, _]) => !key.endsWith(this.snapshot.colIds[col])
+        Object.entries(this.gridSnapshot.cells).filter(
+          ([key, _]) => !key.endsWith(this.gridSnapshot.colIds[col])
         )
       ),
-      rowIds: this.snapshot.rowIds,
-      colIds: this.snapshot.colIds.filter((_, idx) => idx !== col),
+      rowIds: this.gridSnapshot.rowIds,
+      colIds: this.gridSnapshot.colIds.filter((_, idx) => idx !== col),
     };
 
-    const { [this.snapshot.colIds[col]]: _, ...nextWidths } = this.colWidths;
+    const { [this.gridSnapshot.colIds[col]]: _, ...nextWidths } =
+      this.colWidths;
     this.colWidths = nextWidths;
 
     if (this.selectedCell) {
@@ -258,12 +279,12 @@ export class TableStore {
     const insertRow = position === "above" ? row : row + 1;
     const newRows = this.gridSize.rows + 1;
 
-    this.snapshot = {
-      ...this.snapshot,
+    this.gridSnapshot = {
+      ...this.gridSnapshot,
       rowIds: [
-        ...this.snapshot.rowIds.slice(0, insertRow),
+        ...this.gridSnapshot.rowIds.slice(0, insertRow),
         uuidv4(),
-        ...this.snapshot.rowIds.slice(insertRow),
+        ...this.gridSnapshot.rowIds.slice(insertRow),
       ],
     };
 
@@ -298,17 +319,18 @@ export class TableStore {
     if (this.gridSize.rows <= 1) return;
     const newRows = this.gridSize.rows - 1;
 
-    this.snapshot = {
+    this.gridSnapshot = {
       cells: Object.fromEntries(
-        Object.entries(this.snapshot.cells).filter(
-          ([key, _]) => !key.startsWith(this.snapshot.rowIds[row])
+        Object.entries(this.gridSnapshot.cells).filter(
+          ([key, _]) => !key.startsWith(this.gridSnapshot.rowIds[row])
         )
       ),
-      rowIds: this.snapshot.rowIds.filter((_, idx) => idx !== row),
-      colIds: this.snapshot.colIds,
+      rowIds: this.gridSnapshot.rowIds.filter((_, idx) => idx !== row),
+      colIds: this.gridSnapshot.colIds,
     };
 
-    const { [this.snapshot.rowIds[row]]: _, ...nextHeights } = this.rowHeights;
+    const { [this.gridSnapshot.rowIds[row]]: _, ...nextHeights } =
+      this.rowHeights;
     this.rowHeights = nextHeights;
 
     if (this.selectedCell) {
