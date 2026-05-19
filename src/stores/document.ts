@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { exportToCSV } from "@/lib/csv";
+import { exportToCSV, parseCSV } from "@/lib/csv";
 import { type TableSnapshot, TableStore } from "@/stores/table";
 
 export type Listener = () => void;
@@ -183,5 +183,58 @@ export class DocumentStore {
       data.push(row);
     }
     return exportToCSV(data);
+  }
+
+  exportToJson(doc: Document): string {
+    const payload = {
+      id: doc.id,
+      title: doc.title,
+      createdAt: doc.createdAt,
+      updatedAt: doc.updatedAt,
+      tableSnapshot: doc.tableSnapshot,
+    };
+    return JSON.stringify(payload, null, 2);
+  }
+
+  importFromCsv(csv: string, title: string): Document {
+    const rows = parseCSV(csv);
+    const numRows = Math.max(rows.length, 1);
+    const numCols = Math.max(
+      rows.reduce((max, r) => Math.max(max, r.length), 0),
+      1
+    );
+    // Cap cols to 26 (A–Z address space)
+    const safeCols = Math.min(numCols, 26);
+
+    const tempStore = new TableStore({ rows: numRows, cols: safeCols });
+    const snapshot = tempStore.getGridSnapshot();
+
+    rows.forEach((row, r) => {
+      row.slice(0, safeCols).forEach((value, c) => {
+        if (value !== "") {
+          const cellId = `${snapshot.rowIds[r]}_${snapshot.colIds[c]}`;
+          snapshot.cells[cellId] = value;
+        }
+      });
+    });
+
+    const newDoc: Document = {
+      id: uuidv4(),
+      title: title || "Imported document",
+      tableSnapshot: {
+        gridSnapshot: snapshot,
+        gridSize: tempStore.getGridSizeSnapshot(),
+        colWidths: tempStore.getColWidthsSnapshot(),
+        rowHeights: tempStore.getRowHeightsSnapshot(),
+      },
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
+    this.documents = [...this.documents, newDoc];
+    this.saveToLocalStorage();
+    this.listListeners.forEach((l) => l());
+    this.setOpenDocument(newDoc.id);
+    return newDoc;
   }
 }
