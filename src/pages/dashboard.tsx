@@ -1,17 +1,14 @@
 import {
   CalendarIcon,
   ClockIcon,
-  CopyIcon,
-  DownloadIcon,
   FileTextIcon,
-  PencilIcon,
   SearchIcon,
-  Trash2Icon,
   UploadIcon,
   UserIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/button";
+import { CardActionsDropdown } from "@/components/card-actions-dropdown";
 import { CreateDocumentDialog } from "@/components/create-document-dialog";
 import { Dialog } from "@/components/dialog";
 import { Input } from "@/components/input";
@@ -64,13 +61,24 @@ export function DashboardPage() {
     return sorted;
   }, [documents, searchQuery, sortBy]);
 
-  const handleExport = (doc: Document) => {
+  const handleExportCsv = (doc: Document) => {
     const csv = store.exportToCsv(doc);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
     link.download = `${doc.title}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJson = (doc: Document) => {
+    const json = store.exportToJson(doc);
+    const blob = new Blob([json], { type: "application/json;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${doc.title}.json`;
     link.click();
     URL.revokeObjectURL(url);
   };
@@ -186,41 +194,15 @@ export function DashboardPage() {
                     title={doc.title}
                     onTitleChange={(t) => store.updateDocument(doc.id, t)}
                   />
-                  <div
-                    className="document-card-actions"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() =>
-                        setRenameDoc({ id: doc.id, title: doc.title })
-                      }
-                    >
-                      <PencilIcon size={16} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => store.duplicateDocument(doc.id)}
-                    >
-                      <CopyIcon size={16} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleExport(doc)}
-                    >
-                      <DownloadIcon size={16} />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setDeleteId(doc.id)}
-                    >
-                      <Trash2Icon size={16} />
-                    </Button>
-                  </div>
+                  <CardActionsDropdown
+                    onRename={() =>
+                      setRenameDoc({ id: doc.id, title: doc.title })
+                    }
+                    onDuplicate={() => store.duplicateDocument(doc.id)}
+                    onExportCsv={() => handleExportCsv(doc)}
+                    onExportJson={() => handleExportJson(doc)}
+                    onDelete={() => setDeleteId(doc.id)}
+                  />
                 </div>
 
                 <TablePreview snapshot={doc.tableSnapshot} />
