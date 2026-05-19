@@ -4,15 +4,17 @@ import {
   CopyIcon,
   DownloadIcon,
   FileTextIcon,
+  PencilIcon,
   SearchIcon,
   Trash2Icon,
   UserIcon,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/button";
 import { CreateDocumentDialog } from "@/components/create-document-dialog";
 import { Dialog } from "@/components/dialog";
 import { Input } from "@/components/input";
+import { RenameDocumentDialog } from "@/components/rename-document-dialog";
 import { useDocumentList, useDocumentStore } from "@/hooks/useDocumentStore";
 import { evaluateCell } from "@/lib/formula";
 import { getCellAddress } from "@/lib/table";
@@ -29,6 +31,10 @@ export function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("dateModified");
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [renameDoc, setRenameDoc] = useState<{
+    id: string;
+    title: string;
+  } | null>(null);
 
   const filteredAndSortedDocuments = useMemo(() => {
     let filtered = documents;
@@ -151,6 +157,15 @@ export function DashboardPage() {
                     <Button
                       variant="ghost"
                       size="sm"
+                      onClick={() =>
+                        setRenameDoc({ id: doc.id, title: doc.title })
+                      }
+                    >
+                      <PencilIcon size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       onClick={() => store.duplicateDocument(doc.id)}
                     >
                       <CopyIcon size={16} />
@@ -210,6 +225,17 @@ export function DashboardPage() {
             </>
           }
         />
+
+        <RenameDocumentDialog
+          open={!!renameDoc}
+          onOpenChange={(open) => !open && setRenameDoc(null)}
+          currentTitle={renameDoc?.title || ""}
+          onRename={(newTitle) => {
+            if (renameDoc) {
+              store.updateDocument(renameDoc.id, newTitle);
+            }
+          }}
+        />
       </main>
     </div>
   );
@@ -223,6 +249,11 @@ function DocumentTitle({
   onTitleChange?: (value: string) => void;
 }) {
   const [value, setValue] = useState(title);
+
+  // Update local state when prop changes
+  useEffect(() => {
+    setValue(title);
+  }, [title]);
 
   return (
     <Input
