@@ -165,10 +165,11 @@ export function DocumentPage({ document }: { document: Document }) {
             onBlur={handleTitleBlur}
             placeholder="Без названия"
           />
+
+          <SaveStatusBadge status={saveStatus} />
         </div>
 
         <div className="document-header-right">
-          <SaveStatusBadge status={saveStatus} />
           <ExportMenu
             onExportCsv={handleExportCsv}
             onExportJson={handleExportJson}
