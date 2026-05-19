@@ -1,0 +1,128 @@
+.document-page {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.document-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  gap: var(--spacing-4);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--color-surface-elevated);
+  border-bottom: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.document-header-left {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+  min-width: 0;
+}
+
+.document-back-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-2);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.document-back-button:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+}
+
+.document-title-input {
+  min-width: 200px;
+  max-width: 400px;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  outline: none;
+  background-color: transparent;
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  transition:
+    border-color var(--transition-fast),
+    background-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.document-title-input:hover {
+  background-color: var(--color-surface);
+  border-color: var(--color-border-base);
+}
+
+.document-title-input:focus {
+  background-color: var(--color-background);
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 3px rgb(59 130 246 / 20%);
+}
+
+.document-title-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.document-header-right {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+.document-save-status {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
+  padding: var(--spacing-2) var(--spacing-3);
+  font-size: var(--font-size-sm);
+  border-radius: var(--radius-md);
+}
+
+.document-save-status-saved {
+  color: var(--color-success-dark);
+  background-color: var(--color-success-light);
+}
+
+.document-save-status-saving {
+  color: var(--color-info-dark);
+  background-color: var(--color-info-light);
+}
+
+.document-save-status-error {
+  color: var(--color-error-dark);
+  background-color: var(--color-error-light);
+}
+
+.document-save-status-icon {
+  display: flex;
+  align-items: center;
+}
+
+.document-main {
+  flex: 1;
+  overflow: hidden;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

@@ -43,13 +43,10 @@ export const Table = ({
     internalTableStoreRef.current = new TableStore(
       snapshot.gridSize || { rows: 100, cols: 26 }
     );
+    internalTableStoreRef.current.loadSavedTable(snapshot);
   }
 
   const store = externalTableStore || internalTableStoreRef.current!;
-
-  useEffect(() => {
-    if (snapshot) store.loadSavedTable(snapshot);
-  }, [snapshot, store]);
 
   return (
     <TableStoreContext.Provider value={store}>

@@ -19,25 +19,25 @@ export class DocumentStore {
   private openDocumentId: string | null = null;
   private saveStatus: SaveStatus = "saved";
 
-  private listListeners = new Set<() => void>();
-  private statusListeners = new Set<(status: SaveStatus) => void>();
-  private openDocumentListeners = new Set<(id: string) => void>();
+  private listListeners = new Set<Listener>();
+  private statusListeners = new Set<Listener>();
+  private openDocumentListeners = new Set<Listener>();
 
   constructor() {
     this.loadFromLocalStorage();
   }
 
-  subscribeList(listener: () => void) {
+  subscribeList(listener: Listener) {
     this.listListeners.add(listener);
     return () => this.listListeners.delete(listener);
   }
 
-  subscribeStatus(listener: (status: SaveStatus) => void) {
+  subscribeStatus(listener: Listener) {
     this.statusListeners.add(listener);
     return () => this.statusListeners.delete(listener);
   }
 
-  subscribeOpenDocument(listener: (id: string) => void) {
+  subscribeOpenDocument(listener: Listener) {
     this.openDocumentListeners.add(listener);
     return () => this.openDocumentListeners.delete(listener);
   }
@@ -60,11 +60,17 @@ export class DocumentStore {
     return this.saveStatus;
   }
 
-  setOpenDocument(id: string) {
+  setOpenDocument(id: string | null) {
+    if (id === null || id === "") {
+      this.openDocumentId = null;
+      this.openDocumentListeners.forEach((l) => l());
+      return;
+    }
+
     const doc = this.getDocumentById(id);
     if (doc) {
       this.openDocumentId = id;
-      this.openDocumentListeners.forEach((l) => l(id));
+      this.openDocumentListeners.forEach((l) => l());
     }
   }
 
@@ -138,6 +144,9 @@ export class DocumentStore {
 
       this.saveToLocalStorage();
 
+      // TODO: remove
+      await new Promise((res) => setTimeout(() => res(null), 500));
+
       this.setSaveStatus("saved");
     } catch (_) {
       this.setSaveStatus("error");
@@ -146,7 +155,7 @@ export class DocumentStore {
 
   private setSaveStatus(status: SaveStatus) {
     this.saveStatus = status;
-    this.statusListeners.forEach((l) => l(status));
+    this.statusListeners.forEach((l) => l());
   }
 
   private saveToLocalStorage() {

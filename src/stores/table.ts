@@ -173,6 +173,7 @@ export class TableStore {
       [colId]: Math.max(width, MIN_COL_WIDTH),
     };
     this.gridMetaListeners.forEach((l) => l());
+    this.globalListeners.forEach((l) => l());
   }
 
   setRowHeight(row: number, height: number) {
@@ -183,6 +184,7 @@ export class TableStore {
       [rowId]: Math.max(height, MIN_ROW_HEIGHT),
     };
     this.gridMetaListeners.forEach((l) => l());
+    this.globalListeners.forEach((l) => l());
   }
 
   setGridSize(size: { rows: number; cols: number }) {
