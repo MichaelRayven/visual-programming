@@ -20,10 +20,26 @@ export function useDocumentSaveStatus() {
   );
 }
 
-export function useDocument(id: string) {
+export function useDocumentById(id: string) {
   const store = useDocumentStore();
   return useSyncExternalStore(
     (l) => store.subscribeList(l),
     () => store.getDocumentById(id)
+  );
+}
+
+export function useDocumentList() {
+  const store = useDocumentStore();
+  return useSyncExternalStore(
+    (l) => store.subscribeList(l),
+    () => store.getDocuments()
+  );
+}
+
+export function useOpenDocument() {
+  const store = useDocumentStore();
+  return useSyncExternalStore(
+    (l) => store.subscribeOpenDocument(l),
+    () => store.getOpenDocument()
   );
 }

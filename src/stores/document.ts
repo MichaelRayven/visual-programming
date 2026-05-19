@@ -15,10 +15,12 @@ export type Document = {
 
 export class DocumentStore {
   private documents: Document[] = [];
+  private openDocumentId: string | null = null;
   private saveStatus: SaveStatus = "saved";
 
   private listListeners = new Set<() => void>();
   private statusListeners = new Set<(status: SaveStatus) => void>();
+  private openDocumentListeners = new Set<(id: string) => void>();
 
   constructor() {
     this.loadFromLocalStorage();
@@ -34,16 +36,35 @@ export class DocumentStore {
     return () => this.statusListeners.delete(listener);
   }
 
+  subscribeOpenDocument(listener: (id: string) => void) {
+    this.openDocumentListeners.add(listener);
+    return () => this.openDocumentListeners.delete(listener);
+  }
+
   getDocuments() {
-    return [...this.documents].sort((a, b) => b.updatedAt - a.updatedAt);
+    return this.documents;
   }
 
   getDocumentById(id: string) {
     return this.documents.find((doc) => doc.id === id);
   }
 
+  getOpenDocument() {
+    return this.openDocumentId
+      ? this.documents.find((doc) => doc.id === this.openDocumentId)
+      : null;
+  }
+
   getSaveStatus() {
     return this.saveStatus;
+  }
+
+  setOpenDocument(id: string) {
+    const doc = this.getDocumentById(id);
+    if (doc) {
+      this.openDocumentId = id;
+      this.openDocumentListeners.forEach((l) => l(id));
+    }
   }
 
   createDocument(title: string, rows: number, cols: number) {

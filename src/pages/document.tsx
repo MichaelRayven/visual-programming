@@ -1,26 +1,25 @@
 import { useEffect, useMemo, useRef } from "react";
 import { Table } from "@/components/table";
 import {
-  useDocument,
   useDocumentSaveStatus,
   useDocumentStore,
 } from "@/hooks/useDocumentStore";
 import { debounce } from "@/lib/utils";
+import { type Document } from "@/stores/document";
 import { type TableSnapshot, TableStore } from "@/stores/table";
 
-export function DocumentPage({ id }: { id: string }) {
+export function DocumentPage({ document }: { document: Document }) {
   const documentStore = useDocumentStore();
   const saveStatus = useDocumentSaveStatus();
-  const document = useDocument(id);
 
   const storeRef = useRef<TableStore | null>(null);
 
   const debouncedSave = useMemo(
     () =>
       debounce((snapshot: TableSnapshot) => {
-        documentStore.autoSave(id, snapshot);
+        documentStore.autoSave(document.id, snapshot);
       }, 500),
-    [id, documentStore]
+    [document, documentStore]
   );
 
   useEffect(() => {
@@ -39,7 +38,7 @@ export function DocumentPage({ id }: { id: string }) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "s") {
         e.preventDefault();
-        documentStore.autoSave(id, {
+        documentStore.autoSave(document.id, {
           colWidths: tableStore.getColWidthsSnapshot(),
           rowHeights: tableStore.getRowHeightsSnapshot(),
           gridSize: tableStore.getGridSizeSnapshot(),
@@ -62,11 +61,11 @@ export function DocumentPage({ id }: { id: string }) {
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [id, debouncedSave, documentStore]);
+  }, [document, debouncedSave, documentStore]);
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newTitle = e.target.value;
-    documentStore.updateDocument(id, newTitle);
+    documentStore.updateDocument(document.id, newTitle);
   };
 
   if (!document) {
