@@ -7,9 +7,10 @@ import {
   PencilIcon,
   SearchIcon,
   Trash2Icon,
+  UploadIcon,
   UserIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/button";
 import { CreateDocumentDialog } from "@/components/create-document-dialog";
 import { Dialog } from "@/components/dialog";
@@ -35,6 +36,7 @@ export function DashboardPage() {
     id: string;
     title: string;
   } | null>(null);
+  const importInputRef = useRef<HTMLInputElement>(null);
 
   const filteredAndSortedDocuments = useMemo(() => {
     let filtered = documents;
@@ -70,6 +72,23 @@ export function DashboardPage() {
     link.href = url;
     link.download = `${doc.title}.csv`;
     link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImportCsv = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const fileName = file.name.replace(/\.csv$/i, "");
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result;
+      if (typeof text === "string") {
+        store.importFromCsv(text, fileName);
+      }
+    };
+    reader.readAsText(file, "utf-8");
+    // Reset so the same file can be re-imported
+    if (importInputRef.current) importInputRef.current.value = "";
   };
 
   const handleOpenDocument = (id: string) => {
@@ -99,6 +118,23 @@ export function DashboardPage() {
         </div>
 
         <div className="dashboard-header-right">
+          <input
+            ref={importInputRef}
+            type="file"
+            accept=".csv"
+            className="dashboard-import-input"
+            aria-label="Import CSV file"
+            onChange={handleImportCsv}
+          />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => importInputRef.current?.click()}
+            title="Import CSV"
+          >
+            <UploadIcon size={16} />
+            Import CSV
+          </Button>
           <CreateDocumentDialog />
           <div className="dashboard-avatar">
             <UserIcon size={20} />
