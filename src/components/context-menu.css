@@ -30,13 +30,7 @@
 }
 
 .context-menu-item:hover:not(:disabled) {
-  background-color: var(--color-neutral-100);
-}
-
-@media (prefers-color-scheme: dark) {
-  .context-menu-item:hover:not(:disabled) {
-    background-color: var(--color-neutral-800);
-  }
+  background-color: var(--color-surface);
 }
 
 .context-menu-item:disabled {
