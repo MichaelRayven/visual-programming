@@ -2,7 +2,11 @@ import {
   AlertCircleIcon,
   ArrowLeftIcon,
   CheckCircleIcon,
+  ChevronDownIcon,
+  DownloadIcon,
+  FileJsonIcon,
   LoaderIcon,
+  SaveIcon,
 } from "lucide-react";
 import {
   type ChangeEventHandler,
@@ -11,6 +15,7 @@ import {
   useRef,
   useState,
 } from "react";
+import { Button } from "@/components/button";
 import { Table } from "@/components/table";
 import {
   useDocumentSaveStatus,
@@ -87,6 +92,41 @@ export function DocumentPage({ document }: { document: Document }) {
     };
   }, [document, debouncedSave, documentStore]);
 
+  const handleSave = () => {
+    const tableStore = storeRef.current;
+    if (!tableStore) return;
+    documentStore.autoSave(document.id, {
+      colWidths: tableStore.getColWidthsSnapshot(),
+      rowHeights: tableStore.getRowHeightsSnapshot(),
+      gridSize: tableStore.getGridSizeSnapshot(),
+      gridSnapshot: tableStore.getGridSnapshot(),
+    });
+  };
+
+  const handleExportCsv = () => {
+    const csv = documentStore.exportToCsv(document);
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = window.document.createElement("a");
+    link.href = url;
+    link.download = `${document.title}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJson = () => {
+    const json = documentStore.exportToJson(document);
+    const blob = new Blob([json], {
+      type: "application/json;charset=utf-8;",
+    });
+    const url = URL.createObjectURL(blob);
+    const link = window.document.createElement("a");
+    link.href = url;
+    link.download = `${document.title}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const handleTitleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     setTitleValue(e.target.value);
   };
@@ -129,6 +169,14 @@ export function DocumentPage({ document }: { document: Document }) {
 
         <div className="document-header-right">
           <SaveStatusBadge status={saveStatus} />
+          <ExportMenu
+            onExportCsv={handleExportCsv}
+            onExportJson={handleExportJson}
+          />
+          <Button variant="primary" size="sm" onClick={handleSave}>
+            <SaveIcon size={16} />
+            Save
+          </Button>
         </div>
       </header>
 
@@ -171,6 +219,71 @@ function SaveStatusBadge({ status }: { status: "saved" | "saving" | "error" }) {
         <AlertCircleIcon size={16} />
       </span>
       <span>Ошибка сохранения</span>
+    </div>
+  );
+}
+
+function ExportMenu({
+  onExportCsv,
+  onExportJson,
+}: {
+  onExportCsv: () => void;
+  onExportJson: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const action = (fn: () => void) => {
+    fn();
+    setOpen(false);
+  };
+
+  return (
+    <div ref={ref} className="document-export-menu">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        aria-label="Export options"
+      >
+        <DownloadIcon size={16} />
+        Export
+        <ChevronDownIcon size={14} />
+      </Button>
+      {open && (
+        <div className="document-export-dropdown" role="menu">
+          <button
+            type="button"
+            className="document-export-item"
+            role="menuitem"
+            onClick={() => action(onExportCsv)}
+          >
+            <DownloadIcon size={14} />
+            Export CSV
+          </button>
+          <button
+            type="button"
+            className="document-export-item"
+            role="menuitem"
+            onClick={() => action(onExportJson)}
+          >
+            <FileJsonIcon size={14} />
+            Export JSON
+          </button>
+        </div>
+      )}
     </div>
   );
 }
