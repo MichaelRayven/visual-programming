@@ -22,7 +22,7 @@
 }
 
 .btn:hover {
-  background-color: var(--color-neutral-50);
+  background-color: var(--color-surface);
   border-color: var(--color-border-dark);
 }
 
@@ -32,13 +32,13 @@
 }
 
 .btn:active {
-  background-color: var(--color-neutral-100);
+  background-color: var(--color-surface);
 }
 
 .btn:disabled {
   color: var(--color-text-disabled);
   cursor: not-allowed;
-  background-color: var(--color-neutral-100);
+  background-color: var(--color-surface);
   border-color: var(--color-border-light);
 }
 
@@ -81,7 +81,7 @@
 }
 
 .btn-outline:hover {
-  background-color: var(--color-neutral-100);
+  background-color: var(--color-surface);
 }
 
 .btn-ghost {

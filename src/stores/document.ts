@@ -177,7 +177,7 @@ export class DocumentStore {
     for (let r = 0; r < gridSize.rows; r++) {
       const row: string[] = [];
       for (let c = 0; c < gridSize.cols; c++) {
-        const cellId = `${gridSnapshot.rowIds[r]}:${gridSnapshot.colIds[c]}`;
+        const cellId = `${gridSnapshot.rowIds[r]}_${gridSnapshot.colIds[c]}`;
         row.push(gridSnapshot.cells[cellId] || "");
       }
       data.push(row);
