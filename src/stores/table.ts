@@ -190,6 +190,26 @@ export class TableStore {
   setGridSize(size: { rows: number; cols: number }) {
     if (this.gridSize.rows === size.rows && this.gridSize.cols === size.cols)
       return;
+
+    const rowIds = [...this.gridSnapshot.rowIds];
+    if (size.rows > rowIds.length) {
+      while (rowIds.length < size.rows) rowIds.push(uuidv4());
+    } else if (size.rows < rowIds.length) {
+      rowIds.splice(size.rows);
+    }
+
+    const colIds = [...this.gridSnapshot.colIds];
+    if (size.cols > colIds.length) {
+      while (colIds.length < size.cols) colIds.push(uuidv4());
+    } else if (size.cols < colIds.length) {
+      colIds.splice(size.cols);
+    }
+
+    this.gridSnapshot = {
+      ...this.gridSnapshot,
+      rowIds,
+      colIds,
+    };
     this.gridSize = { ...size };
     this.gridMetaListeners.forEach((l) => l());
   }

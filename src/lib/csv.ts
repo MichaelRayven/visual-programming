@@ -12,7 +12,8 @@ export const exportToCSV = (data: string[][]): string => {
 };
 
 export const parseCSV = (text: string): string[][] => {
-  return text
+  const cleanText = text.startsWith("\uFEFF") ? text.slice(1) : text;
+  return cleanText
     .split(/\r?\n/)
     .filter((row) => row.trim() !== "")
     .map((row) =>
