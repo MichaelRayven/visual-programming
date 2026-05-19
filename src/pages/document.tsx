@@ -103,8 +103,20 @@ export function DocumentPage({ document }: { document: Document }) {
     });
   };
 
+  const getLiveSnapshot = () => {
+    const tableStore = storeRef.current;
+    if (!tableStore) return document.tableSnapshot;
+    return {
+      colWidths: tableStore.getColWidthsSnapshot(),
+      rowHeights: tableStore.getRowHeightsSnapshot(),
+      gridSize: tableStore.getGridSizeSnapshot(),
+      gridSnapshot: tableStore.getGridSnapshot(),
+    };
+  };
+
   const handleExportCsv = () => {
-    const csv = documentStore.exportToCsv(document);
+    const liveDoc = { ...document, tableSnapshot: getLiveSnapshot() };
+    const csv = documentStore.exportToCsv(liveDoc);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = window.document.createElement("a");
@@ -115,7 +127,8 @@ export function DocumentPage({ document }: { document: Document }) {
   };
 
   const handleExportJson = () => {
-    const json = documentStore.exportToJson(document);
+    const liveDoc = { ...document, tableSnapshot: getLiveSnapshot() };
+    const json = documentStore.exportToJson(liveDoc);
     const blob = new Blob([json], {
       type: "application/json;charset=utf-8;",
     });
