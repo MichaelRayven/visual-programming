@@ -2,6 +2,7 @@ import { createPortal } from "react-dom";
 import "./dialog.css";
 import { XIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
+import { Button } from "./button";
 
 type DialogProps = {
   trigger?: ReactNode;
@@ -22,9 +23,9 @@ export function Dialog({ trigger, content, title, footer }: DialogProps) {
         footer={footer}
         title={title}
       />
-      <button className="dialog-trigger" onClick={() => setOpen(true)}>
+      <Button className="dialog-trigger" onClick={() => setOpen(true)}>
         {trigger}
-      </button>
+      </Button>
     </>
   );
 }
@@ -51,12 +52,12 @@ function DialogPortal({
           <div className="dialog-header">
             <p className="dialog-title">{title}</p>
             <div className="dialog-action">
-              <button
+              <Button
                 className="dialog-close"
                 onClick={() => onOpenChange(false)}
               >
                 <XIcon />
-              </button>
+              </Button>
             </div>
           </div>
           <div className="dialog-content">{content}</div>

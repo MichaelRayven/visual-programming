@@ -475,3 +475,7 @@ button {
     background: var(--color-neutral-600);
   }
 }
+
+.flex {
+  display: flex;
+}

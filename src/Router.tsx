@@ -6,8 +6,6 @@ export function Router() {
   const openDocument = useOpenDocument();
 
   if (openDocument) {
-    console.log("test");
-
     return <DocumentPage document={openDocument} />;
   }
 

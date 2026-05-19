@@ -1,5 +1,7 @@
 .input {
   width: 100%;
   min-width: 0;
+
+  color: var(--color-text-primary);
   outline: none;
 }
