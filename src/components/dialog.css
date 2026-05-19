@@ -15,9 +15,9 @@
   gap: var(--spacing-2);
   width: 90%;
   max-width: 32rem;
-  padding-block: var(--spacing-4);
   overflow: hidden;
   background-color: var(--color-surface-elevated);
+  border: var(--spacing-px) solid var(--color-border-light);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-md);
 }
@@ -26,6 +26,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding-block: var(--spacing-4);
   padding-inline: var(--spacing-6);
   border-bottom: var(--spacing-px) solid var(--color-border-light);
 }
@@ -79,13 +80,8 @@
   display: flex;
   gap: var(--spacing-3);
   justify-content: flex-end;
+  padding-block: var(--spacing-4);
   padding-inline: var(--spacing-6);
-  border-top: var(--spacing-px) solid var(--color-border-light);
-}
 
-.dialog-trigger {
-  padding: var(--spacing-2) var(--spacing-4);
-  color: var(--color-text-primary);
-  background: var(--color-surface);
-  border-radius: var(--radius-sm);
+  border-top: var(--spacing-px) solid var(--color-border-light);
 }

@@ -33,6 +33,7 @@ export function CreateDocumentDialog() {
 
     documentStore.createDocument(values.title, r, c);
     setErrors({});
+    setValues({ rows: "", cols: "", title: "" });
     setOpen(false);
   };
 

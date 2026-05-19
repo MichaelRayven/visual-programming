@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import styles from "./button.module.css";
+import "./button.css";
 
 type ButtonProps = {
   variant?: "primary" | "outline" | "ghost";
@@ -17,13 +17,11 @@ export function Button({
     <button
       type={type}
       className={clsx(
-        styles.btn,
-        {
-          [styles.btnPrimary]: variant === "primary",
-          [styles.btnOutline]: variant === "outline",
-          [styles.btnGhost]: variant === "ghost",
-          [styles.btnSm]: size === "sm",
-        },
+        "btn",
+        variant === "primary" && "btn-primary",
+        variant === "outline" && "btn-outline",
+        variant === "ghost" && "btn-ghost",
+        size === "sm" && "btn-sm",
         className
       )}
       {...props}

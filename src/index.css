@@ -254,7 +254,7 @@ h6 {
   :root {
     --color-background: var(--color-neutral-900);
     --color-surface: var(--color-neutral-800);
-    --color-surface-elevated: var(--color-neutral-700);
+    --color-surface-elevated: #181e29;
     --color-text-primary: var(--color-neutral-100);
     --color-text-secondary: var(--color-neutral-300);
     --color-text-tertiary: var(--color-neutral-400);

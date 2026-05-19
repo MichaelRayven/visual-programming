@@ -43,9 +43,14 @@ export function Dialog({
         footer={footer}
         title={title}
       />
-      <Button className="dialog-trigger" onClick={() => handleOpenChange(true)}>
-        {trigger}
-      </Button>
+      {trigger && (
+        <Button
+          className="dialog-trigger"
+          onClick={() => handleOpenChange(true)}
+        >
+          {trigger}
+        </Button>
+      )}
     </>
   );
 }

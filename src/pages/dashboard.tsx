@@ -1,17 +1,60 @@
-import { CopyIcon, DownloadIcon, Trash2Icon } from "lucide-react";
-import { useState } from "react";
+import {
+  CalendarIcon,
+  ClockIcon,
+  CopyIcon,
+  DownloadIcon,
+  FileTextIcon,
+  SearchIcon,
+  Trash2Icon,
+  UserIcon,
+} from "lucide-react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/button";
 import { CreateDocumentDialog } from "@/components/create-document-dialog";
 import { Dialog } from "@/components/dialog";
 import { Input } from "@/components/input";
 import { useDocumentList, useDocumentStore } from "@/hooks/useDocumentStore";
+import { evaluateCell } from "@/lib/formula";
+import { getCellAddress } from "@/lib/table";
+import { formatDate } from "@/lib/utils";
 import { type Document } from "@/stores/document";
 import type { TableSnapshot } from "@/stores/table";
-import styles from "./dashboard.module.css";
+import "./dashboard.css";
+
+type SortOption = "name" | "dateCreated" | "dateModified";
 
 export function DashboardPage() {
   const documents = useDocumentList();
   const store = useDocumentStore();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("dateModified");
+  const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const filteredAndSortedDocuments = useMemo(() => {
+    let filtered = documents;
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = documents.filter((doc) =>
+        doc.title.toLowerCase().includes(query)
+      );
+    }
+
+    const sorted = [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case "name":
+          return a.title.localeCompare(b.title);
+        case "dateCreated":
+          return b.createdAt - a.createdAt;
+        case "dateModified":
+          return b.updatedAt - a.updatedAt;
+        default:
+          return 0;
+      }
+    });
+
+    return sorted;
+  }, [documents, searchQuery, sortBy]);
 
   const handleExport = (doc: Document) => {
     const csv = store.exportToCsv(doc);
@@ -23,50 +66,128 @@ export function DashboardPage() {
     link.click();
   };
 
-  const [deleteId, setDeleteId] = useState<string | null>(null);
+  const handleOpenDocument = (id: string) => {
+    store.setOpenDocument(id);
+  };
 
   return (
-    <div className={styles.container}>
-      <header className={styles.header}>
-        <h1>Мои документы</h1>
-        <CreateDocumentDialog />
-      </header>
-      <main className={styles.dashboardGrid}>
-        {documents.map((doc) => (
-          <div key={doc.id} className={styles.documentCard}>
-            <div className={styles.headerRow}>
-              <DocumentTitle
-                title={doc.title}
-                onTitleChange={(t) => store.updateDocument(doc.id, t)}
-              />
-              <div className={styles.actions}>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => store.duplicateDocument(doc.id)}
-                >
-                  <CopyIcon size={16} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setDeleteId(doc.id)}
-                >
-                  <Trash2Icon size={16} />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleExport(doc)}
-                >
-                  <DownloadIcon size={16} />
-                </Button>
-              </div>
-            </div>
+    <div className="dashboard-container">
+      <header className="dashboard-header">
+        <div className="dashboard-header-left">
+          <h1 className="text-xl font-semibold">Мои документы</h1>
+        </div>
 
-            <TablePreview snapshot={doc.tableSnapshot} />
+        <div className="dashboard-header-center">
+          <div className="dashboard-search-wrapper">
+            <div className="dashboard-search-icon">
+              <SearchIcon size={16} />
+            </div>
+            <input
+              type="text"
+              className="dashboard-search-input"
+              placeholder="Поиск документов..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
           </div>
-        ))}
+        </div>
+
+        <div className="dashboard-header-right">
+          <CreateDocumentDialog />
+          <div className="dashboard-avatar">
+            <UserIcon size={20} />
+          </div>
+        </div>
+      </header>
+
+      <main className="dashboard-main">
+        <div className="dashboard-controls">
+          <div className="dashboard-sort-group">
+            <label htmlFor="sort-select" className="dashboard-sort-label">
+              Сортировка:
+            </label>
+            <select
+              id="sort-select"
+              className="dashboard-sort-select"
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+            >
+              <option value="dateModified">По дате изменения</option>
+              <option value="dateCreated">По дате создания</option>
+              <option value="name">По названию</option>
+            </select>
+          </div>
+        </div>
+
+        {filteredAndSortedDocuments.length === 0 ? (
+          <div className="dashboard-empty-state">
+            <FileTextIcon size={64} className="dashboard-empty-state-icon" />
+            <h2 className="dashboard-empty-state-title">
+              {searchQuery ? "Документы не найдены" : "Нет документов"}
+            </h2>
+            <p className="dashboard-empty-state-description">
+              {searchQuery
+                ? "Попробуйте изменить поисковый запрос"
+                : "Создайте свой первый документ, чтобы начать работу"}
+            </p>
+          </div>
+        ) : (
+          <div className="dashboard-grid">
+            {filteredAndSortedDocuments.map((doc) => (
+              <div
+                key={doc.id}
+                className="document-card"
+                onClick={() => handleOpenDocument(doc.id)}
+              >
+                <div className="document-card-header">
+                  <DocumentTitle
+                    title={doc.title}
+                    onTitleChange={(t) => store.updateDocument(doc.id, t)}
+                  />
+                  <div
+                    className="document-card-actions"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => store.duplicateDocument(doc.id)}
+                    >
+                      <CopyIcon size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleExport(doc)}
+                    >
+                      <DownloadIcon size={16} />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setDeleteId(doc.id)}
+                    >
+                      <Trash2Icon size={16} />
+                    </Button>
+                  </div>
+                </div>
+
+                <TablePreview snapshot={doc.tableSnapshot} />
+
+                <div className="document-card-metadata">
+                  <div className="document-card-metadata-row">
+                    <CalendarIcon size={12} />
+                    <span>Создан: {formatDate(doc.createdAt)}</span>
+                  </div>
+                  <div className="document-card-metadata-row">
+                    <ClockIcon size={12} />
+                    <span>Изменён: {formatDate(doc.updatedAt)}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
 
         <Dialog
           open={!!deleteId}
@@ -105,7 +226,7 @@ function DocumentTitle({
 
   return (
     <Input
-      className={styles.documentCardTitle}
+      className="document-card-title"
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onBlur={() => {
@@ -115,24 +236,36 @@ function DocumentTitle({
           setValue(title);
         }
       }}
+      onClick={(e) => e.stopPropagation()}
     />
   );
 }
 
-export function TablePreview({ snapshot }: { snapshot: TableSnapshot }) {
+function TablePreview({ snapshot }: { snapshot: TableSnapshot }) {
   const { rows, cols } = snapshot.gridSize;
-  const previewRows = Math.min(rows, 4);
-  const previewCols = Math.min(cols, 4);
+  const previewRows = Math.min(rows, 3);
+  const previewCols = Math.min(cols, 3);
 
   return (
     <div
-      className={styles.previewGrid}
+      className="document-preview-grid"
       style={{ gridTemplateColumns: `repeat(${previewCols}, 1fr)` }}
     >
       {Array.from({ length: previewRows }).map((_, r) =>
-        Array.from({ length: previewCols }).map((_, c) => (
-          <div key={`${r}-${c}`} className={styles.previewCell} />
-        ))
+        Array.from({ length: previewCols }).map((_, c) => {
+          const cellAddress = getCellAddress(r, c);
+          const cellData = evaluateCell(cellAddress, snapshot.gridSnapshot);
+          const displayValue =
+            typeof cellData.value === "boolean"
+              ? cellData.value.toString()
+              : cellData.value;
+
+          return (
+            <div key={`${r}-${c}`} className="document-preview-cell">
+              {displayValue}
+            </div>
+          );
+        })
       )}
     </div>
   );
