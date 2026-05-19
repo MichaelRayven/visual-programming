@@ -203,14 +203,11 @@ export class DocumentStore {
       rows.reduce((max, r) => Math.max(max, r.length), 0),
       1
     );
-    // Cap cols to 26 (A–Z address space)
-    const safeCols = Math.min(numCols, 26);
-
-    const tempStore = new TableStore({ rows: numRows, cols: safeCols });
+    const tempStore = new TableStore({ rows: numRows, cols: numCols });
     const snapshot = tempStore.getGridSnapshot();
 
     rows.forEach((row, r) => {
-      row.slice(0, safeCols).forEach((value, c) => {
+      row.forEach((value, c) => {
         if (value !== "") {
           const cellId = `${snapshot.rowIds[r]}_${snapshot.colIds[c]}`;
           snapshot.cells[cellId] = value;
