@@ -4,7 +4,13 @@ import {
   CheckCircleIcon,
   LoaderIcon,
 } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import {
+  type ChangeEventHandler,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { Table } from "@/components/table";
 import {
   useDocumentSaveStatus,
@@ -18,6 +24,12 @@ import "./document.css";
 export function DocumentPage({ document }: { document: Document }) {
   const documentStore = useDocumentStore();
   const saveStatus = useDocumentSaveStatus();
+
+  const [titleValue, setTitleValue] = useState(document.title);
+
+  useEffect(() => {
+    setTitleValue(document.title);
+  }, [document]);
 
   const storeRef = useRef<TableStore | null>(null);
 
@@ -75,9 +87,14 @@ export function DocumentPage({ document }: { document: Document }) {
     };
   }, [document, debouncedSave, documentStore]);
 
-  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTitle = e.target.value;
-    documentStore.updateDocument(document.id, newTitle);
+  const handleTitleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
+    setTitleValue(e.target.value);
+  };
+
+  const handleTitleBlur = () => {
+    const trimmedTitle = titleValue.trim();
+    if (!trimmedTitle) return;
+    documentStore.updateDocument(document.id, trimmedTitle);
   };
 
   const handleBackToDashboard = () => {
@@ -103,8 +120,9 @@ export function DocumentPage({ document }: { document: Document }) {
           <input
             type="text"
             className="document-title-input"
-            value={document.title}
+            value={titleValue}
             onChange={handleTitleChange}
+            onBlur={handleTitleBlur}
             placeholder="Без названия"
           />
         </div>
