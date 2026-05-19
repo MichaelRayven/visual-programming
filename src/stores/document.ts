@@ -1,4 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
+import { exportToCSV } from "@/lib/csv";
 import { type TableSnapshot, TableStore } from "@/stores/table";
 
 export type Listener = () => void;
@@ -82,9 +83,9 @@ export class DocumentStore {
       updatedAt: Date.now(),
     };
 
-    this.documents.push(newDoc);
+    this.documents = [...this.documents, newDoc];
     this.saveToLocalStorage();
-    this.notifyList();
+    this.listListeners.forEach((l) => l());
     return newDoc;
   }
 
@@ -93,8 +94,12 @@ export class DocumentStore {
     if (doc) {
       doc.title = newTitle;
       doc.updatedAt = Date.now();
+
+      const newDocs = [...this.documents.filter((doc) => doc.id !== id), doc];
+      this.documents = newDocs;
+
       this.saveToLocalStorage();
-      this.notifyList();
+      this.listListeners.forEach((l) => l());
     }
   }
 
@@ -110,15 +115,15 @@ export class DocumentStore {
       updatedAt: Date.now(),
     };
 
-    this.documents.push(duplicate);
+    this.documents = [...this.documents, duplicate];
     this.saveToLocalStorage();
-    this.notifyList();
+    this.listListeners.forEach((l) => l());
   }
 
   deleteDocument(id: string) {
     this.documents = this.documents.filter((doc) => doc.id !== id);
     this.saveToLocalStorage();
-    this.notifyList();
+    this.listListeners.forEach((l) => l());
   }
 
   async autoSave(id: string, state: TableSnapshot) {
@@ -144,10 +149,6 @@ export class DocumentStore {
     this.statusListeners.forEach((l) => l(status));
   }
 
-  private notifyList() {
-    this.listListeners.forEach((l) => l());
-  }
-
   private saveToLocalStorage() {
     localStorage.setItem("spreadsheet_docs", JSON.stringify(this.documents));
   }
@@ -158,5 +159,20 @@ export class DocumentStore {
       const parsed = JSON.parse(data);
       this.documents = parsed;
     }
+  }
+
+  exportToCsv(doc: Document): string {
+    const { gridSnapshot, gridSize } = doc.tableSnapshot;
+    const data: string[][] = [];
+
+    for (let r = 0; r < gridSize.rows; r++) {
+      const row: string[] = [];
+      for (let c = 0; c < gridSize.cols; c++) {
+        const cellId = `${gridSnapshot.rowIds[r]}:${gridSnapshot.colIds[c]}`;
+        row.push(gridSnapshot.cells[cellId] || "");
+      }
+      data.push(row);
+    }
+    return exportToCSV(data);
   }
 }

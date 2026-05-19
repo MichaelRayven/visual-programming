@@ -1,0 +1,60 @@
+.container {
+  padding: var(--spacing-6);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-6);
+}
+
+.dashboardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--spacing-4);
+}
+
+.documentCard {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-3);
+  padding: var(--spacing-4);
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-base);
+  border-radius: var(--radius-lg);
+  transition: border-color var(--transition-base);
+}
+
+.documentCard:hover {
+  border-color: var(--color-primary-600);
+}
+
+.cardHeader {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.cardTitle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.previewGrid {
+  display: grid;
+  gap: 2px;
+  max-height: 80px;
+  padding: 2px;
+  background: var(--color-neutral-200);
+  border-radius: var(--radius-sm);
+}
+
+.previewCell {
+  min-width: 20px;
+  height: 20px;
+  background: var(--color-surface);
+}

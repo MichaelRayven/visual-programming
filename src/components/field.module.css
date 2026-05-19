@@ -1,0 +1,21 @@
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1);
+  margin-bottom: var(--spacing-4);
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.inputError {
+  border-color: var(--color-error);
+}
+
+.error {
+  font-size: var(--font-size-xs);
+  color: var(--color-error);
+}

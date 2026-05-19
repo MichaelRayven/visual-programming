@@ -1,0 +1,14 @@
+.sizeGrid {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: flex-start;
+}
+
+.sizeGridItem {
+  flex: 1;
+}
+
+.multiplier {
+  margin-top: var(--spacing-2);
+  color: var(--color-text-secondary);
+}

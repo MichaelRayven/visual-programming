@@ -5,25 +5,45 @@ import { type ReactNode, useState } from "react";
 import { Button } from "./button";
 
 type DialogProps = {
+  open?: boolean;
+  onOpenChange?: (value: boolean) => void;
   trigger?: ReactNode;
   content?: ReactNode;
   title?: ReactNode;
   footer?: ReactNode;
 };
 
-export function Dialog({ trigger, content, title, footer }: DialogProps) {
-  const [open, setOpen] = useState(false);
+export function Dialog({
+  open: externalOpen,
+  onOpenChange,
+  trigger,
+  content,
+  title,
+  footer,
+}: DialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+
+  const isControlled = externalOpen !== undefined;
+  const open = isControlled ? externalOpen : internalOpen;
+
+  const handleOpenChange = (newOpen: boolean) => {
+    if (isControlled) {
+      onOpenChange?.(newOpen);
+    } else {
+      setInternalOpen(newOpen);
+    }
+  };
 
   return (
     <>
       <DialogPortal
-        onOpenChange={(open) => setOpen(open)}
+        onOpenChange={(open) => handleOpenChange(open)}
         open={open}
         content={content}
         footer={footer}
         title={title}
       />
-      <Button className="dialog-trigger" onClick={() => setOpen(true)}>
+      <Button className="dialog-trigger" onClick={() => handleOpenChange(true)}>
         {trigger}
       </Button>
     </>

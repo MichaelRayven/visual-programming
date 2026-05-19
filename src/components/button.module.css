@@ -26,22 +26,35 @@
 }
 
 /* Variant: Primary */
-.btn-primary {
+.btnPrimary {
   color: var(--color-text-inverse);
   background-color: var(--color-primary-600);
 }
 
-.btn-primary:hover {
+.btnPrimary:hover {
   background-color: var(--color-primary-700);
 }
 
 /* Variant: Secondary (Outline) */
-.btn-outline {
+.btnOutline {
   color: var(--color-text-primary);
   background-color: transparent;
   border-color: var(--color-border-base);
 }
 
-.btn-outline:hover {
+.btnOutline:hover {
   background-color: var(--color-neutral-100);
+}
+
+/* Variant: Ghost */
+.btnGhost {
+  color: var(--color-text-secondary);
+  background: transparent;
+}
+.btnGhost:hover {
+  background: var(--color-neutral-100);
+}
+.btnSm {
+  padding: var(--spacing-1) var(--spacing-2);
+  font-size: 0.75rem;
 }
