@@ -1,4 +1,5 @@
-import type { GridSnapshot } from "./store";
+import type { GridSnapshot } from "@/stores/table";
+
 import { type CellData, getCellAddress, parseCellAddress } from "./table";
 
 /**
