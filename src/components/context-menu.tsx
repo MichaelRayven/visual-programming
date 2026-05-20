@@ -6,7 +6,7 @@ import {
   type Position,
   useContextMenu,
 } from "@/hooks/useContextMenu";
-import "./context-menu.css";
+import { MenuContent, MenuItem } from "./menu";
 
 type ContextMenuProps = {
   children: React.ReactNode;
@@ -102,18 +102,20 @@ export const ContextMenuContent = ({
   if (!isOpen) return null;
 
   const menuContent = (
-    <div
+    <MenuContent
       ref={menuRef}
-      className={clsx("context-menu-content", className)}
+      className={className}
       style={{
         top: position.y,
         left: position.x,
+        position: "fixed",
+        zIndex: "var(--z-popover)",
         ...style,
       }}
       {...props}
     >
       {children}
-    </div>
+    </MenuContent>
   );
 
   return typeof document !== "undefined"
@@ -143,14 +145,13 @@ export const ContextMenuItem = ({
   };
 
   return (
-    <button
-      className={clsx("context-menu-item", className)}
+    <MenuItem
+      className={className}
       onClick={handleClick}
       disabled={disabled}
-      type="button"
       {...props}
     >
       {children}
-    </button>
+    </MenuItem>
   );
 };

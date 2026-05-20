@@ -7,7 +7,7 @@ import {
   Trash2Icon,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import "./card-actions-dropdown.css";
+import { MenuContent, MenuItem, MenuSeparator } from "./menu";
 
 type CardActionsDropdownProps = {
   onRename: () => void;
@@ -63,61 +63,43 @@ export function CardActionsDropdown({
       </button>
 
       {open && (
-        <div className="card-actions-menu" role="menu">
-          <button
-            type="button"
-            className="card-actions-menu-item"
-            role="menuitem"
-            onClick={() => action(onRename)}
-          >
+        <MenuContent
+          style={{
+            position: "absolute",
+            top: "calc(100% + var(--spacing-1))",
+            right: 0,
+            zIndex: "var(--z-modal)",
+          }}
+        >
+          <MenuItem onClick={() => action(onRename)}>
             <PencilIcon size={14} />
             Rename
-          </button>
+          </MenuItem>
 
-          <button
-            type="button"
-            className="card-actions-menu-item"
-            role="menuitem"
-            onClick={() => action(onDuplicate)}
-          >
+          <MenuItem onClick={() => action(onDuplicate)}>
             <CopyIcon size={14} />
             Duplicate
-          </button>
+          </MenuItem>
 
-          <div className="card-actions-menu-separator" />
+          <MenuSeparator />
 
-          <button
-            type="button"
-            className="card-actions-menu-item"
-            role="menuitem"
-            onClick={() => action(onExportCsv)}
-          >
+          <MenuItem onClick={() => action(onExportCsv)}>
             <DownloadIcon size={14} />
             Export CSV
-          </button>
+          </MenuItem>
 
-          <button
-            type="button"
-            className="card-actions-menu-item"
-            role="menuitem"
-            onClick={() => action(onExportJson)}
-          >
+          <MenuItem onClick={() => action(onExportJson)}>
             <FileJsonIcon size={14} />
             Export JSON
-          </button>
+          </MenuItem>
 
-          <div className="card-actions-menu-separator" />
+          <MenuSeparator />
 
-          <button
-            type="button"
-            className="card-actions-menu-item card-actions-menu-item-danger"
-            role="menuitem"
-            onClick={() => action(onDelete)}
-          >
+          <MenuItem danger onClick={() => action(onDelete)}>
             <Trash2Icon size={14} />
             Delete
-          </button>
-        </div>
+          </MenuItem>
+        </MenuContent>
       )}
     </div>
   );
