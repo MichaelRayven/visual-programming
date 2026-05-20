@@ -38,11 +38,10 @@ autoSaveMiddleware.startListening({
         rowHeights,
       };
 
-      // Dispatch the saveDocument async thunk!
       await listenerApi.dispatch(
         saveDocument({ id: activeDocumentId, snapshot })
       );
-    } catch (_error) {
+    } catch (_e) {
       // Errors are caught and handled by the thunk/extraReducers
     }
   },
