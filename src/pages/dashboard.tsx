@@ -1,6 +1,5 @@
 import {
   CalendarIcon,
-  ChevronDownIcon,
   ClockIcon,
   FileTextIcon,
   SearchIcon,
@@ -8,12 +7,17 @@ import {
   UserIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/button";
 import { CardActionsDropdown } from "@/components/card-actions-dropdown";
 import { CreateDocumentDialog } from "@/components/create-document-dialog";
+import { DocumentCardTitle } from "@/components/dashboard/document-card-title";
+import {
+  SortDropdown,
+  type SortOption,
+} from "@/components/dashboard/sort-dropdown";
+import { TablePreview } from "@/components/dashboard/table-preview";
 import { Dialog } from "@/components/dialog";
-import { Input } from "@/components/input";
-import { MenuContent, MenuItem } from "@/components/menu";
 import { RenameDocumentDialog } from "@/components/rename-document-dialog";
 import {
   useDocumentList,
@@ -25,11 +29,8 @@ import {
   exportDocToJson,
   importDocFromCsv,
 } from "@/lib/document";
-import { evaluateCell } from "@/lib/formula";
-import { getCellAddress } from "@/lib/table";
 import { formatDate } from "@/lib/utils";
 import { type Document } from "@/store/documentsSlice";
-import type { TableSnapshot } from "@/store/spreadsheetSlice";
 import "./dashboard.css";
 
 type SortOption = "name" | "dateCreated" | "dateModified";
@@ -37,6 +38,7 @@ type SortOption = "name" | "dateCreated" | "dateModified";
 export function DashboardPage() {
   const documents = useDocumentList();
   const store = useDocumentStore();
+  const navigate = useNavigate();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only fetch documents once on mount
   useEffect(() => {
@@ -114,7 +116,7 @@ export function DashboardPage() {
   };
 
   const handleOpenDocument = (id: string) => {
-    store.setOpenDocument(id);
+    navigate(`/documents/${id}`);
   };
 
   return (
@@ -193,7 +195,7 @@ export function DashboardPage() {
                 onClick={() => handleOpenDocument(doc.id)}
               >
                 <div className="document-card-header">
-                  <DocumentTitle
+                  <DocumentCardTitle
                     title={doc.title}
                     onTitleChange={(t) => store.updateDocument(doc.id, t)}
                   />
@@ -262,130 +264,6 @@ export function DashboardPage() {
           }}
         />
       </main>
-    </div>
-  );
-}
-
-function DocumentTitle({
-  title = "",
-  onTitleChange,
-}: {
-  title?: string;
-  onTitleChange?: (value: string) => void;
-}) {
-  const [value, setValue] = useState(title);
-
-  // Update local state when prop changes
-  useEffect(() => {
-    setValue(title);
-  }, [title]);
-
-  return (
-    <Input
-      className="document-card-title"
-      value={value}
-      onChange={(e) => setValue(e.target.value)}
-      onBlur={() => {
-        if (value !== "") {
-          onTitleChange?.(value);
-        } else {
-          setValue(title);
-        }
-      }}
-      onClick={(e) => e.stopPropagation()}
-    />
-  );
-}
-
-function TablePreview({ snapshot }: { snapshot: TableSnapshot }) {
-  const { rows, cols } = snapshot.gridSize;
-  const previewRows = Math.min(rows, 3);
-  const previewCols = Math.min(cols, 3);
-
-  return (
-    <div
-      className="document-preview-grid"
-      style={{ gridTemplateColumns: `repeat(${previewCols}, 1fr)` }}
-    >
-      {Array.from({ length: previewRows }).map((_, r) =>
-        Array.from({ length: previewCols }).map((_, c) => {
-          const cellAddress = getCellAddress(r, c);
-          const cellData = evaluateCell(cellAddress, snapshot.gridSnapshot);
-          const displayValue =
-            typeof cellData.value === "boolean"
-              ? cellData.value.toString()
-              : cellData.value;
-
-          return (
-            <div key={`${r}-${c}`} className="document-preview-cell">
-              {displayValue}
-            </div>
-          );
-        })
-      )}
-    </div>
-  );
-}
-
-function SortDropdown({
-  sortBy,
-  onSortChange,
-}: {
-  sortBy: SortOption;
-  onSortChange: (val: SortOption) => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  const action = (val: SortOption) => {
-    onSortChange(val);
-    setOpen(false);
-  };
-
-  const getLabel = (val: SortOption) => {
-    switch (val) {
-      case "dateModified":
-        return "По дате изменения";
-      case "dateCreated":
-        return "По дате создания";
-      case "name":
-        return "По названию";
-    }
-  };
-
-  return (
-    <div ref={ref} style={{ position: "relative", display: "inline-flex" }}>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-      >
-        {getLabel(sortBy)}
-        <ChevronDownIcon size={14} />
-      </Button>
-      {open && (
-        <MenuContent className="menu-dropdown">
-          <MenuItem onClick={() => action("dateModified")}>
-            По дате изменения
-          </MenuItem>
-          <MenuItem onClick={() => action("dateCreated")}>
-            По дате создания
-          </MenuItem>
-          <MenuItem onClick={() => action("name")}>По названию</MenuItem>
-        </MenuContent>
-      )}
     </div>
   );
 }
