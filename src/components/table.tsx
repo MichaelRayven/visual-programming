@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
   useCellData,
   useCellSelection,
+  useGridSize,
   useHeaderSelected,
   useRowHeight,
   useSelectedCell,
@@ -12,8 +13,7 @@ import {
   MIN_COL_WIDTH,
   MIN_ROW_HEIGHT,
   type TableSnapshot,
-  TableStore,
-} from "@/stores/table";
+} from "@/store/tableSlice";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -22,45 +22,27 @@ import {
 } from "./context-menu";
 import { Input } from "./input";
 import "@/components/table.css";
-import { TableStoreContext, useTableStore } from "@/hooks/useTableStore";
+import { useTableStore } from "@/hooks/useTableStore";
 import { useVirtualTable } from "@/hooks/useVirtualTable";
 
 type TableProps = {
-  store?: TableStore;
   snapshot: TableSnapshot;
 } & React.ComponentProps<"div">;
 
-export const Table = ({
-  store: externalTableStore,
-  snapshot,
-  className,
-  ...props
-}: TableProps) => {
-  const internalTableStoreRef = useRef<TableStore | null>(null);
+export const Table = ({ snapshot, className, ...props }: TableProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  if (!externalTableStore && !internalTableStoreRef.current) {
-    internalTableStoreRef.current = new TableStore(
-      snapshot.gridSize || { rows: 100, cols: 26 }
-    );
-    internalTableStoreRef.current.loadSavedTable(snapshot);
-  }
-
-  const store = externalTableStore || internalTableStoreRef.current!;
-
   return (
-    <TableStoreContext.Provider value={store}>
-      <div className="table-wrapper">
-        <TableTopBar />
-        <div className="table-scrollable" ref={scrollContainerRef}>
-          <TableContent
-            containerRef={scrollContainerRef}
-            className={className}
-            {...props}
-          />
-        </div>
+    <div className="table-wrapper">
+      <TableTopBar />
+      <div className="table-scrollable" ref={scrollContainerRef}>
+        <TableContent
+          containerRef={scrollContainerRef}
+          className={className}
+          {...props}
+        />
       </div>
-    </TableStoreContext.Provider>
+    </div>
   );
 };
 
@@ -394,8 +376,15 @@ export const TableCell = React.memo(
       isColStart,
       isColEnd,
     } = useCellSelection(row, col);
+    const gridSize = useGridSize();
+    const activeCell = useSelectedCell();
 
-    const value = isFocused ? rawValue : String(displayValue);
+    const [value, setValue] = useState(
+      isFocused ? rawValue : String(displayValue)
+    );
+    useEffect(() => {
+      setValue(isFocused ? rawValue : String(displayValue));
+    }, [isFocused, rawValue, displayValue]);
 
     useEffect(() => {
       if (!isSelected) return;
@@ -407,8 +396,7 @@ export const TableCell = React.memo(
         } else if (e.key === "Tab") {
           e.preventDefault();
           internalInputRef.current?.blur();
-          const grid = store.getGridSizeSnapshot();
-          if (col + 1 < grid.cols) {
+          if (col + 1 < gridSize.cols) {
             store.setSelectedCell({ row, col: col + 1 });
             store.setSelection({
               rowStart: row,
@@ -422,7 +410,7 @@ export const TableCell = React.memo(
 
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [isSelected, row, col, store]);
+    }, [isSelected, row, col, gridSize, store]);
 
     return (
       <div
@@ -444,7 +432,6 @@ export const TableCell = React.memo(
           onDoubleClick?.(e);
         }}
         onClick={(e) => {
-          const activeCell = store.getSelectedCellSnapshot();
           if (e.shiftKey) {
             store.setSelection({
               rowStart: activeCell.row,
@@ -469,9 +456,12 @@ export const TableCell = React.memo(
           ref={internalInputRef}
           className="table-cell-input"
           value={value}
-          onChange={(e) => store.updateCell(row, col, e.target.value)}
+          onChange={(e) => setValue(e.target.value)}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
+          onBlur={() => {
+            setIsFocused(false);
+            store.updateCell(row, col, value);
+          }}
         />
       </div>
     );

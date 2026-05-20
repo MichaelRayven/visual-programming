@@ -14,11 +14,16 @@ import { Dialog } from "@/components/dialog";
 import { Input } from "@/components/input";
 import { RenameDocumentDialog } from "@/components/rename-document-dialog";
 import { useDocumentList, useDocumentStore } from "@/hooks/useDocumentStore";
+import {
+  exportDocToCsv,
+  exportDocToJson,
+  importDocFromCsv,
+} from "@/lib/document";
 import { evaluateCell } from "@/lib/formula";
 import { getCellAddress } from "@/lib/table";
 import { formatDate } from "@/lib/utils";
-import { type Document } from "@/stores/document";
-import type { TableSnapshot } from "@/stores/table";
+import { type Document } from "@/store/documentSlice";
+import type { TableSnapshot } from "@/store/tableSlice";
 import "./dashboard.css";
 
 type SortOption = "name" | "dateCreated" | "dateModified";
@@ -62,7 +67,7 @@ export function DashboardPage() {
   }, [documents, searchQuery, sortBy]);
 
   const handleExportCsv = (doc: Document) => {
-    const csv = store.exportToCsv(doc);
+    const csv = exportDocToCsv(doc);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -73,7 +78,7 @@ export function DashboardPage() {
   };
 
   const handleExportJson = (doc: Document) => {
-    const json = store.exportToJson(doc);
+    const json = exportDocToJson(doc);
     const blob = new Blob([json], { type: "application/json;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -91,7 +96,8 @@ export function DashboardPage() {
     reader.onload = (ev) => {
       const text = ev.target?.result;
       if (typeof text === "string") {
-        store.importFromCsv(text, fileName);
+        const newDoc = importDocFromCsv(text, fileName);
+        store.importDocument(newDoc);
       }
     };
     reader.readAsText(file, "utf-8");

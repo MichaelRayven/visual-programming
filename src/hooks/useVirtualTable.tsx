@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { useTableStore } from "@/hooks/useTableStore";
-import { DEFAULT_COL_WIDTH, DEFAULT_ROW_HEIGHT } from "@/stores/table";
+import { useEffect, useMemo, useState } from "react";
+import { useSelector } from "react-redux";
+import type { RootState } from "@/store";
+import { DEFAULT_COL_WIDTH, DEFAULT_ROW_HEIGHT } from "@/store/tableSlice";
 
 const findIndex = (offsets: Float64Array, value: number) => {
   let low = 0;
@@ -17,29 +18,18 @@ export function useVirtualTable(
   containerRef: React.RefObject<HTMLElement | null>,
   buffer = 5 // Extra rows above/below to prevent flickering
 ) {
-  const store = useTableStore();
   const [scroll, setScroll] = useState({ top: 0, left: 0 });
   const [dimentions, setDimentions] = useState({ height: 0, width: 0 });
 
-  const size = useSyncExternalStore(
-    (l) => store.subscribeGridMeta(l),
-    () => store.getGridSizeSnapshot()
+  const size = useSelector((state: RootState) => state.table.gridSize);
+  const colIds = useSelector(
+    (state: RootState) => state.table.gridSnapshot.colIds
   );
-
-  const { colIds, rowIds } = useSyncExternalStore(
-    (l) => store.subscribeGridMeta(l),
-    () => store.getGridSnapshot()
+  const rowIds = useSelector(
+    (state: RootState) => state.table.gridSnapshot.rowIds
   );
-
-  const widths = useSyncExternalStore(
-    (l) => store.subscribeGridMeta(l),
-    () => store.getColWidthsSnapshot()
-  );
-
-  const heights = useSyncExternalStore(
-    (l) => store.subscribeGridMeta(l),
-    () => store.getRowHeightsSnapshot()
-  );
+  const widths = useSelector((state: RootState) => state.table.colWidths);
+  const heights = useSelector((state: RootState) => state.table.rowHeights);
 
   const layout = useMemo(() => {
     const colWidths = new Float64Array(size.cols);

@@ -8,27 +8,22 @@ import {
   LoaderIcon,
   SaveIcon,
 } from "lucide-react";
-import {
-  type ChangeEventHandler,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { type ChangeEventHandler, useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/button";
 import { Table } from "@/components/table";
-import {
-  useDocumentSaveStatus,
-  useDocumentStore,
-} from "@/hooks/useDocumentStore";
-import { debounce } from "@/lib/utils";
-import { type Document } from "@/stores/document";
-import { type TableSnapshot, TableStore } from "@/stores/table";
+import { exportDocToCsv, exportDocToJson } from "@/lib/document";
+import type { RootState } from "@/store";
+import { type Document, documentActions } from "@/store/documentSlice";
+import { tableActions } from "@/store/tableSlice";
 import "./document.css";
 
 export function DocumentPage({ document }: { document: Document }) {
-  const documentStore = useDocumentStore();
-  const saveStatus = useDocumentSaveStatus();
+  const dispatch = useDispatch();
+  const saveStatus = useSelector(
+    (state: RootState) => state.document.saveStatus
+  );
+  const tableState = useSelector((state: RootState) => state.table);
 
   const [titleValue, setTitleValue] = useState(document.title);
 
@@ -36,48 +31,25 @@ export function DocumentPage({ document }: { document: Document }) {
     setTitleValue(document.title);
   }, [document]);
 
-  const storeRef = useRef<TableStore | null>(null);
-
-  if (!storeRef.current) {
-    storeRef.current = new TableStore(document.tableSnapshot.gridSize);
-    storeRef.current.loadSavedTable(document.tableSnapshot);
-  }
-
-  const debouncedSave = useMemo(
-    () =>
-      debounce((snapshot: TableSnapshot) => {
-        documentStore.autoSave(document.id, snapshot);
-      }, 500),
-    [document, documentStore]
-  );
+  const initializedDocId = useRef<string | null>(null);
 
   useEffect(() => {
-    const tableStore = storeRef.current;
-    if (!tableStore) return;
+    if (initializedDocId.current !== document.id) {
+      dispatch(tableActions.initTable(document.tableSnapshot));
+      initializedDocId.current = document.id;
+    }
+  }, [document.id, document.tableSnapshot, dispatch]);
 
-    const unsubscribe = tableStore.subscribe(() => {
-      debouncedSave({
-        colWidths: tableStore.getColWidthsSnapshot(),
-        rowHeights: tableStore.getRowHeightsSnapshot(),
-        gridSize: tableStore.getGridSizeSnapshot(),
-        gridSnapshot: tableStore.getGridSnapshot(),
-      });
-    });
-
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "s") {
         e.preventDefault();
-        documentStore.autoSave(document.id, {
-          colWidths: tableStore.getColWidthsSnapshot(),
-          rowHeights: tableStore.getRowHeightsSnapshot(),
-          gridSize: tableStore.getGridSizeSnapshot(),
-          gridSnapshot: tableStore.getGridSnapshot(),
-        });
+        dispatch(tableActions.triggerSave());
       }
     };
 
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (documentStore.getSaveStatus() === "saving") {
+      if (saveStatus === "saving") {
         e.preventDefault();
       }
     };
@@ -86,37 +58,27 @@ export function DocumentPage({ document }: { document: Document }) {
     window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
-      unsubscribe();
       window.removeEventListener("keydown", handleKeyDown);
       window.removeEventListener("beforeunload", handleBeforeUnload);
     };
-  }, [document, debouncedSave, documentStore]);
+  }, [saveStatus, dispatch]);
 
   const handleSave = () => {
-    const tableStore = storeRef.current;
-    if (!tableStore) return;
-    documentStore.autoSave(document.id, {
-      colWidths: tableStore.getColWidthsSnapshot(),
-      rowHeights: tableStore.getRowHeightsSnapshot(),
-      gridSize: tableStore.getGridSizeSnapshot(),
-      gridSnapshot: tableStore.getGridSnapshot(),
-    });
+    dispatch(tableActions.triggerSave());
   };
 
   const getLiveSnapshot = () => {
-    const tableStore = storeRef.current;
-    if (!tableStore) return document.tableSnapshot;
     return {
-      colWidths: tableStore.getColWidthsSnapshot(),
-      rowHeights: tableStore.getRowHeightsSnapshot(),
-      gridSize: tableStore.getGridSizeSnapshot(),
-      gridSnapshot: tableStore.getGridSnapshot(),
+      colWidths: tableState.colWidths,
+      rowHeights: tableState.rowHeights,
+      gridSize: tableState.gridSize,
+      gridSnapshot: tableState.gridSnapshot,
     };
   };
 
   const handleExportCsv = () => {
     const liveDoc = { ...document, tableSnapshot: getLiveSnapshot() };
-    const csv = documentStore.exportToCsv(liveDoc);
+    const csv = exportDocToCsv(liveDoc);
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = window.document.createElement("a");
@@ -128,7 +90,7 @@ export function DocumentPage({ document }: { document: Document }) {
 
   const handleExportJson = () => {
     const liveDoc = { ...document, tableSnapshot: getLiveSnapshot() };
-    const json = documentStore.exportToJson(liveDoc);
+    const json = exportDocToJson(liveDoc);
     const blob = new Blob([json], {
       type: "application/json;charset=utf-8;",
     });
@@ -147,11 +109,13 @@ export function DocumentPage({ document }: { document: Document }) {
   const handleTitleBlur = () => {
     const trimmedTitle = titleValue.trim();
     if (!trimmedTitle) return;
-    documentStore.updateDocument(document.id, trimmedTitle);
+    dispatch(
+      documentActions.updateDocument({ id: document.id, title: trimmedTitle })
+    );
   };
 
   const handleBackToDashboard = () => {
-    documentStore.setOpenDocument(null);
+    dispatch(documentActions.setOpenDocument(null));
   };
 
   if (!document) {
@@ -195,10 +159,7 @@ export function DocumentPage({ document }: { document: Document }) {
       </header>
 
       <main className="document-main">
-        <Table
-          snapshot={document.tableSnapshot}
-          store={storeRef.current ?? undefined}
-        />
+        <Table snapshot={document.tableSnapshot} />
       </main>
     </div>
   );

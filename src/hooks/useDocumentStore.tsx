@@ -1,45 +1,52 @@
-import { createContext, useContext, useSyncExternalStore } from "react";
-import { DocumentStore } from "@/stores/document";
-
-export const DocumentStoreContext = createContext<DocumentStore | null>(null);
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "@/store";
+import { type Document, documentActions } from "@/store/documentSlice";
 
 export const useDocumentStore = () => {
-  const store = useContext(DocumentStoreContext);
-  if (!store)
-    throw new Error(
-      "useDocumentStore must be used within DocumentStoreProvider"
-    );
-  return store;
+  const dispatch = useDispatch<AppDispatch>();
+
+  return {
+    createDocument: (title: string, rows: number, cols: number) => {
+      dispatch(documentActions.createDocument({ title, rows, cols }));
+    },
+    updateDocument: (id: string, newTitle: string) => {
+      dispatch(documentActions.updateDocument({ id, title: newTitle }));
+    },
+    duplicateDocument: (id: string) => {
+      dispatch(documentActions.duplicateDocument(id));
+    },
+    deleteDocument: (id: string) => {
+      dispatch(documentActions.deleteDocument(id));
+    },
+    setOpenDocument: (id: string | null) => {
+      dispatch(documentActions.setOpenDocument(id));
+    },
+    importDocument: (doc: Document) => {
+      dispatch(documentActions.importDocument(doc));
+    },
+  };
 };
 
 export function useDocumentSaveStatus() {
-  const store = useDocumentStore();
-  return useSyncExternalStore(
-    (l) => store.subscribeStatus(l),
-    () => store.getSaveStatus()
-  );
+  return useSelector((state: RootState) => state.document.saveStatus);
 }
 
 export function useDocumentById(id: string) {
-  const store = useDocumentStore();
-  return useSyncExternalStore(
-    (l) => store.subscribeList(l),
-    () => store.getDocumentById(id)
+  return useSelector((state: RootState) =>
+    state.document.documents.find((doc) => doc.id === id)
   );
 }
 
 export function useDocumentList() {
-  const store = useDocumentStore();
-  return useSyncExternalStore(
-    (l) => store.subscribeList(l),
-    () => store.getDocuments()
-  );
+  return useSelector((state: RootState) => state.document.documents);
 }
 
 export function useOpenDocument() {
-  const store = useDocumentStore();
-  return useSyncExternalStore(
-    (l) => store.subscribeOpenDocument(l),
-    () => store.getOpenDocument()
+  return useSelector((state: RootState) =>
+    state.document.openDocumentId
+      ? state.document.documents.find(
+          (doc) => doc.id === state.document.openDocumentId
+        )
+      : null
   );
 }

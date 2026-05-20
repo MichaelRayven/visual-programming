@@ -1,4 +1,4 @@
-import { createContext, useContext, useSyncExternalStore } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { evaluateCell } from "@/lib/formula";
 import {
   getCellAddress,
@@ -6,55 +6,67 @@ import {
   isColumnHeaderInSelection,
   isRowHeaderInSelection,
 } from "@/lib/table";
-import { TableStore } from "@/stores/table";
-
-export const TableStoreContext = createContext<TableStore | null>(null);
+import type { AppDispatch, RootState } from "@/store";
+import {
+  DEFAULT_COL_WIDTH,
+  DEFAULT_ROW_HEIGHT,
+  tableActions,
+} from "@/store/tableSlice";
 
 export const useTableStore = () => {
-  const store = useContext(TableStoreContext);
-  if (!store)
-    throw new Error("useStore must be used within TableStoreProvider");
-  return store;
+  const dispatch = useDispatch<AppDispatch>();
+
+  return {
+    updateCell: (row: number, col: number, value: string) =>
+      dispatch(tableActions.updateCell({ row, col, value })),
+    setSelectedCell: (cell: { row: number; col: number }) =>
+      dispatch(tableActions.setSelectedCell(cell)),
+    setSelection: (sel: {
+      rowStart: number;
+      colStart: number;
+      rowEnd: number;
+      colEnd: number;
+    }) => dispatch(tableActions.setSelection(sel)),
+    clearSelection: () => dispatch(tableActions.clearSelection()),
+    setColWidth: (col: number, width: number) =>
+      dispatch(tableActions.setColWidth({ col, width })),
+    setRowHeight: (row: number, height: number) =>
+      dispatch(tableActions.setRowHeight({ row, height })),
+    setGridSize: (size: { rows: number; cols: number }) =>
+      dispatch(tableActions.setGridSize(size)),
+    insertColumn: (col: number, position: "left" | "right") =>
+      dispatch(tableActions.insertColumn({ col, position })),
+    deleteColumn: (col: number) => dispatch(tableActions.deleteColumn(col)),
+    insertRow: (row: number, position: "above" | "below") =>
+      dispatch(tableActions.insertRow({ row, position })),
+    deleteRow: (row: number) => dispatch(tableActions.deleteRow(row)),
+  };
 };
 
 export function useGridSize() {
-  const store = useTableStore();
-  return useSyncExternalStore(
-    (l) => store.subscribeGridMeta(l),
-    () => store.getGridSizeSnapshot()
-  );
+  return useSelector((state: RootState) => state.table.gridSize);
 }
 
 export function useSelection() {
-  const store = useTableStore();
-  return useSyncExternalStore(
-    (l) => store.subscribeSelection(l),
-    () => store.getSelectionSnapshot()
-  );
+  return useSelector((state: RootState) => state.table.selection);
 }
 
 export function useSelectedCell() {
-  const store = useTableStore();
-  return useSyncExternalStore(
-    (l) => store.subscribeSelection(l),
-    () => store.getSelectedCellSnapshot()
-  );
+  return useSelector((state: RootState) => state.table.selectedCell);
 }
 
 export function useColWidth(col: number) {
-  const store = useTableStore();
-  return useSyncExternalStore(
-    (l) => store.subscribeGridMeta(l),
-    () => store.getColWidth(col)
-  );
+  return useSelector((state: RootState) => {
+    const colId = state.table.gridSnapshot.colIds[col];
+    return state.table.colWidths[colId] || DEFAULT_COL_WIDTH;
+  });
 }
 
 export function useRowHeight(row: number) {
-  const store = useTableStore();
-  return useSyncExternalStore(
-    (l) => store.subscribeGridMeta(l),
-    () => store.getRowHeight(row)
-  );
+  return useSelector((state: RootState) => {
+    const rowId = state.table.gridSnapshot.rowIds[row];
+    return state.table.rowHeights[rowId] || DEFAULT_ROW_HEIGHT;
+  });
 }
 
 export function useHeaderSelected(col?: number, row?: number) {
@@ -79,26 +91,23 @@ export function useCellSelection(row: number, col: number) {
 }
 
 export function useCellData(row: number, col: number) {
-  const store = useTableStore();
+  const rawValue = useSelector((state: RootState) => {
+    const rowId = state.table.gridSnapshot.rowIds[row];
+    const colId = state.table.gridSnapshot.colIds[col];
+    if (!rowId || !colId) return "";
+    return state.table.gridSnapshot.cells[`${rowId}_${colId}`] || "";
+  });
 
-  const rawValue = useSyncExternalStore(
-    (l) => store.subscribeCell(row, col, l),
-    () => store.getCellValue(row, col)
-  );
   const isFormula = rawValue.startsWith("=");
 
-  const snapshot = useSyncExternalStore(
-    (l) => {
-      if (isFormula) {
-        return store.subscribe(l);
-      }
-      // biome-ignore lint/suspicious/noEmptyBlockStatements: No-op for static data
-      return () => {};
-    },
-    () => store.getGridSnapshot()
-  );
+  const snapshot = useSelector((state: RootState) => {
+    return isFormula ? state.table.gridSnapshot : null;
+  });
 
-  const displayValue = evaluateCell(getCellAddress(row, col), snapshot).value;
+  const displayValue =
+    isFormula && snapshot
+      ? evaluateCell(getCellAddress(row, col), snapshot).value
+      : rawValue;
 
   return {
     rawValue,
