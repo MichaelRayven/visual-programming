@@ -1,52 +1,80 @@
-import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "@/store";
-import { type Document, documentActions } from "@/store/documentSlice";
+import { useAppDispatch, useAppSelector } from "@/store";
+import {
+  type Document,
+  documentsActions,
+  fetchDocumentById,
+  fetchDocuments,
+} from "@/store/documentsSlice";
+import { uiActions } from "@/store/uiSlice";
 
 export const useDocumentStore = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
 
   return {
     createDocument: (title: string, rows: number, cols: number) => {
-      dispatch(documentActions.createDocument({ title, rows, cols }));
+      dispatch(documentsActions.createDocument({ title, rows, cols }));
     },
     updateDocument: (id: string, newTitle: string) => {
-      dispatch(documentActions.updateDocument({ id, title: newTitle }));
+      dispatch(documentsActions.updateDocument({ id, title: newTitle }));
     },
     duplicateDocument: (id: string) => {
-      dispatch(documentActions.duplicateDocument(id));
+      dispatch(documentsActions.duplicateDocument(id));
     },
     deleteDocument: (id: string) => {
-      dispatch(documentActions.deleteDocument(id));
+      dispatch(documentsActions.deleteDocument(id));
     },
     setOpenDocument: (id: string | null) => {
-      dispatch(documentActions.setOpenDocument(id));
+      dispatch(documentsActions.setActiveDocumentId(id));
     },
     importDocument: (doc: Document) => {
-      dispatch(documentActions.importDocument(doc));
+      dispatch(documentsActions.importDocument(doc));
+    },
+    fetchDocuments: () => {
+      dispatch(fetchDocuments());
+    },
+    fetchDocumentById: (id: string) => {
+      dispatch(fetchDocumentById(id));
+    },
+    setCreateModalOpen: (open: boolean) => {
+      dispatch(uiActions.setCreateModalOpen(open));
+    },
+    setRenameModalOpen: (open: boolean) => {
+      dispatch(uiActions.setRenameModalOpen(open));
+    },
+    setDeleteModalOpen: (open: boolean) => {
+      dispatch(uiActions.setDeleteModalOpen(open));
     },
   };
 };
 
 export function useDocumentSaveStatus() {
-  return useSelector((state: RootState) => state.document.saveStatus);
+  return useAppSelector((state) => state.ui.saveStatus);
 }
 
 export function useDocumentById(id: string) {
-  return useSelector((state: RootState) =>
-    state.document.documents.find((doc) => doc.id === id)
+  return useAppSelector((state) =>
+    state.documents.documents.find((doc) => doc.id === id)
   );
 }
 
 export function useDocumentList() {
-  return useSelector((state: RootState) => state.document.documents);
+  return useAppSelector((state) => state.documents.documents);
+}
+
+export function useDocumentLoadingStatus() {
+  return useAppSelector((state) => state.documents.loadingStatus);
 }
 
 export function useOpenDocument() {
-  return useSelector((state: RootState) =>
-    state.document.openDocumentId
-      ? state.document.documents.find(
-          (doc) => doc.id === state.document.openDocumentId
+  return useAppSelector((state) =>
+    state.documents.activeDocumentId
+      ? state.documents.documents.find(
+          (doc) => doc.id === state.documents.activeDocumentId
         )
       : null
   );
+}
+
+export function useUIModals() {
+  return useAppSelector((state) => state.ui.modals);
 }

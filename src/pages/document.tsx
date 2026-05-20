@@ -15,16 +15,14 @@ import { MenuContent, MenuItem } from "@/components/menu";
 import { Table } from "@/components/table";
 import { exportDocToCsv, exportDocToJson } from "@/lib/document";
 import type { RootState } from "@/store";
-import { type Document, documentActions } from "@/store/documentSlice";
-import { tableActions } from "@/store/tableSlice";
+import { type Document, documentsActions } from "@/store/documentsSlice";
+import { spreadsheetActions } from "@/store/spreadsheetSlice";
 import "./document.css";
 
 export function DocumentPage({ document }: { document: Document }) {
   const dispatch = useDispatch();
-  const saveStatus = useSelector(
-    (state: RootState) => state.document.saveStatus
-  );
-  const tableState = useSelector((state: RootState) => state.table);
+  const saveStatus = useSelector((state: RootState) => state.ui.saveStatus);
+  const tableState = useSelector((state: RootState) => state.spreadsheet);
 
   const [titleValue, setTitleValue] = useState(document.title);
 
@@ -36,7 +34,7 @@ export function DocumentPage({ document }: { document: Document }) {
 
   useEffect(() => {
     if (initializedDocId.current !== document.id) {
-      dispatch(tableActions.initTable(document.tableSnapshot));
+      dispatch(spreadsheetActions.initTable(document.tableSnapshot));
       initializedDocId.current = document.id;
     }
   }, [document.id, document.tableSnapshot, dispatch]);
@@ -45,7 +43,16 @@ export function DocumentPage({ document }: { document: Document }) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey && e.key === "s") {
         e.preventDefault();
-        dispatch(tableActions.triggerSave());
+        dispatch(spreadsheetActions.triggerSave());
+      } else if (e.ctrlKey && e.key === "z") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.undo());
+      } else if (e.ctrlKey && e.key === "y") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.redo());
+      } else if (e.ctrlKey && e.shiftKey && e.key === "Z") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.redo());
       }
     };
 
@@ -65,7 +72,7 @@ export function DocumentPage({ document }: { document: Document }) {
   }, [saveStatus, dispatch]);
 
   const handleSave = () => {
-    dispatch(tableActions.triggerSave());
+    dispatch(spreadsheetActions.triggerSave());
   };
 
   const getLiveSnapshot = () => {
@@ -111,12 +118,12 @@ export function DocumentPage({ document }: { document: Document }) {
     const trimmedTitle = titleValue.trim();
     if (!trimmedTitle) return;
     dispatch(
-      documentActions.updateDocument({ id: document.id, title: trimmedTitle })
+      documentsActions.updateDocument({ id: document.id, title: trimmedTitle })
     );
   };
 
   const handleBackToDashboard = () => {
-    dispatch(documentActions.setOpenDocument(null));
+    dispatch(documentsActions.setActiveDocumentId(null));
   };
 
   if (!document) {

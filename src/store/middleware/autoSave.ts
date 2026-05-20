@@ -1,21 +1,21 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
-import { documentActions } from "../documentSlice";
+import { saveDocument } from "../documentsSlice";
 import type { RootState } from "../index";
-import { tableActions } from "../tableSlice";
+import { spreadsheetActions } from "../spreadsheetSlice";
 
 export const autoSaveMiddleware = createListenerMiddleware();
 
 autoSaveMiddleware.startListening({
   matcher: isAnyOf(
-    tableActions.updateCell,
-    tableActions.setColWidth,
-    tableActions.setRowHeight,
-    tableActions.setGridSize,
-    tableActions.insertColumn,
-    tableActions.deleteColumn,
-    tableActions.insertRow,
-    tableActions.deleteRow,
-    tableActions.triggerSave
+    spreadsheetActions.updateCell,
+    spreadsheetActions.setColWidth,
+    spreadsheetActions.setRowHeight,
+    spreadsheetActions.setGridSize,
+    spreadsheetActions.insertColumn,
+    spreadsheetActions.deleteColumn,
+    spreadsheetActions.insertRow,
+    spreadsheetActions.deleteRow,
+    spreadsheetActions.triggerSave
   ),
   effect: async (_, listenerApi) => {
     // Debounce saves
@@ -23,14 +23,13 @@ autoSaveMiddleware.startListening({
     await listenerApi.delay(500);
 
     const state = listenerApi.getState() as RootState;
-    const { openDocumentId } = state.document;
+    const { activeDocumentId } = state.documents;
 
-    if (!openDocumentId) return;
-
-    listenerApi.dispatch(documentActions.setSaveStatus("saving"));
+    if (!activeDocumentId) return;
 
     try {
-      const { gridSnapshot, gridSize, colWidths, rowHeights } = state.table;
+      const { gridSnapshot, gridSize, colWidths, rowHeights } =
+        state.spreadsheet;
 
       const snapshot = {
         gridSnapshot,
@@ -39,39 +38,12 @@ autoSaveMiddleware.startListening({
         rowHeights,
       };
 
-      listenerApi.dispatch(
-        documentActions.updateTableSnapshot({ id: openDocumentId, snapshot })
+      // Dispatch the saveDocument async thunk!
+      await listenerApi.dispatch(
+        saveDocument({ id: activeDocumentId, snapshot })
       );
-
-      const updatedState = listenerApi.getState() as RootState;
-      localStorage.setItem(
-        "spreadsheet_docs",
-        JSON.stringify(updatedState.document.documents)
-      );
-
-      // TODO: remove simulated network delay
-      await listenerApi.delay(500);
-
-      listenerApi.dispatch(documentActions.setSaveStatus("saved"));
     } catch (_error) {
-      listenerApi.dispatch(documentActions.setSaveStatus("error"));
+      // Errors are caught and handled by the thunk/extraReducers
     }
-  },
-});
-
-autoSaveMiddleware.startListening({
-  matcher: isAnyOf(
-    documentActions.createDocument,
-    documentActions.updateDocument,
-    documentActions.duplicateDocument,
-    documentActions.deleteDocument,
-    documentActions.importDocument
-  ),
-  effect: async (_, listenerApi) => {
-    const state = listenerApi.getState() as RootState;
-    localStorage.setItem(
-      "spreadsheet_docs",
-      JSON.stringify(state.document.documents)
-    );
   },
 });

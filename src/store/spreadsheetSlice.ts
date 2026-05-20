@@ -24,12 +24,14 @@ export type TableSnapshot = {
   gridSize: { rows: number; cols: number };
 };
 
-export type TableState = TableSnapshot & {
+export type SpreadsheetState = TableSnapshot & {
   selectedCell: CellPosition;
   selection: TableSelection;
+  past: TableSnapshot[];
+  future: TableSnapshot[];
 };
 
-const initialState: TableState = {
+const initialState: SpreadsheetState = {
   gridSnapshot: {
     cells: {},
     rowIds: [],
@@ -40,13 +42,33 @@ const initialState: TableState = {
   gridSize: { rows: 100, cols: 26 },
   selectedCell: { row: 0, col: 0 },
   selection: { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 },
+  past: [],
+  future: [],
 };
 
-const getCellId = (state: TableState, row: number, col: number) =>
-  `${state.gridSnapshot.rowIds[row]}_${state.gridSnapshot.colIds[col]}`;
+const getCellId = (state: SpreadsheetState, row: number, col: number) => {
+  const rowId = state.gridSnapshot.rowIds[row];
+  const colId = state.gridSnapshot.colIds[col];
+  if (!rowId || !colId) return "";
+  return `${rowId}_${colId}`;
+};
 
-export const tableSlice = createSlice({
-  name: "table",
+const pushToHistory = (state: SpreadsheetState) => {
+  const snapshot: TableSnapshot = {
+    gridSnapshot: JSON.parse(JSON.stringify(state.gridSnapshot)),
+    colWidths: { ...state.colWidths },
+    rowHeights: { ...state.rowHeights },
+    gridSize: { ...state.gridSize },
+  };
+  state.past.push(snapshot);
+  if (state.past.length > 100) {
+    state.past.shift();
+  }
+  state.future = [];
+};
+
+export const spreadsheetSlice = createSlice({
+  name: "spreadsheet",
   initialState,
   reducers: {
     initTable: (state, action: PayloadAction<TableSnapshot>) => {
@@ -56,6 +78,8 @@ export const tableSlice = createSlice({
       state.gridSize = action.payload.gridSize;
       state.selectedCell = { row: 0, col: 0 };
       state.selection = { rowStart: 0, rowEnd: 0, colStart: 0, colEnd: 0 };
+      state.past = [];
+      state.future = [];
     },
     updateCell: (
       state,
@@ -63,7 +87,13 @@ export const tableSlice = createSlice({
     ) => {
       const { row, col, value } = action.payload;
       const cellId = getCellId(state, row, col);
-      state.gridSnapshot.cells[cellId] = value;
+      if (!cellId) return;
+
+      const currentValue = state.gridSnapshot.cells[cellId] || "";
+      if (currentValue !== value) {
+        pushToHistory(state);
+        state.gridSnapshot.cells[cellId] = value;
+      }
     },
     setSelectedCell: (state, action: PayloadAction<CellPosition>) => {
       state.selectedCell = action.payload;
@@ -81,7 +111,14 @@ export const tableSlice = createSlice({
     ) => {
       const { col, width } = action.payload;
       const colId = state.gridSnapshot.colIds[col];
-      state.colWidths[colId] = Math.max(width, MIN_COL_WIDTH);
+      if (!colId) return;
+
+      const currentWidth = state.colWidths[colId] || DEFAULT_COL_WIDTH;
+      const targetWidth = Math.max(width, MIN_COL_WIDTH);
+      if (currentWidth !== targetWidth) {
+        pushToHistory(state);
+        state.colWidths[colId] = targetWidth;
+      }
     },
     setRowHeight: (
       state,
@@ -89,13 +126,22 @@ export const tableSlice = createSlice({
     ) => {
       const { row, height } = action.payload;
       const rowId = state.gridSnapshot.rowIds[row];
-      state.rowHeights[rowId] = Math.max(height, MIN_ROW_HEIGHT);
+      if (!rowId) return;
+
+      const currentHeight = state.rowHeights[rowId] || DEFAULT_ROW_HEIGHT;
+      const targetHeight = Math.max(height, MIN_ROW_HEIGHT);
+      if (currentHeight !== targetHeight) {
+        pushToHistory(state);
+        state.rowHeights[rowId] = targetHeight;
+      }
     },
     setGridSize: (
       state,
       action: PayloadAction<{ rows: number; cols: number }>
     ) => {
       const size = action.payload;
+      pushToHistory(state);
+
       if (size.rows > state.gridSnapshot.rowIds.length) {
         while (state.gridSnapshot.rowIds.length < size.rows)
           state.gridSnapshot.rowIds.push(uuidv4());
@@ -115,6 +161,8 @@ export const tableSlice = createSlice({
       action: PayloadAction<{ col: number; position: "left" | "right" }>
     ) => {
       const { col, position } = action.payload;
+      pushToHistory(state);
+
       const insertCol = position === "left" ? col : col + 1;
       state.gridSnapshot.colIds.splice(insertCol, 0, uuidv4());
       state.gridSize.cols += 1;
@@ -128,13 +176,13 @@ export const tableSlice = createSlice({
     deleteColumn: (state, action: PayloadAction<number>) => {
       const col = action.payload;
       if (state.gridSize.cols <= 1) return;
-      const colId = state.gridSnapshot.colIds[col];
+      pushToHistory(state);
 
+      const colId = state.gridSnapshot.colIds[col];
       state.gridSnapshot.colIds.splice(col, 1);
       state.gridSize.cols -= 1;
       delete state.colWidths[colId];
 
-      // Remove cells
       Object.keys(state.gridSnapshot.cells).forEach((key) => {
         if (key.endsWith(`_${colId}`)) {
           delete state.gridSnapshot.cells[key];
@@ -164,6 +212,8 @@ export const tableSlice = createSlice({
       action: PayloadAction<{ row: number; position: "above" | "below" }>
     ) => {
       const { row, position } = action.payload;
+      pushToHistory(state);
+
       const insertRow = position === "above" ? row : row + 1;
       state.gridSnapshot.rowIds.splice(insertRow, 0, uuidv4());
       state.gridSize.rows += 1;
@@ -177,13 +227,13 @@ export const tableSlice = createSlice({
     deleteRow: (state, action: PayloadAction<number>) => {
       const row = action.payload;
       if (state.gridSize.rows <= 1) return;
-      const rowId = state.gridSnapshot.rowIds[row];
+      pushToHistory(state);
 
+      const rowId = state.gridSnapshot.rowIds[row];
       state.gridSnapshot.rowIds.splice(row, 1);
       state.gridSize.rows -= 1;
       delete state.rowHeights[rowId];
 
-      // Remove cells
       Object.keys(state.gridSnapshot.cells).forEach((key) => {
         if (key.startsWith(`${rowId}_`)) {
           delete state.gridSnapshot.cells[key];
@@ -208,11 +258,45 @@ export const tableSlice = createSlice({
           ? state.selection.rowEnd - 1
           : Math.min(state.selection.rowEnd, state.gridSize.rows - 1);
     },
+    undo: (state) => {
+      if (state.past.length === 0) return;
+      const previous = state.past.pop()!;
+
+      const currentSnapshot: TableSnapshot = {
+        gridSnapshot: JSON.parse(JSON.stringify(state.gridSnapshot)),
+        colWidths: { ...state.colWidths },
+        rowHeights: { ...state.rowHeights },
+        gridSize: { ...state.gridSize },
+      };
+      state.future.push(currentSnapshot);
+
+      state.gridSnapshot = previous.gridSnapshot;
+      state.colWidths = previous.colWidths;
+      state.rowHeights = previous.rowHeights;
+      state.gridSize = previous.gridSize;
+    },
+    redo: (state) => {
+      if (state.future.length === 0) return;
+      const next = state.future.pop()!;
+
+      const currentSnapshot: TableSnapshot = {
+        gridSnapshot: JSON.parse(JSON.stringify(state.gridSnapshot)),
+        colWidths: { ...state.colWidths },
+        rowHeights: { ...state.rowHeights },
+        gridSize: { ...state.gridSize },
+      };
+      state.past.push(currentSnapshot);
+
+      state.gridSnapshot = next.gridSnapshot;
+      state.colWidths = next.colWidths;
+      state.rowHeights = next.rowHeights;
+      state.gridSize = next.gridSize;
+    },
     triggerSave: () => {
       // no-op, just to trigger middleware
     },
   },
 });
 
-export const tableActions = tableSlice.actions;
-export default tableSlice.reducer;
+export const spreadsheetActions = spreadsheetSlice.actions;
+export default spreadsheetSlice.reducer;

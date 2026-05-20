@@ -1,4 +1,3 @@
-import { useDispatch, useSelector } from "react-redux";
 import { evaluateCell } from "@/lib/formula";
 import {
   getCellAddress,
@@ -6,66 +5,69 @@ import {
   isColumnHeaderInSelection,
   isRowHeaderInSelection,
 } from "@/lib/table";
-import type { AppDispatch, RootState } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store";
 import {
   DEFAULT_COL_WIDTH,
   DEFAULT_ROW_HEIGHT,
-  tableActions,
-} from "@/store/tableSlice";
+  spreadsheetActions,
+} from "@/store/spreadsheetSlice";
 
 export const useTableStore = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useAppDispatch();
 
   return {
     updateCell: (row: number, col: number, value: string) =>
-      dispatch(tableActions.updateCell({ row, col, value })),
+      dispatch(spreadsheetActions.updateCell({ row, col, value })),
     setSelectedCell: (cell: { row: number; col: number }) =>
-      dispatch(tableActions.setSelectedCell(cell)),
+      dispatch(spreadsheetActions.setSelectedCell(cell)),
     setSelection: (sel: {
       rowStart: number;
       colStart: number;
       rowEnd: number;
       colEnd: number;
-    }) => dispatch(tableActions.setSelection(sel)),
-    clearSelection: () => dispatch(tableActions.clearSelection()),
+    }) => dispatch(spreadsheetActions.setSelection(sel)),
+    clearSelection: () => dispatch(spreadsheetActions.clearSelection()),
     setColWidth: (col: number, width: number) =>
-      dispatch(tableActions.setColWidth({ col, width })),
+      dispatch(spreadsheetActions.setColWidth({ col, width })),
     setRowHeight: (row: number, height: number) =>
-      dispatch(tableActions.setRowHeight({ row, height })),
+      dispatch(spreadsheetActions.setRowHeight({ row, height })),
     setGridSize: (size: { rows: number; cols: number }) =>
-      dispatch(tableActions.setGridSize(size)),
+      dispatch(spreadsheetActions.setGridSize(size)),
     insertColumn: (col: number, position: "left" | "right") =>
-      dispatch(tableActions.insertColumn({ col, position })),
-    deleteColumn: (col: number) => dispatch(tableActions.deleteColumn(col)),
+      dispatch(spreadsheetActions.insertColumn({ col, position })),
+    deleteColumn: (col: number) =>
+      dispatch(spreadsheetActions.deleteColumn(col)),
     insertRow: (row: number, position: "above" | "below") =>
-      dispatch(tableActions.insertRow({ row, position })),
-    deleteRow: (row: number) => dispatch(tableActions.deleteRow(row)),
+      dispatch(spreadsheetActions.insertRow({ row, position })),
+    deleteRow: (row: number) => dispatch(spreadsheetActions.deleteRow(row)),
+    undo: () => dispatch(spreadsheetActions.undo()),
+    redo: () => dispatch(spreadsheetActions.redo()),
   };
 };
 
 export function useGridSize() {
-  return useSelector((state: RootState) => state.table.gridSize);
+  return useAppSelector((state) => state.spreadsheet.gridSize);
 }
 
 export function useSelection() {
-  return useSelector((state: RootState) => state.table.selection);
+  return useAppSelector((state) => state.spreadsheet.selection);
 }
 
 export function useSelectedCell() {
-  return useSelector((state: RootState) => state.table.selectedCell);
+  return useAppSelector((state) => state.spreadsheet.selectedCell);
 }
 
 export function useColWidth(col: number) {
-  return useSelector((state: RootState) => {
-    const colId = state.table.gridSnapshot.colIds[col];
-    return state.table.colWidths[colId] || DEFAULT_COL_WIDTH;
+  return useAppSelector((state) => {
+    const colId = state.spreadsheet.gridSnapshot.colIds[col];
+    return state.spreadsheet.colWidths[colId] || DEFAULT_COL_WIDTH;
   });
 }
 
 export function useRowHeight(row: number) {
-  return useSelector((state: RootState) => {
-    const rowId = state.table.gridSnapshot.rowIds[row];
-    return state.table.rowHeights[rowId] || DEFAULT_ROW_HEIGHT;
+  return useAppSelector((state) => {
+    const rowId = state.spreadsheet.gridSnapshot.rowIds[row];
+    return state.spreadsheet.rowHeights[rowId] || DEFAULT_ROW_HEIGHT;
   });
 }
 
@@ -91,17 +93,17 @@ export function useCellSelection(row: number, col: number) {
 }
 
 export function useCellData(row: number, col: number) {
-  const rawValue = useSelector((state: RootState) => {
-    const rowId = state.table.gridSnapshot.rowIds[row];
-    const colId = state.table.gridSnapshot.colIds[col];
+  const rawValue = useAppSelector((state) => {
+    const rowId = state.spreadsheet.gridSnapshot.rowIds[row];
+    const colId = state.spreadsheet.gridSnapshot.colIds[col];
     if (!rowId || !colId) return "";
-    return state.table.gridSnapshot.cells[`${rowId}_${colId}`] || "";
+    return state.spreadsheet.gridSnapshot.cells[`${rowId}_${colId}`] || "";
   });
 
   const isFormula = rawValue.startsWith("=");
 
-  const snapshot = useSelector((state: RootState) => {
-    return isFormula ? state.table.gridSnapshot : null;
+  const snapshot = useAppSelector((state) => {
+    return isFormula ? state.spreadsheet.gridSnapshot : null;
   });
 
   const displayValue =

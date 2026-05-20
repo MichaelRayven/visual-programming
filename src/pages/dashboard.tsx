@@ -24,8 +24,8 @@ import {
 import { evaluateCell } from "@/lib/formula";
 import { getCellAddress } from "@/lib/table";
 import { formatDate } from "@/lib/utils";
-import { type Document } from "@/store/documentSlice";
-import type { TableSnapshot } from "@/store/tableSlice";
+import { type Document } from "@/store/documentsSlice";
+import type { TableSnapshot } from "@/store/spreadsheetSlice";
 import "./dashboard.css";
 
 type SortOption = "name" | "dateCreated" | "dateModified";
@@ -33,6 +33,12 @@ type SortOption = "name" | "dateCreated" | "dateModified";
 export function DashboardPage() {
   const documents = useDocumentList();
   const store = useDocumentStore();
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only fetch documents once on mount
+  useEffect(() => {
+    store.fetchDocuments();
+  }, []);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("dateModified");
   const [deleteId, setDeleteId] = useState<string | null>(null);

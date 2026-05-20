@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
-import { type Document } from "@/store/documentSlice";
-import { type TableSnapshot } from "@/store/tableSlice";
+import { type Document } from "@/store/documentsSlice";
+import { type TableSnapshot } from "@/store/spreadsheetSlice";
 import { exportToCSV, parseCSV } from "./csv";
 
 export const exportDocToCsv = (doc: Document): string => {

@@ -1,7 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import type { RootState } from "@/store";
-import { DEFAULT_COL_WIDTH, DEFAULT_ROW_HEIGHT } from "@/store/tableSlice";
+import {
+  DEFAULT_COL_WIDTH,
+  DEFAULT_ROW_HEIGHT,
+} from "@/store/spreadsheetSlice";
 
 const findIndex = (offsets: Float64Array, value: number) => {
   let low = 0;
@@ -21,15 +24,17 @@ export function useVirtualTable(
   const [scroll, setScroll] = useState({ top: 0, left: 0 });
   const [dimentions, setDimentions] = useState({ height: 0, width: 0 });
 
-  const size = useSelector((state: RootState) => state.table.gridSize);
+  const size = useSelector((state: RootState) => state.spreadsheet.gridSize);
   const colIds = useSelector(
-    (state: RootState) => state.table.gridSnapshot.colIds
+    (state: RootState) => state.spreadsheet.gridSnapshot.colIds
   );
   const rowIds = useSelector(
-    (state: RootState) => state.table.gridSnapshot.rowIds
+    (state: RootState) => state.spreadsheet.gridSnapshot.rowIds
   );
-  const widths = useSelector((state: RootState) => state.table.colWidths);
-  const heights = useSelector((state: RootState) => state.table.rowHeights);
+  const widths = useSelector((state: RootState) => state.spreadsheet.colWidths);
+  const heights = useSelector(
+    (state: RootState) => state.spreadsheet.rowHeights
+  );
 
   const layout = useMemo(() => {
     const colWidths = new Float64Array(size.cols);

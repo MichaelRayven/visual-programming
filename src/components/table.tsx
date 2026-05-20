@@ -13,7 +13,7 @@ import {
   MIN_COL_WIDTH,
   MIN_ROW_HEIGHT,
   type TableSnapshot,
-} from "@/store/tableSlice";
+} from "@/store/spreadsheetSlice";
 import {
   ContextMenu,
   ContextMenuContent,
