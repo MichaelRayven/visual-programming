@@ -11,6 +11,7 @@ import {
 import { type ChangeEventHandler, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Button } from "@/components/button";
+import { MenuContent, MenuItem } from "@/components/menu";
 import { Table } from "@/components/table";
 import { exportDocToCsv, exportDocToJson } from "@/lib/document";
 import type { RootState } from "@/store";
@@ -126,13 +127,14 @@ export function DocumentPage({ document }: { document: Document }) {
     <div className="document-page">
       <header className="document-header">
         <div className="document-header-left">
-          <button
-            className="document-back-button"
+          <Button
+            variant="ghost"
+            className="btn-icon"
             onClick={handleBackToDashboard}
             aria-label="Вернуться к списку документов"
           >
             <ArrowLeftIcon size={20} />
-          </button>
+          </Button>
 
           <input
             type="text"
@@ -153,7 +155,7 @@ export function DocumentPage({ document }: { document: Document }) {
           />
           <Button variant="primary" size="sm" onClick={handleSave}>
             <SaveIcon size={16} />
-            Save
+            Сохранить
           </Button>
         </div>
       </header>
@@ -225,7 +227,7 @@ function ExportMenu({
   };
 
   return (
-    <div ref={ref} className="document-export-menu">
+    <div ref={ref} style={{ position: "relative", display: "inline-flex" }}>
       <Button
         variant="outline"
         size="sm"
@@ -234,30 +236,27 @@ function ExportMenu({
         aria-label="Export options"
       >
         <DownloadIcon size={16} />
-        Export
+        Экспорт
         <ChevronDownIcon size={14} />
       </Button>
       {open && (
-        <div className="document-export-dropdown" role="menu">
-          <button
-            type="button"
-            className="document-export-item"
-            role="menuitem"
-            onClick={() => action(onExportCsv)}
-          >
+        <MenuContent
+          style={{
+            position: "absolute",
+            top: "calc(100% + var(--spacing-1))",
+            right: 0,
+            zIndex: "var(--z-modal)",
+          }}
+        >
+          <MenuItem onClick={() => action(onExportCsv)}>
             <DownloadIcon size={14} />
-            Export CSV
-          </button>
-          <button
-            type="button"
-            className="document-export-item"
-            role="menuitem"
-            onClick={() => action(onExportJson)}
-          >
+            Экспорт в CSV
+          </MenuItem>
+          <MenuItem onClick={() => action(onExportJson)}>
             <FileJsonIcon size={14} />
-            Export JSON
-          </button>
-        </div>
+            Экспорт в JSON
+          </MenuItem>
+        </MenuContent>
       )}
     </div>
   );

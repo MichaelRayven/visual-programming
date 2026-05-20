@@ -147,7 +147,7 @@ export function DashboardPage() {
             title="Import CSV"
           >
             <UploadIcon size={16} />
-            Import CSV
+            Импорт CSV
           </Button>
           <CreateDocumentDialog />
           <div className="dashboard-avatar">

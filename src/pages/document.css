@@ -25,27 +25,9 @@
   min-width: 0;
 }
 
-.document-back-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--spacing-2);
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-md);
-  transition: all var(--transition-fast);
-}
-
-.document-back-button:hover {
-  color: var(--color-text-primary);
-  background-color: var(--color-surface);
-}
-
 .document-title-input {
-  min-width: 200px;
-  max-width: 400px;
+  min-width: 12rem;
+  max-width: 24rem;
   padding: var(--spacing-2) var(--spacing-3);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
@@ -112,44 +94,6 @@
 .document-main {
   flex: 1;
   overflow: hidden;
-}
-
-.document-export-menu {
-  position: relative;
-  display: inline-flex;
-}
-
-.document-export-dropdown {
-  position: absolute;
-  top: calc(100% + var(--spacing-1));
-  right: 0;
-  z-index: var(--z-modal);
-  min-width: 160px;
-  overflow: hidden;
-  background-color: var(--color-surface-elevated);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
-}
-
-.document-export-item {
-  display: flex;
-  gap: var(--spacing-3);
-  align-items: center;
-  width: 100%;
-  padding: var(--spacing-2_5) var(--spacing-4);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-regular);
-  color: var(--color-text-primary);
-  cursor: pointer;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  transition: background-color var(--transition-fast);
-}
-
-.document-export-item:hover {
-  background-color: var(--color-surface);
 }
 
 @keyframes spin {
