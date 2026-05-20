@@ -1,7 +1,7 @@
 import { type SubmitEventHandler, useRef, useState } from "react";
 import { useDocumentStore } from "@/hooks/useDocumentStore";
 import { Button } from "./button";
-import styles from "./create-document-dialog.module.css";
+import "./create-document-dialog.css";
 import { Dialog } from "./dialog";
 import { FieldError, FieldGroup, FieldInput, FieldLabel } from "./field";
 
@@ -55,8 +55,8 @@ export function CreateDocumentDialog() {
           </FieldGroup>
 
           <FieldLabel htmlFor="doc-rows">Начальный размер</FieldLabel>
-          <div className={styles.sizeGrid}>
-            <FieldGroup className={styles.sizeGridItem}>
+          <div className="create-doc-size-grid">
+            <FieldGroup className="create-doc-size-grid-item">
               <FieldInput
                 id="doc-rows"
                 placeholder="Строк"
@@ -73,9 +73,9 @@ export function CreateDocumentDialog() {
               {errors.rows && <FieldError>{errors.rows}</FieldError>}
             </FieldGroup>
 
-            <span className={styles.multiplier}>×</span>
+            <span className="create-doc-size-multiplier">×</span>
 
-            <FieldGroup className={styles.sizeGridItem}>
+            <FieldGroup className="create-doc-size-grid-item">
               <FieldInput
                 placeholder="Столбцов"
                 value={values.cols}

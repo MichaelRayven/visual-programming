@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import styles from "./field.module.css";
+import "./field.css";
 import { Input } from "./input";
 
 export const FieldGroup = ({
@@ -8,7 +8,7 @@ export const FieldGroup = ({
 }: {
   children: React.ReactNode;
   className?: string;
-}) => <div className={clsx(styles.fieldGroup, className)}>{children}</div>;
+}) => <div className={clsx("field-group", className)}>{children}</div>;
 
 export const FieldLabel = ({
   children,
@@ -17,7 +17,7 @@ export const FieldLabel = ({
   children: React.ReactNode;
   htmlFor: string;
 }) => (
-  <label className={styles.label} htmlFor={htmlFor}>
+  <label className="field-label" htmlFor={htmlFor}>
     {children}
   </label>
 );
@@ -28,11 +28,11 @@ export const FieldInput = ({
   ...props
 }: React.ComponentProps<"input"> & { error?: boolean }) => (
   <Input
-    className={clsx(styles.input, { [styles.inputError]: error }, className)}
+    className={clsx({ "field-input-error": error }, className)}
     {...props}
   />
 );
 
 export const FieldError = ({ children }: { children: React.ReactNode }) => (
-  <span className={styles.error}>{children}</span>
+  <span className="field-error">{children}</span>
 );

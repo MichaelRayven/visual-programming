@@ -1,14 +1,14 @@
-.sizeGrid {
+.create-doc-size-grid {
   display: flex;
   gap: var(--spacing-2);
   align-items: flex-start;
 }
 
-.sizeGridItem {
+.create-doc-size-grid-item {
   flex: 1;
 }
 
-.multiplier {
+.create-doc-size-multiplier {
   margin-top: var(--spacing-2);
   color: var(--color-text-secondary);
 }

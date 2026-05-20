@@ -1,21 +1,21 @@
-.fieldGroup {
+.field-group {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-1);
   margin-bottom: var(--spacing-4);
 }
 
-.label {
+.field-label {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
 }
 
-.inputError {
+.field-input-error {
   border-color: var(--color-error);
 }
 
-.error {
+.field-error {
   font-size: var(--font-size-xs);
   color: var(--color-error);
 }

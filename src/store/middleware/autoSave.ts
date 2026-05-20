@@ -18,10 +18,8 @@ autoSaveMiddleware.startListening({
     tableActions.triggerSave
   ),
   effect: async (_, listenerApi) => {
-    // Cancel any in-progress instances of this listener
+    // Debounce saves
     listenerApi.cancelActiveListeners();
-
-    // Delay for 500ms to debounce
     await listenerApi.delay(500);
 
     const state = listenerApi.getState() as RootState;
@@ -45,14 +43,13 @@ autoSaveMiddleware.startListening({
         documentActions.updateTableSnapshot({ id: openDocumentId, snapshot })
       );
 
-      // Save to localStorage
       const updatedState = listenerApi.getState() as RootState;
       localStorage.setItem(
         "spreadsheet_docs",
         JSON.stringify(updatedState.document.documents)
       );
 
-      // TODO: remove simulated network delay if not wanted
+      // TODO: remove simulated network delay
       await listenerApi.delay(500);
 
       listenerApi.dispatch(documentActions.setSaveStatus("saved"));
@@ -62,7 +59,6 @@ autoSaveMiddleware.startListening({
   },
 });
 
-// We also need to save to local storage when document actions happen (create, rename, delete)
 autoSaveMiddleware.startListening({
   matcher: isAnyOf(
     documentActions.createDocument,
