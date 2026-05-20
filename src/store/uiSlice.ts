@@ -12,8 +12,8 @@ export type Notification = {
 export type UIState = {
   modals: {
     createOpen: boolean;
-    renameOpen: boolean;
-    deleteOpen: boolean;
+    renameOpen: { id: string; title: string } | null;
+    deleteOpen: string | null;
   };
   notifications: Notification[];
   saveStatus: SaveStatus;
@@ -22,8 +22,8 @@ export type UIState = {
 const initialState: UIState = {
   modals: {
     createOpen: false,
-    renameOpen: false,
-    deleteOpen: false,
+    renameOpen: null,
+    deleteOpen: null,
   },
   notifications: [],
   saveStatus: "saved",
@@ -36,10 +36,13 @@ export const uiSlice = createSlice({
     setCreateModalOpen: (state, action: PayloadAction<boolean>) => {
       state.modals.createOpen = action.payload;
     },
-    setRenameModalOpen: (state, action: PayloadAction<boolean>) => {
+    setRenameModal: (
+      state,
+      action: PayloadAction<{ id: string; title: string } | null>
+    ) => {
       state.modals.renameOpen = action.payload;
     },
-    setDeleteModalOpen: (state, action: PayloadAction<boolean>) => {
+    setDeleteModal: (state, action: PayloadAction<string | null>) => {
       state.modals.deleteOpen = action.payload;
     },
     addNotification: (

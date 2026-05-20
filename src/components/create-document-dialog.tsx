@@ -1,5 +1,5 @@
 import { type SubmitEventHandler, useRef, useState } from "react";
-import { useDocumentStore } from "@/hooks/useDocumentStore";
+import { useDocumentStore, useUIModals } from "@/hooks/useDocumentStore";
 import { Button } from "./button";
 import "./create-document-dialog.css";
 import { Dialog } from "./dialog";
@@ -7,7 +7,7 @@ import { FieldError, FieldGroup, FieldInput, FieldLabel } from "./field";
 
 export function CreateDocumentDialog() {
   const documentStore = useDocumentStore();
-  const [open, setOpen] = useState(false);
+  const { createOpen } = useUIModals();
 
   const formRef = useRef<HTMLFormElement>(null);
   const [values, setValues] = useState({ rows: "", cols: "", title: "" });
@@ -34,13 +34,13 @@ export function CreateDocumentDialog() {
     documentStore.createDocument(values.title, r, c);
     setErrors({});
     setValues({ rows: "", cols: "", title: "" });
-    setOpen(false);
+    documentStore.setCreateModalOpen(false);
   };
 
   return (
     <Dialog
-      open={open}
-      onOpenChange={(open) => setOpen(open)}
+      open={createOpen}
+      onOpenChange={(open) => documentStore.setCreateModalOpen(open)}
       trigger="Создать файл"
       title="Новый документ"
       content={

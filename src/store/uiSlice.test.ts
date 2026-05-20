@@ -6,8 +6,8 @@ describe("uiSlice reducer", () => {
   const initialState: UIState = {
     modals: {
       createOpen: false,
-      renameOpen: false,
-      deleteOpen: false,
+      renameOpen: null,
+      deleteOpen: null,
     },
     notifications: [],
     saveStatus: "saved",
@@ -23,7 +23,7 @@ describe("uiSlice reducer", () => {
       uiActions.setCreateModalOpen(true)
     );
     expect(nextState.modals.createOpen).toBe(true);
-    expect(nextState.modals.renameOpen).toBe(false);
+    expect(nextState.modals.renameOpen).toBeNull();
 
     const nextStateFalse = uiReducer(
       nextState,
@@ -32,20 +32,27 @@ describe("uiSlice reducer", () => {
     expect(nextStateFalse.modals.createOpen).toBe(false);
   });
 
-  it("should handle setRenameModalOpen", () => {
+  it("should handle setRenameModal", () => {
+    const payload = { id: "doc-123", title: "Target Title" };
     const nextState = uiReducer(
       initialState,
-      uiActions.setRenameModalOpen(true)
+      uiActions.setRenameModal(payload)
     );
-    expect(nextState.modals.renameOpen).toBe(true);
+    expect(nextState.modals.renameOpen).toEqual(payload);
+
+    const clearedState = uiReducer(nextState, uiActions.setRenameModal(null));
+    expect(clearedState.modals.renameOpen).toBeNull();
   });
 
-  it("should handle setDeleteModalOpen", () => {
+  it("should handle setDeleteModal", () => {
     const nextState = uiReducer(
       initialState,
-      uiActions.setDeleteModalOpen(true)
+      uiActions.setDeleteModal("doc-123")
     );
-    expect(nextState.modals.deleteOpen).toBe(true);
+    expect(nextState.modals.deleteOpen).toBe("doc-123");
+
+    const clearedState = uiReducer(nextState, uiActions.setDeleteModal(null));
+    expect(clearedState.modals.deleteOpen).toBeNull();
   });
 
   it("should handle addNotification and removeNotification", () => {

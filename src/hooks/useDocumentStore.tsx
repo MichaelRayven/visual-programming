@@ -38,11 +38,11 @@ export const useDocumentStore = () => {
     setCreateModalOpen: (open: boolean) => {
       dispatch(uiActions.setCreateModalOpen(open));
     },
-    setRenameModalOpen: (open: boolean) => {
-      dispatch(uiActions.setRenameModalOpen(open));
+    setRenameModal: (renameInfo: { id: string; title: string } | null) => {
+      dispatch(uiActions.setRenameModal(renameInfo));
     },
-    setDeleteModalOpen: (open: boolean) => {
-      dispatch(uiActions.setDeleteModalOpen(open));
+    setDeleteModal: (deleteId: string | null) => {
+      dispatch(uiActions.setDeleteModal(deleteId));
     },
   };
 };

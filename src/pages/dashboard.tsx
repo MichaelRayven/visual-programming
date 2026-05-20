@@ -15,7 +15,11 @@ import { Dialog } from "@/components/dialog";
 import { Input } from "@/components/input";
 import { MenuContent, MenuItem } from "@/components/menu";
 import { RenameDocumentDialog } from "@/components/rename-document-dialog";
-import { useDocumentList, useDocumentStore } from "@/hooks/useDocumentStore";
+import {
+  useDocumentList,
+  useDocumentStore,
+  useUIModals,
+} from "@/hooks/useDocumentStore";
 import {
   exportDocToCsv,
   exportDocToJson,
@@ -41,11 +45,7 @@ export function DashboardPage() {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("dateModified");
-  const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [renameDoc, setRenameDoc] = useState<{
-    id: string;
-    title: string;
-  } | null>(null);
+  const { renameOpen, deleteOpen } = useUIModals();
   const importInputRef = useRef<HTMLInputElement>(null);
 
   const filteredAndSortedDocuments = useMemo(() => {
@@ -199,12 +199,12 @@ export function DashboardPage() {
                   />
                   <CardActionsDropdown
                     onRename={() =>
-                      setRenameDoc({ id: doc.id, title: doc.title })
+                      store.setRenameModal({ id: doc.id, title: doc.title })
                     }
                     onDuplicate={() => store.duplicateDocument(doc.id)}
                     onExportCsv={() => handleExportCsv(doc)}
                     onExportJson={() => handleExportJson(doc)}
-                    onDelete={() => setDeleteId(doc.id)}
+                    onDelete={() => store.setDeleteModal(doc.id)}
                   />
                 </div>
 
@@ -226,20 +226,23 @@ export function DashboardPage() {
         )}
 
         <Dialog
-          open={!!deleteId}
-          onOpenChange={() => setDeleteId(null)}
+          open={!!deleteOpen}
+          onOpenChange={() => store.setDeleteModal(null)}
           title="Удаление документа"
           content="Вы уверены? Это действие нельзя отменить."
           footer={
             <>
-              <Button variant="outline" onClick={() => setDeleteId(null)}>
+              <Button
+                variant="outline"
+                onClick={() => store.setDeleteModal(null)}
+              >
                 Отмена
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => {
-                  store.deleteDocument(deleteId!);
-                  setDeleteId(null);
+                  store.deleteDocument(deleteOpen!);
+                  store.setDeleteModal(null);
                 }}
               >
                 Удалить
@@ -249,12 +252,12 @@ export function DashboardPage() {
         />
 
         <RenameDocumentDialog
-          open={!!renameDoc}
-          onOpenChange={(open) => !open && setRenameDoc(null)}
-          currentTitle={renameDoc?.title || ""}
+          open={!!renameOpen}
+          onOpenChange={(open) => !open && store.setRenameModal(null)}
+          currentTitle={renameOpen?.title || ""}
           onRename={(newTitle) => {
-            if (renameDoc) {
-              store.updateDocument(renameDoc.id, newTitle);
+            if (renameOpen) {
+              store.updateDocument(renameOpen.id, newTitle);
             }
           }}
         />
