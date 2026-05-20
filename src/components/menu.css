@@ -12,6 +12,13 @@
   animation: menuFadeIn var(--transition-fast) var(--transition-smooth);
 }
 
+.menu-dropdown {
+  position: absolute;
+  top: calc(100% + var(--spacing-1));
+  right: 0;
+  z-index: var(--z-modal);
+}
+
 .menu-item {
   display: flex;
   gap: var(--spacing-3);
@@ -26,7 +33,7 @@
   background: transparent;
   border: none;
   border-radius: 0;
-  transition: background-color var(--transition-fast) var(--transition-smooth);
+  transition: all var(--transition-fast) var(--transition-smooth);
 }
 
 .menu-item:hover:not(:disabled) {
@@ -43,8 +50,8 @@
 }
 
 .menu-item-danger:hover:not(:disabled) {
-  color: var(--color-error-dark);
-  background-color: var(--color-error-light);
+  color: var(--color-error);
+  background-color: var(--color-surface);
 }
 
 .menu-separator {

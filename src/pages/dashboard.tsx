@@ -1,5 +1,6 @@
 import {
   CalendarIcon,
+  ChevronDownIcon,
   ClockIcon,
   FileTextIcon,
   SearchIcon,
@@ -12,6 +13,7 @@ import { CardActionsDropdown } from "@/components/card-actions-dropdown";
 import { CreateDocumentDialog } from "@/components/create-document-dialog";
 import { Dialog } from "@/components/dialog";
 import { Input } from "@/components/input";
+import { MenuContent, MenuItem } from "@/components/menu";
 import { RenameDocumentDialog } from "@/components/rename-document-dialog";
 import { useDocumentList, useDocumentStore } from "@/hooks/useDocumentStore";
 import {
@@ -159,19 +161,8 @@ export function DashboardPage() {
       <main className="dashboard-main">
         <div className="dashboard-controls">
           <div className="dashboard-sort-group">
-            <label htmlFor="sort-select" className="dashboard-sort-label">
-              Сортировка:
-            </label>
-            <select
-              id="sort-select"
-              className="dashboard-sort-select"
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-            >
-              <option value="dateModified">По дате изменения</option>
-              <option value="dateCreated">По дате создания</option>
-              <option value="name">По названию</option>
-            </select>
+            <label className="dashboard-sort-label">Сортировка:</label>
+            <SortDropdown sortBy={sortBy} onSortChange={setSortBy} />
           </div>
         </div>
 
@@ -239,6 +230,7 @@ export function DashboardPage() {
                 Отмена
               </Button>
               <Button
+                variant="destructive"
                 onClick={() => {
                   store.deleteDocument(deleteId!);
                   setDeleteId(null);
@@ -321,6 +313,69 @@ function TablePreview({ snapshot }: { snapshot: TableSnapshot }) {
             </div>
           );
         })
+      )}
+    </div>
+  );
+}
+
+function SortDropdown({
+  sortBy,
+  onSortChange,
+}: {
+  sortBy: SortOption;
+  onSortChange: (val: SortOption) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const action = (val: SortOption) => {
+    onSortChange(val);
+    setOpen(false);
+  };
+
+  const getLabel = (val: SortOption) => {
+    switch (val) {
+      case "dateModified":
+        return "По дате изменения";
+      case "dateCreated":
+        return "По дате создания";
+      case "name":
+        return "По названию";
+    }
+  };
+
+  return (
+    <div ref={ref} style={{ position: "relative", display: "inline-flex" }}>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+      >
+        {getLabel(sortBy)}
+        <ChevronDownIcon size={14} />
+      </Button>
+      {open && (
+        <MenuContent className="menu-dropdown">
+          <MenuItem onClick={() => action("dateModified")}>
+            По дате изменения
+          </MenuItem>
+          <MenuItem onClick={() => action("dateCreated")}>
+            По дате создания
+          </MenuItem>
+          <MenuItem onClick={() => action("name")}>По названию</MenuItem>
+        </MenuContent>
       )}
     </div>
   );

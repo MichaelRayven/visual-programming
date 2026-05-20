@@ -240,14 +240,7 @@ function ExportMenu({
         <ChevronDownIcon size={14} />
       </Button>
       {open && (
-        <MenuContent
-          style={{
-            position: "absolute",
-            top: "calc(100% + var(--spacing-1))",
-            right: 0,
-            zIndex: "var(--z-modal)",
-          }}
-        >
+        <MenuContent className="menu-dropdown">
           <MenuItem onClick={() => action(onExportCsv)}>
             <DownloadIcon size={14} />
             Экспорт в CSV

@@ -65,14 +65,7 @@ export function CardActionsDropdown({
       </Button>
 
       {open && (
-        <MenuContent
-          style={{
-            position: "absolute",
-            top: "calc(100% + var(--spacing-1))",
-            right: 0,
-            zIndex: "var(--z-modal)",
-          }}
-        >
+        <MenuContent className="menu-dropdown">
           <MenuItem onClick={() => action(onRename)}>
             <PencilIcon size={14} />
             Переименовать
