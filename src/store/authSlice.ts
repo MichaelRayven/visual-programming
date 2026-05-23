@@ -12,12 +12,8 @@ export type AuthState = {
 };
 
 const initialState: AuthState = {
-  user: {
-    id: "mock-user-123",
-    name: "Михаил",
-    email: "michael@example.com",
-  },
-  isAuthenticated: true,
+  user: null,
+  isAuthenticated: false,
 };
 
 export const authSlice = createSlice({

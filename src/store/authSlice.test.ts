@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import authReducer, { type AuthState, authActions } from "./authSlice";
 
 describe("authSlice reducer", () => {
-  const initialState: AuthState = {
+  const mockAuthState: AuthState = {
     user: {
       id: "mock-user-123",
       name: "Михаил",
@@ -12,7 +12,10 @@ describe("authSlice reducer", () => {
   };
 
   it("should return the initial state", () => {
-    expect(authReducer(undefined, { type: "" })).toEqual(initialState);
+    expect(authReducer(undefined, { type: "" })).toEqual({
+      user: null,
+      isAuthenticated: false,
+    });
   });
 
   it("should handle setUser", () => {
@@ -21,7 +24,7 @@ describe("authSlice reducer", () => {
       name: "Иван",
       email: "ivan@example.com",
     };
-    const nextState = authReducer(initialState, authActions.setUser(newUser));
+    const nextState = authReducer(mockAuthState, authActions.setUser(newUser));
     expect(nextState.user).toEqual(newUser);
     expect(nextState.isAuthenticated).toBe(true);
 
@@ -31,7 +34,7 @@ describe("authSlice reducer", () => {
   });
 
   it("should handle logout", () => {
-    const nextState = authReducer(initialState, authActions.logout());
+    const nextState = authReducer(mockAuthState, authActions.logout());
     expect(nextState.user).toBeNull();
     expect(nextState.isAuthenticated).toBe(false);
   });
