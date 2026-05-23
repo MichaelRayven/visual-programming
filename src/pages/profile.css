@@ -146,22 +146,8 @@
   color: var(--color-text-primary);
 }
 
-.profile-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.profile-input-icon {
-  position: absolute;
-  left: var(--spacing-3);
-  color: var(--color-text-tertiary);
-}
-
 .profile-input-field {
   width: 100%;
-  padding-left: calc(var(--spacing-3) + 20px) !important;
 }
 
 .profile-form-footer {

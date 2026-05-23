@@ -6,7 +6,7 @@ import {
   MailIcon,
   UserIcon,
 } from "lucide-react";
-import { type FormEvent, useState } from "react";
+import { type SubmitEventHandler, useState } from "react";
 import { Button } from "@/components/button";
 import { FieldGroup, FieldInput, FieldLabel } from "@/components/field";
 import { useDocumentList } from "@/hooks/useDocumentStore";
@@ -29,7 +29,7 @@ export function ProfilePage() {
   const [passwordSaved, setPasswordSaved] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  const handleUpdateProfile = (e: FormEvent) => {
+  const handleUpdateProfile: SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     if (!name.trim()) return;
 
@@ -52,7 +52,7 @@ export function ProfilePage() {
     }
   };
 
-  const handleChangePassword = (e: FormEvent) => {
+  const handleChangePassword: SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
     setErrorMsg("");
 
@@ -122,32 +122,28 @@ export function ProfilePage() {
             <form onSubmit={handleUpdateProfile}>
               <FieldGroup>
                 <FieldLabel htmlFor="name">Ваше имя</FieldLabel>
-                <div className="profile-input-wrapper">
-                  <UserIcon size={16} className="profile-input-icon" />
-                  <FieldInput
-                    id="name"
-                    type="text"
-                    className="profile-input-field"
-                    value={name}
-                    required
-                    onChange={(e) => setName(e.target.value)}
-                  />
-                </div>
+                <FieldInput
+                  id="name"
+                  type="text"
+                  icon={UserIcon}
+                  className="profile-input-field"
+                  value={name}
+                  required
+                  onChange={(e) => setName(e.target.value)}
+                />
               </FieldGroup>
 
               <FieldGroup>
                 <FieldLabel htmlFor="email">Электронная почта</FieldLabel>
-                <div className="profile-input-wrapper">
-                  <MailIcon size={16} className="profile-input-icon" />
-                  <FieldInput
-                    id="email"
-                    type="email"
-                    className="profile-input-field"
-                    value={email}
-                    required
-                    onChange={(e) => setEmail(e.target.value)}
-                  />
-                </div>
+                <FieldInput
+                  id="email"
+                  type="email"
+                  icon={MailIcon}
+                  className="profile-input-field"
+                  value={email}
+                  required
+                  onChange={(e) => setEmail(e.target.value)}
+                />
               </FieldGroup>
 
               <div className="profile-form-footer">
@@ -176,36 +172,32 @@ export function ProfilePage() {
             <form onSubmit={handleChangePassword}>
               <FieldGroup>
                 <FieldLabel htmlFor="password">Новый пароль</FieldLabel>
-                <div className="profile-input-wrapper">
-                  <KeyIcon size={16} className="profile-input-icon" />
-                  <FieldInput
-                    id="password"
-                    type="password"
-                    placeholder="Минимум 8 символов"
-                    className="profile-input-field"
-                    value={password}
-                    required
-                    onChange={(e) => setPassword(e.target.value)}
-                  />
-                </div>
+                <FieldInput
+                  id="password"
+                  type="password"
+                  icon={KeyIcon}
+                  placeholder="Минимум 8 символов"
+                  className="profile-input-field"
+                  value={password}
+                  required
+                  onChange={(e) => setPassword(e.target.value)}
+                />
               </FieldGroup>
 
               <FieldGroup>
                 <FieldLabel htmlFor="confirm-password">
                   Подтверждение пароля
                 </FieldLabel>
-                <div className="profile-input-wrapper">
-                  <KeyIcon size={16} className="profile-input-icon" />
-                  <FieldInput
-                    id="confirm-password"
-                    type="password"
-                    placeholder="Повторите пароль"
-                    className="profile-input-field"
-                    value={confirmPassword}
-                    required
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                  />
-                </div>
+                <FieldInput
+                  id="confirm-password"
+                  type="password"
+                  icon={KeyIcon}
+                  placeholder="Повторите пароль"
+                  className="profile-input-field"
+                  value={confirmPassword}
+                  required
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                />
               </FieldGroup>
 
               {errorMsg && <p className="profile-error-message">{errorMsg}</p>}

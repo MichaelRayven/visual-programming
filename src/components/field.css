@@ -19,3 +19,32 @@
   font-size: var(--font-size-xs);
   color: var(--color-error);
 }
+
+.field-input-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.field-input-icon {
+  position: absolute;
+  left: var(--spacing-3_5);
+  color: var(--color-text-tertiary);
+  pointer-events: none;
+  transition: color var(--transition-fast);
+}
+
+.field-input-icon-wrapper:focus-within .field-input-icon {
+  color: var(--color-primary-500);
+}
+
+.field-input-with-icon {
+  padding-left: var(--spacing-10) !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .field-input-icon-wrapper:focus-within .field-input-icon {
+    color: var(--color-primary-400);
+  }
+}

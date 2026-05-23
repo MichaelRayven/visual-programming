@@ -27,7 +27,11 @@ import {
   useDocumentSaveStatus,
   useDocumentStore,
 } from "@/hooks/useDocumentStore";
-import { exportDocToCsv, exportDocToJson } from "@/lib/document";
+import {
+  downloadDocumentFile,
+  exportDocToCsv,
+  exportDocToJson,
+} from "@/lib/document";
 import { type RootState } from "@/store";
 import { authActions } from "@/store/authSlice";
 import { spreadsheetActions } from "@/store/spreadsheetSlice";
@@ -113,28 +117,18 @@ export function AppLayout() {
     if (!activeDocument) return;
     const liveDoc = { ...activeDocument, tableSnapshot: getLiveSnapshot() };
     const csv = exportDocToCsv(liveDoc);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = window.document.createElement("a");
-    link.href = url;
-    link.download = `${activeDocument.title}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadDocumentFile(csv, `${activeDocument.title}.csv`, "text/csv");
   };
 
   const handleExportJson = () => {
     if (!activeDocument) return;
     const liveDoc = { ...activeDocument, tableSnapshot: getLiveSnapshot() };
     const json = exportDocToJson(liveDoc);
-    const blob = new Blob([json], {
-      type: "application/json;charset=utf-8;",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = window.document.createElement("a");
-    link.href = url;
-    link.download = `${activeDocument.title}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadDocumentFile(
+      json,
+      `${activeDocument.title}.json`,
+      "application/json"
+    );
   };
 
   const handleLogout = () => {

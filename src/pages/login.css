@@ -99,99 +99,9 @@
   gap: var(--spacing-5);
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: var(--spacing-1_5);
-}
-
-.form-label {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-neutral-700);
-  text-transform: uppercase;
-  letter-spacing: var(--letter-spacing-wider);
-}
-
-.input-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.input-icon-left {
-  position: absolute;
-  left: var(--spacing-3_5);
-  color: var(--color-neutral-400);
-  pointer-events: none;
-  transition: color var(--transition-fast);
-}
-
-.login-input {
-  width: 100%;
+/* Custom fields styles (height override for standard inputs in login card) */
+.login-form .field-input-icon-wrapper input {
   height: 44px;
-  padding: 0 var(--spacing-4) 0 var(--spacing-10);
-  font-size: var(--font-size-sm);
-  color: var(--color-neutral-900);
-  outline: none;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid var(--color-neutral-200);
-  border-radius: var(--radius-lg);
-  transition:
-    border-color var(--transition-fast),
-    background-color var(--transition-fast),
-    box-shadow var(--transition-fast);
-}
-
-.login-input:hover:not(:disabled) {
-  background: white;
-  border-color: var(--color-neutral-300);
-}
-
-.login-input:focus:not(:disabled) {
-  background: white;
-  border-color: var(--color-primary-500);
-  box-shadow: 0 0 0 3px rgb(59 130 246 / 15%);
-}
-
-.input-container:focus-within .input-icon-left {
-  color: var(--color-primary-500);
-}
-
-/* Error states */
-.form-group.has-error .login-input {
-  border-color: var(--color-error);
-}
-
-.form-group.has-error .login-input:focus {
-  box-shadow: 0 0 0 3px rgb(239 68 68 / 15%);
-}
-
-.form-group.has-error .input-icon-left {
-  color: var(--color-error);
-}
-
-.field-error-message {
-  display: flex;
-  gap: var(--spacing-1);
-  align-items: center;
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-error-dark);
-  animation: shakeError 0.3s ease-in-out;
-}
-
-@keyframes shakeError {
-  0%,
-  100% {
-    transform: translateX(0);
-  }
-  25% {
-    transform: translateX(-4px);
-  }
-  75% {
-    transform: translateX(4px);
-  }
 }
 
 /* Global Alert Callout */
@@ -301,35 +211,6 @@
 
   .login-subtitle {
     color: var(--color-neutral-400);
-  }
-
-  .form-label {
-    color: var(--color-neutral-400);
-  }
-
-  .login-input {
-    color: white;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid var(--color-neutral-700);
-  }
-
-  .login-input:hover:not(:disabled) {
-    background: rgba(15, 23, 42, 0.8);
-    border-color: var(--color-neutral-600);
-  }
-
-  .login-input:focus:not(:disabled) {
-    background: #0f172a;
-    border-color: var(--color-primary-500);
-    box-shadow: 0 0 0 3px rgb(59 130 246 / 25%);
-  }
-
-  .form-group.has-error .login-input {
-    border-color: var(--color-error);
-  }
-
-  .field-error-message {
-    color: var(--color-error);
   }
 
   .login-error-alert {

@@ -24,6 +24,7 @@ import {
   useUIModals,
 } from "@/hooks/useDocumentStore";
 import {
+  downloadDocumentFile,
   exportDocToCsv,
   exportDocToJson,
   importDocFromCsv,
@@ -75,24 +76,12 @@ export function DashboardPage() {
 
   const handleExportCsv = (doc: Document) => {
     const csv = exportDocToCsv(doc);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${doc.title}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadDocumentFile(csv, `${doc.title}.csv`, "text/csv");
   };
 
   const handleExportJson = (doc: Document) => {
     const json = exportDocToJson(doc);
-    const blob = new Blob([json], { type: "application/json;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${doc.title}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
+    downloadDocumentFile(json, `${doc.title}.json`, "application/json");
   };
 
   const handleImportCsv = (e: React.ChangeEvent<HTMLInputElement>) => {

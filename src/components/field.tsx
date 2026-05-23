@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import type { LucideIcon } from "lucide-react";
 import "./field.css";
 import { Input } from "./input";
 
@@ -25,13 +26,31 @@ export const FieldLabel = ({
 export const FieldInput = ({
   error,
   className,
+  icon: Icon,
   ...props
-}: React.ComponentProps<"input"> & { error?: boolean }) => (
-  <Input
-    className={clsx({ "field-input-error": error }, className)}
-    {...props}
-  />
-);
+}: React.ComponentProps<"input"> & { error?: boolean; icon?: LucideIcon }) => {
+  if (Icon) {
+    return (
+      <div className="field-input-icon-wrapper">
+        <Icon size={16} className="field-input-icon" />
+        <Input
+          className={clsx(
+            { "field-input-error": error },
+            "field-input-with-icon",
+            className
+          )}
+          {...props}
+        />
+      </div>
+    );
+  }
+  return (
+    <Input
+      className={clsx({ "field-input-error": error }, className)}
+      {...props}
+    />
+  );
+};
 
 export const FieldError = ({ children }: { children: React.ReactNode }) => (
   <span className="field-error">{children}</span>

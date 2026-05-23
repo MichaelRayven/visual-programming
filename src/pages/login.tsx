@@ -8,6 +8,12 @@ import {
 import { type SubmitEventHandler, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Button } from "@/components/button";
+import {
+  FieldError,
+  FieldGroup,
+  FieldInput,
+  FieldLabel,
+} from "@/components/field";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { authActions } from "@/store/authSlice";
 import "./login.css";
@@ -105,58 +111,56 @@ export function LoginPage() {
           )}
 
           {/* Email Input Group */}
-          <div className={`form-group ${emailError ? "has-error" : ""}`}>
-            <label htmlFor="email-input" className="form-label">
-              Электронная почта
-            </label>
-            <div className="input-container">
-              <MailIcon size={16} className="input-icon-left" />
-              <input
-                id="email-input"
-                type="email"
-                className="login-input"
-                placeholder="email@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                disabled={loading}
-                autoComplete="email"
-                required
-              />
-            </div>
+          <FieldGroup>
+            <FieldLabel htmlFor="email-input">Электронная почта</FieldLabel>
+            <FieldInput
+              id="email-input"
+              type="email"
+              icon={MailIcon}
+              placeholder="email@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+              autoComplete="email"
+              error={!!emailError}
+              required
+            />
             {emailError && (
-              <span className="field-error-message">
-                <AlertCircleIcon size={12} />
+              <FieldError>
+                <AlertCircleIcon
+                  size={12}
+                  style={{ marginRight: "var(--spacing-1)", flexShrink: 0 }}
+                />
                 {emailError}
-              </span>
+              </FieldError>
             )}
-          </div>
+          </FieldGroup>
 
           {/* Password Input Group */}
-          <div className={`form-group ${passwordError ? "has-error" : ""}`}>
-            <label htmlFor="password-input" className="form-label">
-              Пароль
-            </label>
-            <div className="input-container">
-              <LockIcon size={16} className="input-icon-left" />
-              <input
-                id="password-input"
-                type="password"
-                className="login-input"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                disabled={loading}
-                autoComplete="current-password"
-                required
-              />
-            </div>
+          <FieldGroup>
+            <FieldLabel htmlFor="password-input">Пароль</FieldLabel>
+            <FieldInput
+              id="password-input"
+              type="password"
+              icon={LockIcon}
+              placeholder="••••••••"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+              autoComplete="current-password"
+              error={!!passwordError}
+              required
+            />
             {passwordError && (
-              <span className="field-error-message">
-                <AlertCircleIcon size={12} />
+              <FieldError>
+                <AlertCircleIcon
+                  size={12}
+                  style={{ marginRight: "var(--spacing-1)", flexShrink: 0 }}
+                />
                 {passwordError}
-              </span>
+              </FieldError>
             )}
-          </div>
+          </FieldGroup>
 
           {/* Demo account hint card */}
           <div className="demo-info-card">
