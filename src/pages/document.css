@@ -108,3 +108,18 @@
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* Document State Styles */
+.document-loading-icon {
+  margin-bottom: var(--spacing-4);
+  color: var(--color-primary-500);
+}
+
+.document-loading-title {
+  font-size: var(--font-size-md);
+}
+
+.document-error-icon {
+  margin-bottom: var(--spacing-4);
+  color: var(--color-error);
+}

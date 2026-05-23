@@ -4,7 +4,6 @@ import {
   FileTextIcon,
   SearchIcon,
   UploadIcon,
-  UserIcon,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -33,12 +32,10 @@ import { formatDate } from "@/lib/utils";
 import { type Document } from "@/store/documentsSlice";
 import "./dashboard.css";
 
-type SortOption = "name" | "dateCreated" | "dateModified";
-
 export function DashboardPage() {
+  const navigate = useNavigate();
   const documents = useDocumentList();
   const store = useDocumentStore();
-  const navigate = useNavigate();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only fetch documents once on mount
   useEffect(() => {
@@ -108,6 +105,7 @@ export function DashboardPage() {
       if (typeof text === "string") {
         const newDoc = importDocFromCsv(text, fileName);
         store.importDocument(newDoc);
+        navigate(`/documents/${newDoc.id}`);
       }
     };
     reader.readAsText(file, "utf-8");
@@ -121,12 +119,9 @@ export function DashboardPage() {
 
   return (
     <div className="dashboard-container">
-      <header className="dashboard-header">
-        <div className="dashboard-header-left">
-          <h1 className="text-xl font-semibold">Мои документы</h1>
-        </div>
-
-        <div className="dashboard-header-center">
+      <main className="dashboard-main">
+        <div className="dashboard-controls">
+          {/* Left search */}
           <div className="dashboard-search-wrapper">
             <div className="dashboard-search-icon">
               <SearchIcon size={16} />
@@ -139,38 +134,32 @@ export function DashboardPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-        </div>
 
-        <div className="dashboard-header-right">
-          <input
-            ref={importInputRef}
-            type="file"
-            accept=".csv"
-            className="dashboard-import-input"
-            aria-label="Import CSV file"
-            onChange={handleImportCsv}
-          />
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => importInputRef.current?.click()}
-            title="Import CSV"
-          >
-            <UploadIcon size={16} />
-            Импорт CSV
-          </Button>
-          <CreateDocumentDialog />
-          <div className="dashboard-avatar">
-            <UserIcon size={20} />
-          </div>
-        </div>
-      </header>
-
-      <main className="dashboard-main">
-        <div className="dashboard-controls">
           <div className="dashboard-sort-group">
             <label className="dashboard-sort-label">Сортировка:</label>
             <SortDropdown sortBy={sortBy} onSortChange={setSortBy} />
+          </div>
+
+          {/* Right controls */}
+          <div className="dashboard-controls-right">
+            <input
+              ref={importInputRef}
+              type="file"
+              accept=".csv"
+              className="dashboard-import-input"
+              aria-label="Import CSV file"
+              onChange={handleImportCsv}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => importInputRef.current?.click()}
+              title="Import CSV"
+            >
+              <UploadIcon size={16} />
+              Импорт CSV
+            </Button>
+            <CreateDocumentDialog />
           </div>
         </div>
 

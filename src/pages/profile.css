@@ -1,0 +1,198 @@
+.profile-header {
+  position: sticky;
+  top: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  gap: var(--spacing-4);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-4) var(--spacing-6);
+  background-color: var(--color-surface-elevated);
+  border-bottom: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-header-left {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+}
+
+.profile-header-left h1 {
+  margin: 0;
+  line-height: 1;
+}
+
+.profile-container {
+  width: 100%;
+  max-width: 1200px;
+  padding: var(--spacing-8) var(--spacing-6);
+  margin: 0 auto;
+}
+
+.profile-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: var(--spacing-8);
+  align-items: start;
+}
+
+.profile-card {
+  padding: var(--spacing-6);
+  background-color: var(--color-surface-elevated);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-base);
+  transition:
+    transform var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+.profile-sidebar-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.profile-avatar-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  margin-bottom: var(--spacing-4);
+  color: var(--color-primary-600);
+  background-color: var(--color-primary-50);
+  border: 3px solid var(--color-primary-100);
+  border-radius: var(--radius-2xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.profile-user-name {
+  margin-bottom: var(--spacing-1);
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+
+.profile-user-email {
+  margin-bottom: var(--spacing-5);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.profile-divider-horizontal {
+  width: 100%;
+  height: 1px;
+  margin-bottom: var(--spacing-5);
+  background-color: var(--color-border-light);
+}
+
+.profile-stats-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 100%;
+}
+
+.profile-stat-item {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+  text-align: left;
+}
+
+.profile-stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  color: var(--color-primary-600);
+  background-color: var(--color-primary-50);
+  border-radius: var(--radius-lg);
+}
+
+.profile-stat-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-stat-value {
+  margin-bottom: 2px;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-bold);
+  line-height: var(--line-height-none);
+  color: var(--color-text-primary);
+}
+
+.profile-stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* Settings Form Wrapper */
+.profile-settings-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.profile-card-title {
+  margin-bottom: var(--spacing-5);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.profile-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.profile-input-icon {
+  position: absolute;
+  left: var(--spacing-3);
+  color: var(--color-text-tertiary);
+}
+
+.profile-input-field {
+  width: 100%;
+  padding-left: calc(var(--spacing-3) + 20px) !important;
+}
+
+.profile-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--spacing-4);
+}
+
+.profile-error-message {
+  margin-top: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-error);
+}
+
+/* Dark Mode Adaptation */
+@media (prefers-color-scheme: dark) {
+  .profile-avatar-large {
+    color: var(--color-primary-400);
+    background-color: var(--color-neutral-800);
+    border-color: var(--color-neutral-700);
+  }
+
+  .profile-stat-icon {
+    color: var(--color-primary-400);
+    background-color: var(--color-neutral-800);
+  }
+}
+
+/* Responsive Grid */
+@media (max-width: 768px) {
+  .profile-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,43 +1,53 @@
-import {
-  AlertCircleIcon,
-  ArrowLeftIcon,
-  CheckCircleIcon,
-  ChevronDownIcon,
-  DownloadIcon,
-  FileJsonIcon,
-  LoaderIcon,
-  SaveIcon,
-} from "lucide-react";
-import { type ChangeEventHandler, useEffect, useRef, useState } from "react";
+import { AlertCircleIcon, LoaderIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useBlocker, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/button";
-import { MenuContent, MenuItem } from "@/components/menu";
+import { Dialog } from "@/components/dialog";
 import { Table } from "@/components/table";
-import { exportDocToCsv, exportDocToJson } from "@/lib/document";
+import {
+  useDocumentById,
+  useDocumentLoadingStatus,
+  useDocumentStore,
+} from "@/hooks/useDocumentStore";
 import type { RootState } from "@/store";
-import { type Document, documentsActions } from "@/store/documentsSlice";
 import { spreadsheetActions } from "@/store/spreadsheetSlice";
 import "./document.css";
 
-export function DocumentPage({ document }: { document: Document }) {
+export function DocumentPage() {
+  const { documentId } = useParams<{ documentId: string }>();
+  const navigate = useNavigate();
   const dispatch = useDispatch();
-  const saveStatus = useSelector((state: RootState) => state.ui.saveStatus);
-  const tableState = useSelector((state: RootState) => state.spreadsheet);
 
-  const [titleValue, setTitleValue] = useState(document.title);
+  const docStore = useDocumentStore();
+  const document = useDocumentById(documentId || "");
+  const loadingStatus = useDocumentLoadingStatus();
+
+  const saveStatus = useSelector((state: RootState) => state.ui.saveStatus);
 
   useEffect(() => {
-    setTitleValue(document.title);
-  }, [document]);
+    if (!document && loadingStatus === "idle") {
+      docStore.fetchDocuments();
+    }
+  }, [document, loadingStatus, docStore]);
+
+  useEffect(() => {
+    if (documentId) {
+      docStore.setOpenDocument(documentId);
+    }
+    return () => {
+      docStore.setOpenDocument(null);
+    };
+  }, [documentId, docStore]);
 
   const initializedDocId = useRef<string | null>(null);
 
   useEffect(() => {
-    if (initializedDocId.current !== document.id) {
+    if (document && initializedDocId.current !== document.id) {
       dispatch(spreadsheetActions.initTable(document.tableSnapshot));
       initializedDocId.current = document.id;
     }
-  }, [document.id, document.tableSnapshot, dispatch]);
+  }, [document, dispatch]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -71,193 +81,89 @@ export function DocumentPage({ document }: { document: Document }) {
     };
   }, [saveStatus, dispatch]);
 
-  const handleSave = () => {
-    dispatch(spreadsheetActions.triggerSave());
-  };
-
-  const getLiveSnapshot = () => {
-    return {
-      colWidths: tableState.colWidths,
-      rowHeights: tableState.rowHeights,
-      gridSize: tableState.gridSize,
-      gridSnapshot: tableState.gridSnapshot,
-    };
-  };
-
-  const handleExportCsv = () => {
-    const liveDoc = { ...document, tableSnapshot: getLiveSnapshot() };
-    const csv = exportDocToCsv(liveDoc);
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = window.document.createElement("a");
-    link.href = url;
-    link.download = `${document.title}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleExportJson = () => {
-    const liveDoc = { ...document, tableSnapshot: getLiveSnapshot() };
-    const json = exportDocToJson(liveDoc);
-    const blob = new Blob([json], {
-      type: "application/json;charset=utf-8;",
-    });
-    const url = URL.createObjectURL(blob);
-    const link = window.document.createElement("a");
-    link.href = url;
-    link.download = `${document.title}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleTitleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
-    setTitleValue(e.target.value);
-  };
-
-  const handleTitleBlur = () => {
-    const trimmedTitle = titleValue.trim();
-    if (!trimmedTitle) return;
-    dispatch(
-      documentsActions.updateDocument({ id: document.id, title: trimmedTitle })
-    );
-  };
+  const blocker = useBlocker(() => {
+    return saveStatus === "saving";
+  });
 
   const handleBackToDashboard = () => {
-    dispatch(documentsActions.setActiveDocumentId(null));
+    navigate("/dashboard");
   };
 
+  if (!document && loadingStatus === "loading") {
+    return (
+      <div className="not-found-container">
+        <div className="not-found-card">
+          <LoaderIcon
+            size={40}
+            className="animate-spin document-loading-icon"
+          />
+          <h2 className="not-found-subtitle document-loading-title">
+            Загрузка документа...
+          </h2>
+        </div>
+      </div>
+    );
+  }
+
   if (!document) {
-    return <div className="p-4">Загрузка документа...</div>;
+    return (
+      <div className="not-found-container">
+        <div className="not-found-card">
+          <AlertCircleIcon size={48} className="document-error-icon" />
+          <h2 className="not-found-subtitle">Документ не найден</h2>
+          <p className="not-found-description">
+            К сожалению, запрашиваемый вами документ не существует или к нему
+            нет доступа.
+          </p>
+          <Button variant="primary" size="md" onClick={handleBackToDashboard}>
+            Вернуться в список документов
+          </Button>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="document-page">
-      <header className="document-header">
-        <div className="document-header-left">
-          <Button
-            variant="ghost"
-            className="btn-icon"
-            onClick={handleBackToDashboard}
-            aria-label="Вернуться к списку документов"
-          >
-            <ArrowLeftIcon size={20} />
-          </Button>
-
-          <input
-            type="text"
-            className="document-title-input"
-            value={titleValue}
-            onChange={handleTitleChange}
-            onBlur={handleTitleBlur}
-            placeholder="Без названия"
-          />
-
-          <SaveStatusBadge status={saveStatus} />
-        </div>
-
-        <div className="document-header-right">
-          <ExportMenu
-            onExportCsv={handleExportCsv}
-            onExportJson={handleExportJson}
-          />
-          <Button variant="primary" size="sm" onClick={handleSave}>
-            <SaveIcon size={16} />
-            Сохранить
-          </Button>
-        </div>
-      </header>
-
       <main className="document-main">
         <Table snapshot={document.tableSnapshot} />
       </main>
-    </div>
-  );
-}
 
-function SaveStatusBadge({ status }: { status: "saved" | "saving" | "error" }) {
-  if (status === "saved") {
-    return (
-      <div className="document-save-status document-save-status-saved">
-        <span className="document-save-status-icon">
-          <CheckCircleIcon size={16} />
-        </span>
-        <span>Сохранено</span>
-      </div>
-    );
-  }
-
-  if (status === "saving") {
-    return (
-      <div className="document-save-status document-save-status-saving">
-        <span className="document-save-status-icon">
-          <LoaderIcon size={16} className="animate-spin" />
-        </span>
-        <span>Сохранение...</span>
-      </div>
-    );
-  }
-
-  return (
-    <div className="document-save-status document-save-status-error">
-      <span className="document-save-status-icon">
-        <AlertCircleIcon size={16} />
-      </span>
-      <span>Ошибка сохранения</span>
-    </div>
-  );
-}
-
-function ExportMenu({
-  onExportCsv,
-  onExportJson,
-}: {
-  onExportCsv: () => void;
-  onExportJson: () => void;
-}) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  const action = (fn: () => void) => {
-    fn();
-    setOpen(false);
-  };
-
-  return (
-    <div ref={ref} style={{ position: "relative", display: "inline-flex" }}>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-label="Export options"
-      >
-        <DownloadIcon size={16} />
-        Экспорт
-        <ChevronDownIcon size={14} />
-      </Button>
-      {open && (
-        <MenuContent className="menu-dropdown">
-          <MenuItem onClick={() => action(onExportCsv)}>
-            <DownloadIcon size={14} />
-            Экспорт в CSV
-          </MenuItem>
-          <MenuItem onClick={() => action(onExportJson)}>
-            <FileJsonIcon size={14} />
-            Экспорт в JSON
-          </MenuItem>
-        </MenuContent>
-      )}
+      {/* Unsaved changes blocker dialog */}
+      <Dialog
+        open={blocker.state === "blocked"}
+        onOpenChange={() => {
+          if (blocker.state === "blocked") {
+            blocker.reset();
+          }
+        }}
+        title="Несохраняемые изменения"
+        content="В данный момент происходит автосохранение документа. Если вы покинете страницу сейчас, последние изменения могут быть утеряны. Вы уверены, что хотите уйти?"
+        footer={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => {
+                if (blocker.state === "blocked") {
+                  blocker.reset();
+                }
+              }}
+            >
+              Остаться
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (blocker.state === "blocked") {
+                  blocker.proceed();
+                }
+              }}
+            >
+              Уйти
+            </Button>
+          </>
+        }
+      />
     </div>
   );
 }
