@@ -1,6 +1,6 @@
 import { AlertCircleIcon, LoaderIcon } from "lucide-react";
-import { useEffect, useRef } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect } from "react";
+import { useDispatch } from "react-redux";
 import { useBlocker, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/button";
 import { Dialog } from "@/components/dialog";
@@ -8,10 +8,9 @@ import { Table } from "@/components/table";
 import {
   useDocumentById,
   useDocumentLoadingStatus,
+  useDocumentSaveStatus,
   useDocumentStore,
 } from "@/hooks/useDocumentStore";
-import { useSpreadsheetShortcuts } from "@/hooks/useSpreadsheetShortcuts";
-import type { RootState } from "@/store";
 import { spreadsheetActions } from "@/store/spreadsheetSlice";
 import "./document.css";
 
@@ -20,17 +19,10 @@ export function DocumentPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const docStore = useDocumentStore();
   const document = useDocumentById(documentId || "");
   const loadingStatus = useDocumentLoadingStatus();
-
-  const saveStatus = useSelector((state: RootState) => state.ui.saveStatus);
-
-  useEffect(() => {
-    if (!document && loadingStatus === "idle") {
-      docStore.fetchDocuments();
-    }
-  }, [document, loadingStatus, docStore]);
+  const saveStatus = useDocumentSaveStatus();
+  const docStore = useDocumentStore();
 
   useEffect(() => {
     if (documentId) {
@@ -41,16 +33,43 @@ export function DocumentPage() {
     };
   }, [documentId, docStore]);
 
-  const initializedDocId = useRef<string | null>(null);
-
   useEffect(() => {
-    if (document && initializedDocId.current !== document.id) {
+    if (document) {
       dispatch(spreadsheetActions.initTable(document.tableSnapshot));
-      initializedDocId.current = document.id;
     }
   }, [document, dispatch]);
 
-  useSpreadsheetShortcuts(saveStatus);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === "s") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.triggerSave());
+      } else if (e.ctrlKey && e.key === "z") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.undo());
+      } else if (e.ctrlKey && e.key === "y") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.redo());
+      } else if (e.ctrlKey && e.shiftKey && e.key === "Z") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.redo());
+      }
+    };
+
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (saveStatus === "saving") {
+        e.preventDefault();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [saveStatus, dispatch]);
 
   const blocker = useBlocker(() => {
     return saveStatus === "saving";

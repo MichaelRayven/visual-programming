@@ -79,16 +79,39 @@ export function useHeaderSelected(col?: number, row?: number) {
 }
 
 export function useCellSelection(row: number, col: number) {
-  const selection = useSelection();
-  const selectedCell = useSelectedCell();
+  const isSelected = useAppSelector(
+    (state) =>
+      state.spreadsheet.selectedCell.row === row &&
+      state.spreadsheet.selectedCell.col === col
+  );
+
+  const isInSelection = useAppSelector((state) =>
+    isCellInSelection(state.spreadsheet.selection, row, col)
+  );
+
+  const isRowStart = useAppSelector(
+    (state) => isInSelection && row === state.spreadsheet.selection.rowStart
+  );
+
+  const isRowEnd = useAppSelector(
+    (state) => isInSelection && row === state.spreadsheet.selection.rowEnd
+  );
+
+  const isColStart = useAppSelector(
+    (state) => isInSelection && col === state.spreadsheet.selection.colStart
+  );
+
+  const isColEnd = useAppSelector(
+    (state) => isInSelection && col === state.spreadsheet.selection.colEnd
+  );
 
   return {
-    isSelected: selectedCell.row === row && selectedCell.col === col,
-    isInSelection: isCellInSelection(selection, row, col),
-    isRowStart: row === selection.rowStart,
-    isRowEnd: row === selection.rowEnd,
-    isColStart: col === selection.colStart,
-    isColEnd: col === selection.colEnd,
+    isSelected,
+    isInSelection,
+    isRowStart,
+    isRowEnd,
+    isColStart,
+    isColEnd,
   };
 }
 

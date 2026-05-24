@@ -52,6 +52,10 @@ export const FieldInput = ({
   );
 };
 
-export const FieldError = ({ children }: { children: React.ReactNode }) => (
-  <span className="field-error">{children}</span>
-);
+export const FieldError = ({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) => <span className={clsx("field-error", className)}>{children}</span>;

@@ -36,11 +36,11 @@ import "./dashboard.css";
 export function DashboardPage() {
   const navigate = useNavigate();
   const documents = useDocumentList();
-  const store = useDocumentStore();
+  const docStore = useDocumentStore();
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only fetch documents once on mount
   useEffect(() => {
-    store.fetchDocuments();
+    docStore.fetchDocuments();
   }, []);
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -93,7 +93,7 @@ export function DashboardPage() {
       const text = ev.target?.result;
       if (typeof text === "string") {
         const newDoc = importDocFromCsv(text, fileName);
-        store.importDocument(newDoc);
+        docStore.importDocument(newDoc);
         navigate(`/documents/${newDoc.id}`);
       }
     };
@@ -175,16 +175,16 @@ export function DashboardPage() {
                 <div className="document-card-header">
                   <DocumentCardTitle
                     title={doc.title}
-                    onTitleChange={(t) => store.updateDocument(doc.id, t)}
+                    onTitleChange={(t) => docStore.updateDocument(doc.id, t)}
                   />
                   <CardActionsDropdown
                     onRename={() =>
-                      store.setRenameModal({ id: doc.id, title: doc.title })
+                      docStore.setRenameModal({ id: doc.id, title: doc.title })
                     }
-                    onDuplicate={() => store.duplicateDocument(doc.id)}
+                    onDuplicate={() => docStore.duplicateDocument(doc.id)}
                     onExportCsv={() => handleExportCsv(doc)}
                     onExportJson={() => handleExportJson(doc)}
-                    onDelete={() => store.setDeleteModal(doc.id)}
+                    onDelete={() => docStore.setDeleteModal(doc.id)}
                   />
                 </div>
 
@@ -207,22 +207,22 @@ export function DashboardPage() {
 
         <Dialog
           open={!!deleteOpen}
-          onOpenChange={() => store.setDeleteModal(null)}
+          onOpenChange={() => docStore.setDeleteModal(null)}
           title="Удаление документа"
           content="Вы уверены? Это действие нельзя отменить."
           footer={
             <>
               <Button
                 variant="outline"
-                onClick={() => store.setDeleteModal(null)}
+                onClick={() => docStore.setDeleteModal(null)}
               >
                 Отмена
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => {
-                  store.deleteDocument(deleteOpen!);
-                  store.setDeleteModal(null);
+                  docStore.deleteDocument(deleteOpen!);
+                  docStore.setDeleteModal(null);
                 }}
               >
                 Удалить
@@ -233,11 +233,11 @@ export function DashboardPage() {
 
         <RenameDocumentDialog
           open={!!renameOpen}
-          onOpenChange={(open) => !open && store.setRenameModal(null)}
+          onOpenChange={(open) => !open && docStore.setRenameModal(null)}
           currentTitle={renameOpen?.title || ""}
           onRename={(newTitle) => {
             if (renameOpen) {
-              store.updateDocument(renameOpen.id, newTitle);
+              docStore.updateDocument(renameOpen.id, newTitle);
             }
           }}
         />

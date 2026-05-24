@@ -12,11 +12,25 @@
   animation: menuFadeIn var(--transition-fast) var(--transition-smooth);
 }
 
+.menu-dropdown-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.dropdown-trigger-container {
+  display: inline-flex;
+}
+
 .menu-dropdown {
   position: absolute;
   top: calc(100% + var(--spacing-1));
   right: 0;
   z-index: var(--z-modal);
+}
+
+.menu-dropdown.align-left {
+  right: auto;
+  left: 0;
 }
 
 .menu-item {
@@ -50,8 +64,8 @@
 }
 
 .menu-item-danger:hover:not(:disabled) {
-  color: var(--color-error);
-  background-color: var(--color-surface);
+  color: var(--color-text-inverse, #ffffff);
+  background-color: var(--color-error);
 }
 
 .menu-separator {

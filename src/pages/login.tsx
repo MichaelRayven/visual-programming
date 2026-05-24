@@ -126,11 +126,8 @@ export function LoginPage() {
               required
             />
             {emailError && (
-              <FieldError>
-                <AlertCircleIcon
-                  size={12}
-                  style={{ marginRight: "var(--spacing-1)", flexShrink: 0 }}
-                />
+              <FieldError className="flex items-center gap-2">
+                <AlertCircleIcon size={12} />
                 {emailError}
               </FieldError>
             )}
@@ -152,11 +149,8 @@ export function LoginPage() {
               required
             />
             {passwordError && (
-              <FieldError>
-                <AlertCircleIcon
-                  size={12}
-                  style={{ marginRight: "var(--spacing-1)", flexShrink: 0 }}
-                />
+              <FieldError className="flex items-center gap-2">
+                <AlertCircleIcon size={12} />
                 {passwordError}
               </FieldError>
             )}
@@ -169,7 +163,7 @@ export function LoginPage() {
               Email:{" "}
               <span className="demo-credentials">michael@example.com</span>
             </div>
-            <div style={{ marginTop: "2px" }}>
+            <div>
               Пароль: <span className="demo-credentials">password123</span>
             </div>
           </div>

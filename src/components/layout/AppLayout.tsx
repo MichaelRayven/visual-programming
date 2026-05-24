@@ -11,7 +11,7 @@ import {
   SaveIcon,
   UserIcon,
 } from "lucide-react";
-import { type ChangeEventHandler, useEffect, useRef, useState } from "react";
+import { type ChangeEventHandler, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   NavLink,
@@ -21,7 +21,7 @@ import {
   useParams,
 } from "react-router-dom";
 import { Button } from "@/components/button";
-import { MenuContent, MenuItem } from "@/components/menu";
+import { Dropdown, MenuItem } from "@/components/menu";
 import {
   useDocumentById,
   useDocumentSaveStatus,
@@ -54,9 +54,6 @@ export function AppLayout() {
     return saved ? JSON.parse(saved) : false;
   });
 
-  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const userMenuRef = useRef<HTMLDivElement>(null);
-
   const [titleValue, setTitleValue] = useState("");
 
   useEffect(() => {
@@ -64,21 +61,6 @@ export function AppLayout() {
       setTitleValue(activeDocument.title);
     }
   }, [activeDocument]);
-
-  // Click outside to close user menu dropdown
-  useEffect(() => {
-    if (!isUserMenuOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (
-        userMenuRef.current &&
-        !userMenuRef.current.contains(e.target as Node)
-      ) {
-        setIsUserMenuOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [isUserMenuOpen]);
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed((prev: boolean) => {
@@ -132,12 +114,10 @@ export function AppLayout() {
   };
 
   const handleLogout = () => {
-    setIsUserMenuOpen(false);
     dispatch(authActions.logout());
   };
 
   const handleNavigateToProfile = () => {
-    setIsUserMenuOpen(false);
     navigate("/profile");
   };
 
@@ -232,40 +212,30 @@ export function AppLayout() {
 
           {/* Collapsible Dropdown User Widget */}
           {user && (
-            <div ref={userMenuRef} className="header-user-widget-wrapper">
-              <button
-                type="button"
-                className="header-user-widget"
-                onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                aria-expanded={isUserMenuOpen}
-                aria-label="User profile menu"
-              >
-                <span className="header-user-name">{user.name}</span>
-                <div className="header-user-avatar">
-                  <UserIcon size={18} />
-                </div>
-              </button>
-
-              {isUserMenuOpen && (
-                <MenuContent
-                  className="menu-dropdown user-dropdown"
-                  style={{
-                    top: "100%",
-                    right: 0,
-                    marginTop: "var(--spacing-2)",
-                  }}
+            <Dropdown
+              trigger={
+                <button
+                  type="button"
+                  className="header-user-widget"
+                  aria-label="User profile menu"
                 >
-                  <MenuItem onClick={handleNavigateToProfile}>
-                    <UserIcon size={14} />
-                    Профиль
-                  </MenuItem>
-                  <MenuItem onClick={handleLogout} className="menu-item-danger">
-                    <LogOutIcon size={14} />
-                    Выйти
-                  </MenuItem>
-                </MenuContent>
-              )}
-            </div>
+                  <span className="header-user-name">{user.name}</span>
+                  <div className="header-user-avatar">
+                    <UserIcon size={18} />
+                  </div>
+                </button>
+              }
+              menuClassName="user-dropdown"
+            >
+              <MenuItem onClick={handleNavigateToProfile}>
+                <UserIcon size={14} />
+                Профиль
+              </MenuItem>
+              <MenuItem danger onClick={handleLogout}>
+                <LogOutIcon size={14} />
+                Выйти
+              </MenuItem>
+            </Dropdown>
           )}
         </div>
       </header>
@@ -315,53 +285,24 @@ function ExportMenu({
   onExportCsv: () => void;
   onExportJson: () => void;
 }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [open]);
-
-  const action = (fn: () => void) => {
-    fn();
-    setOpen(false);
-  };
-
   return (
-    <div ref={ref} style={{ position: "relative", display: "inline-flex" }}>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        aria-label="Export options"
-      >
-        <DownloadIcon size={16} />
-        Экспорт
-        <ChevronDownIcon size={14} />
-      </Button>
-      {open && (
-        <MenuContent
-          className="menu-dropdown"
-          style={{ top: "100%", right: 0, marginTop: "var(--spacing-1)" }}
-        >
-          <MenuItem onClick={() => action(onExportCsv)}>
-            <DownloadIcon size={14} />
-            Экспорт в CSV
-          </MenuItem>
-          <MenuItem onClick={() => action(onExportJson)}>
-            <FileJsonIcon size={14} />
-            Экспорт в JSON
-          </MenuItem>
-        </MenuContent>
-      )}
-    </div>
+    <Dropdown
+      trigger={
+        <Button variant="outline" size="sm" aria-label="Export options">
+          <DownloadIcon size={16} />
+          Экспорт
+          <ChevronDownIcon size={14} />
+        </Button>
+      }
+    >
+      <MenuItem onClick={onExportCsv}>
+        <DownloadIcon size={14} />
+        Экспорт в CSV
+      </MenuItem>
+      <MenuItem onClick={onExportJson}>
+        <FileJsonIcon size={14} />
+        Экспорт в JSON
+      </MenuItem>
+    </Dropdown>
   );
 }

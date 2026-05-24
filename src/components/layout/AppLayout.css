@@ -12,7 +12,7 @@
 
 .app-header {
   position: relative;
-  z-index: var(--z-sticky);
+  z-index: calc(var(--z-sticky) + 20);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -213,15 +213,6 @@
 /* User dropdown and danger options */
 .user-dropdown {
   min-width: 140px;
-}
-
-.menu-item-danger {
-  color: var(--color-error) !important;
-}
-
-.menu-item-danger:hover {
-  color: white !important;
-  background-color: var(--color-error) !important;
 }
 
 /* ==========================================================================
