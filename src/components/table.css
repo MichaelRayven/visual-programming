@@ -71,6 +71,8 @@
   top: 0;
   left: 0;
   z-index: calc(var(--z-sticky) + 20);
+  width: var(--min-col-width);
+  height: var(--min-row-height);
   margin-bottom: -32px; /* Pulls column wrapper up to clear grid gap placement */
   background-color: var(--color-primary-700);
   border-right: 2px solid var(--color-primary-800);
@@ -205,4 +207,62 @@
   height: 2px;
   pointer-events: none;
   background-color: var(--color-primary-400);
+}
+
+/* Sizing and absolute positioning helper classes */
+.table-absolute {
+  position: relative;
+  width: var(--table-width);
+  height: var(--table-height);
+}
+
+.col-header-absolute {
+  position: absolute;
+  top: 0;
+  left: var(--col-left);
+  width: var(--col-width);
+  height: var(--min-row-height);
+}
+
+.row-header-absolute {
+  position: absolute;
+  top: var(--row-top);
+  left: 0;
+  width: var(--min-col-width);
+  height: var(--row-height);
+}
+
+.row-absolute {
+  position: absolute;
+  top: var(--row-top);
+  left: 0;
+  width: 100%;
+  height: var(--row-height);
+}
+
+.cell-absolute {
+  position: absolute;
+  left: var(--cell-left);
+  width: var(--cell-width);
+  height: var(--cell-height);
+}
+
+.col-resizer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 10;
+  width: 6px;
+  cursor: col-resize;
+}
+
+.row-resizer {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 10;
+  height: 6px;
+  cursor: row-resize;
 }

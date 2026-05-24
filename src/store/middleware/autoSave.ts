@@ -15,6 +15,8 @@ autoSaveMiddleware.startListening({
     spreadsheetActions.deleteColumn,
     spreadsheetActions.insertRow,
     spreadsheetActions.deleteRow,
+    spreadsheetActions.undo,
+    spreadsheetActions.redo,
     spreadsheetActions.triggerSave
   ),
   effect: async (_, listenerApi) => {

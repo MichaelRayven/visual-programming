@@ -3,12 +3,13 @@ import {
   createSlice,
   type PayloadAction,
 } from "@reduxjs/toolkit";
-import { v4 as uuidv4 } from "uuid";
+import { api } from "@/lib/api";
 import { type TableSnapshot } from "./spreadsheetSlice";
 
 export type Document = {
   id: string;
   title: string;
+  userId: string;
   tableSnapshot: TableSnapshot;
   createdAt: number;
   updatedAt: number;
@@ -28,27 +29,31 @@ const initialState: DocumentsState = {
   error: null,
 };
 
-// Async Thunks
 export const fetchDocuments = createAsyncThunk(
   "documents/fetchDocuments",
-  async () => {
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    const data = localStorage.getItem("spreadsheet_docs");
-    return data ? JSON.parse(data) : [];
+  async (_, thunkAPI) => {
+    try {
+      const docs = await api.getDocuments();
+      return docs;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.message || "Failed to load documents"
+      );
+    }
   }
 );
 
 export const fetchDocumentById = createAsyncThunk(
   "documents/fetchDocumentById",
-  async (id: string) => {
-    await new Promise((resolve) => setTimeout(resolve, 150));
-    const data = localStorage.getItem("spreadsheet_docs");
-    const docs: Document[] = data ? JSON.parse(data) : [];
-    const doc = docs.find((d) => d.id === id);
-    if (!doc) {
-      throw new Error("Document not found");
+  async (id: string, thunkAPI) => {
+    try {
+      const doc = await api.getDocumentById(id);
+      return doc;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.message || "Failed to load document"
+      );
     }
-    return doc;
   }
 );
 
@@ -58,22 +63,101 @@ export const saveDocument = createAsyncThunk(
     { id, snapshot }: { id: string; snapshot: TableSnapshot },
     thunkAPI
   ) => {
-    await new Promise((resolve) => setTimeout(resolve, 250));
-    const state = thunkAPI.getState() as { documents: DocumentsState };
-    const documents = state.documents.documents;
-    const updatedDocs = documents.map((d) => {
-      if (d.id === id) {
-        return {
-          ...d,
-          tableSnapshot: snapshot,
-          updatedAt: Date.now(),
-        };
-      }
-      return d;
-    });
+    try {
+      const savedDoc = await api.saveDocument(id, snapshot);
+      return savedDoc;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.message || "Failed to save document"
+      );
+    }
+  }
+);
 
-    localStorage.setItem("spreadsheet_docs", JSON.stringify(updatedDocs));
-    return { id, snapshot };
+export const createDoc = createAsyncThunk(
+  "documents/createDoc",
+  async (
+    { title, rows, cols }: { title: string; rows: number; cols: number },
+    thunkAPI
+  ) => {
+    try {
+      const newDoc = await api.createDocument(title, rows, cols);
+      return newDoc;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.message || "Failed to create document"
+      );
+    }
+  }
+);
+
+export const updateDoc = createAsyncThunk(
+  "documents/updateDoc",
+  async ({ id, title }: { id: string; title: string }, thunkAPI) => {
+    try {
+      const updatedDoc = await api.updateDocument(id, title);
+      return updatedDoc;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.message || "Failed to update document"
+      );
+    }
+  }
+);
+
+export const duplicateDoc = createAsyncThunk(
+  "documents/duplicateDoc",
+  async (id: string, thunkAPI) => {
+    try {
+      const duplicate = await api.duplicateDocument(id);
+      return duplicate;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.message || "Failed to duplicate document"
+      );
+    }
+  }
+);
+
+export const deleteDoc = createAsyncThunk(
+  "documents/deleteDoc",
+  async (id: string, thunkAPI) => {
+    try {
+      const deletedId = await api.deleteDocument(id);
+      return deletedId;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.message || "Failed to delete document"
+      );
+    }
+  }
+);
+
+export const importDoc = createAsyncThunk(
+  "documents/importDoc",
+  async (doc: Omit<Document, "userId">, thunkAPI) => {
+    try {
+      await api.ensureValidToken();
+      const activeUserId = api.getActiveUserId();
+      if (!activeUserId) throw new Error("401");
+
+      const data = localStorage.getItem("spreadsheet_docs");
+      const docs = data ? JSON.parse(data) : [];
+
+      const importedDoc: Document = {
+        ...doc,
+        userId: activeUserId, // Strict ownership mapping
+        updatedAt: Date.now(),
+      };
+
+      docs.push(importedDoc);
+      localStorage.setItem("spreadsheet_docs", JSON.stringify(docs));
+      return importedDoc;
+    } catch (error) {
+      return thunkAPI.rejectWithValue(
+        error.message || "Failed to import document"
+      );
+    }
   }
 );
 
@@ -81,78 +165,14 @@ export const documentsSlice = createSlice({
   name: "documents",
   initialState,
   reducers: {
-    createDocument: (
-      state,
-      action: PayloadAction<{ title: string; rows: number; cols: number }>
-    ) => {
-      const { title, rows, cols } = action.payload;
-      const newDoc: Document = {
-        id: uuidv4(),
-        title: title || "Без названия",
-        tableSnapshot: {
-          gridSnapshot: {
-            cells: {},
-            rowIds: Array.from({ length: rows }, () => uuidv4()),
-            colIds: Array.from({ length: cols }, () => uuidv4()),
-          },
-          gridSize: { rows, cols },
-          colWidths: {},
-          rowHeights: {},
-        },
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
-      };
-      state.documents.push(newDoc);
-      localStorage.setItem("spreadsheet_docs", JSON.stringify(state.documents));
-    },
-    updateDocument: (
-      state,
-      action: PayloadAction<{ id: string; title: string }>
-    ) => {
-      const { id, title } = action.payload;
-      const doc = state.documents.find((d) => d.id === id);
-      if (doc) {
-        doc.title = title;
-        doc.updatedAt = Date.now();
-        localStorage.setItem(
-          "spreadsheet_docs",
-          JSON.stringify(state.documents)
-        );
-      }
-    },
-    duplicateDocument: (state, action: PayloadAction<string>) => {
-      const id = action.payload;
-      const source = state.documents.find((d) => d.id === id);
-      if (source) {
-        const duplicate: Document = {
-          ...JSON.parse(JSON.stringify(source)),
-          id: uuidv4(),
-          title: `${source.title} (Копия)`,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-        };
-        state.documents.push(duplicate);
-        localStorage.setItem(
-          "spreadsheet_docs",
-          JSON.stringify(state.documents)
-        );
-      }
-    },
-    deleteDocument: (state, action: PayloadAction<string>) => {
-      const id = action.payload;
-      state.documents = state.documents.filter((d) => d.id !== id);
-      if (state.activeDocumentId === id) {
-        state.activeDocumentId = null;
-      }
-      localStorage.setItem("spreadsheet_docs", JSON.stringify(state.documents));
-    },
     setActiveDocumentId: (state, action: PayloadAction<string | null>) => {
       state.activeDocumentId = action.payload;
     },
-    importDocument: (state, action: PayloadAction<Document>) => {
-      state.documents.push(action.payload);
-      state.activeDocumentId = action.payload.id;
-      localStorage.setItem("spreadsheet_docs", JSON.stringify(state.documents));
+    clearDocuments: (state) => {
+      state.documents = [];
+      state.activeDocumentId = null;
+      state.loadingStatus = "idle";
+      state.error = null;
     },
   },
   extraReducers: (builder) => {
@@ -167,7 +187,7 @@ export const documentsSlice = createSlice({
       })
       .addCase(fetchDocuments.rejected, (state, action) => {
         state.loadingStatus = "failed";
-        state.error = action.error.message || "Failed to load documents";
+        state.error = action.payload as string;
       })
       .addCase(fetchDocumentById.pending, (state) => {
         state.loadingStatus = "loading";
@@ -176,7 +196,6 @@ export const documentsSlice = createSlice({
       .addCase(fetchDocumentById.fulfilled, (state, action) => {
         state.loadingStatus = "succeeded";
         state.activeDocumentId = action.payload.id;
-        // Update local copy if it's different or just ensure it exists in the list
         const exists = state.documents.some((d) => d.id === action.payload.id);
         if (!exists) {
           state.documents.push(action.payload);
@@ -184,18 +203,52 @@ export const documentsSlice = createSlice({
       })
       .addCase(fetchDocumentById.rejected, (state, action) => {
         state.loadingStatus = "failed";
-        state.error = action.error.message || "Failed to load document";
+        state.error = action.payload as string; // Will store "403" or "404" for page check
       })
       .addCase(saveDocument.fulfilled, (state, action) => {
-        const { id, snapshot } = action.payload;
+        const { id, tableSnapshot } = action.payload;
         const doc = state.documents.find((d) => d.id === id);
         if (doc) {
-          doc.tableSnapshot = snapshot;
+          doc.tableSnapshot = tableSnapshot;
           doc.updatedAt = Date.now();
         }
+      })
+      .addCase(createDoc.fulfilled, (state, action) => {
+        state.documents.push(action.payload);
+        state.activeDocumentId = action.payload.id;
+      })
+      .addCase(updateDoc.fulfilled, (state, action) => {
+        const { id, title } = action.payload;
+        const doc = state.documents.find((d) => d.id === id);
+        if (doc) {
+          doc.title = title;
+          doc.updatedAt = Date.now();
+        }
+      })
+      .addCase(duplicateDoc.fulfilled, (state, action) => {
+        state.documents.push(action.payload);
+      })
+      .addCase(deleteDoc.fulfilled, (state, action) => {
+        const deletedId = action.payload;
+        state.documents = state.documents.filter((d) => d.id !== deletedId);
+        if (state.activeDocumentId === deletedId) {
+          state.activeDocumentId = null;
+        }
+      })
+      .addCase(importDoc.fulfilled, (state, action) => {
+        state.documents.push(action.payload);
+        state.activeDocumentId = action.payload.id;
       });
   },
 });
 
-export const documentsActions = documentsSlice.actions;
+export const documentsActions = {
+  ...documentsSlice.actions,
+  createDocument: createDoc,
+  updateDocument: updateDoc,
+  duplicateDocument: duplicateDoc,
+  deleteDocument: deleteDoc,
+  importDocument: importDoc,
+};
+
 export default documentsSlice.reducer;

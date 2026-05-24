@@ -14,7 +14,7 @@ export function TablePreview({ snapshot }: TablePreviewProps) {
   return (
     <div
       className="document-preview-grid"
-      style={{ gridTemplateColumns: `repeat(${previewCols}, 1fr)` }}
+      style={{ "--preview-cols": previewCols } as React.CSSProperties}
     >
       {Array.from({ length: previewRows }).map((_, r) =>
         Array.from({ length: previewCols }).map((_, c) => {

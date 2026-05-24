@@ -60,6 +60,7 @@ export const importDocFromCsv = (csv: string, title: string): Document => {
   return {
     id: uuidv4(),
     title: title || "Imported document",
+    userId: "",
     tableSnapshot,
     createdAt: Date.now(),
     updatedAt: Date.now(),

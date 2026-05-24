@@ -1,12 +1,18 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { beforeEach, describe, expect, it } from "vitest";
+import { api } from "@/lib/api";
 import documentsReducer, {
+  createDoc,
   type Document,
   type DocumentsState,
+  deleteDoc,
   documentsActions,
+  duplicateDoc,
   fetchDocumentById,
   fetchDocuments,
+  importDoc,
   saveDocument,
+  updateDoc,
 } from "./documentsSlice";
 
 // Mock localStorage
@@ -32,8 +38,10 @@ Object.defineProperty(globalThis, "localStorage", {
 });
 
 describe("documentsSlice reducer", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     localStorage.clear();
+    // Seed and authenticate simulated user to prevent 401s in thunk tests
+    await api.login("michael@example.com", "password123");
   });
 
   const getInitialState = (): DocumentsState => ({
@@ -49,26 +57,45 @@ describe("documentsSlice reducer", () => {
     );
   });
 
-  it("should handle createDocument", () => {
+  it("should handle createDoc.fulfilled", () => {
     const initialState = getInitialState();
+    const newDoc: Document = {
+      id: "doc-123",
+      title: "New Doc",
+      userId: "user-michael",
+      tableSnapshot: {
+        gridSnapshot: { cells: {}, rowIds: [], colIds: [] },
+        colWidths: {},
+        rowHeights: {},
+        gridSize: { rows: 10, cols: 5 },
+      },
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+
     const nextState = documentsReducer(
       initialState,
-      documentsActions.createDocument({ title: "New Doc", rows: 10, cols: 5 })
+      createDoc.fulfilled(newDoc, "req-1", {
+        title: "New Doc",
+        rows: 10,
+        cols: 5,
+      })
     );
 
     expect(nextState.documents.length).toBe(1);
     expect(nextState.documents[0].title).toBe("New Doc");
+    expect(nextState.documents[0].userId).toBe("user-michael");
     expect(nextState.documents[0].tableSnapshot.gridSize).toEqual({
       rows: 10,
       cols: 5,
     });
-    expect(localStorage.getItem("spreadsheet_docs")).toBeDefined();
   });
 
-  it("should handle updateDocument", () => {
+  it("should handle updateDoc.fulfilled", () => {
     const doc: Document = {
       id: "doc-1",
       title: "Old Title",
+      userId: "user-michael",
       tableSnapshot: {
         gridSnapshot: { cells: {}, rowIds: [], colIds: [] },
         colWidths: {},
@@ -86,16 +113,28 @@ describe("documentsSlice reducer", () => {
 
     const nextState = documentsReducer(
       initialState,
-      documentsActions.updateDocument({ id: "doc-1", title: "New Title" })
+      updateDoc.fulfilled(
+        {
+          id: "doc-1",
+          title: "New Title",
+          userId: "user-michael",
+          createdAt: 0,
+          updatedAt: 0,
+          tableSnapshot: doc.tableSnapshot,
+        },
+        "req-2",
+        { id: "doc-1", title: "New Title" }
+      )
     );
 
     expect(nextState.documents[0].title).toBe("New Title");
   });
 
-  it("should handle duplicateDocument", () => {
+  it("should handle duplicateDoc.fulfilled", () => {
     const doc: Document = {
       id: "doc-1",
       title: "Source Doc",
+      userId: "user-michael",
       tableSnapshot: {
         gridSnapshot: { cells: { r_c: "hello" }, rowIds: [], colIds: [] },
         colWidths: {},
@@ -111,23 +150,27 @@ describe("documentsSlice reducer", () => {
       documents: [doc],
     };
 
+    const duplicateDocObj: Document = {
+      ...doc,
+      id: "doc-2",
+      title: "Source Doc (Копия)",
+    };
+
     const nextState = documentsReducer(
       initialState,
-      documentsActions.duplicateDocument("doc-1")
+      duplicateDoc.fulfilled(duplicateDocObj, "req-3", "doc-1")
     );
 
     expect(nextState.documents.length).toBe(2);
     expect(nextState.documents[1].title).toBe("Source Doc (Копия)");
-    expect(nextState.documents[1].id).not.toBe("doc-1");
-    expect(nextState.documents[1].tableSnapshot.gridSnapshot.cells["r_c"]).toBe(
-      "hello"
-    );
+    expect(nextState.documents[1].id).toBe("doc-2");
   });
 
-  it("should handle deleteDocument", () => {
+  it("should handle deleteDoc.fulfilled", () => {
     const doc: Document = {
       id: "doc-1",
       title: "Doc to Delete",
+      userId: "user-michael",
       tableSnapshot: {
         gridSnapshot: { cells: {}, rowIds: [], colIds: [] },
         colWidths: {},
@@ -146,7 +189,7 @@ describe("documentsSlice reducer", () => {
 
     const nextState = documentsReducer(
       initialState,
-      documentsActions.deleteDocument("doc-1")
+      deleteDoc.fulfilled("doc-1", "req-4", "doc-1")
     );
 
     expect(nextState.documents.length).toBe(0);
@@ -162,10 +205,11 @@ describe("documentsSlice reducer", () => {
     expect(nextState.activeDocumentId).toBe("doc-abc");
   });
 
-  it("should handle importDocument", () => {
+  it("should handle importDoc.fulfilled", () => {
     const doc: Document = {
       id: "doc-1",
       title: "Imported Doc",
+      userId: "user-michael",
       tableSnapshot: {
         gridSnapshot: { cells: {}, rowIds: [], colIds: [] },
         colWidths: {},
@@ -179,7 +223,7 @@ describe("documentsSlice reducer", () => {
     const initialState = getInitialState();
     const nextState = documentsReducer(
       initialState,
-      documentsActions.importDocument(doc)
+      importDoc.fulfilled(doc, "req-5", doc)
     );
 
     expect(nextState.documents.length).toBe(1);
@@ -189,8 +233,24 @@ describe("documentsSlice reducer", () => {
   // Test extraReducers / Thunk actions using a test store
   it("should fetch documents thunk successfully", async () => {
     const testDocs = [
-      { id: "1", title: "Doc 1" },
-      { id: "2", title: "Doc 2" },
+      {
+        id: "1",
+        title: "Doc 1",
+        userId: "user-michael",
+        tableSnapshot: {
+          gridSize: { rows: 2, cols: 2 },
+          gridSnapshot: { cells: {}, rowIds: [], colIds: [] },
+        },
+      },
+      {
+        id: "2",
+        title: "Doc 2",
+        userId: "user-michael",
+        tableSnapshot: {
+          gridSize: { rows: 2, cols: 2 },
+          gridSnapshot: { cells: {}, rowIds: [], colIds: [] },
+        },
+      },
     ];
     localStorage.setItem("spreadsheet_docs", JSON.stringify(testDocs));
 
@@ -200,7 +260,6 @@ describe("documentsSlice reducer", () => {
 
     const resultPromise = store.dispatch(fetchDocuments());
 
-    // verify loading status is loading
     expect(store.getState().documents.loadingStatus).toBe("loading");
 
     await resultPromise;
@@ -214,6 +273,7 @@ describe("documentsSlice reducer", () => {
     const doc: Document = {
       id: "doc-123",
       title: "Target Doc",
+      userId: "user-michael",
       tableSnapshot: {
         gridSnapshot: { cells: {}, rowIds: [], colIds: [] },
         colWidths: {},
@@ -247,13 +307,14 @@ describe("documentsSlice reducer", () => {
 
     expect(action.meta.requestStatus).toBe("rejected");
     expect(store.getState().documents.loadingStatus).toBe("failed");
-    expect(store.getState().documents.error).toBe("Document not found");
+    expect(store.getState().documents.error).toBe("404");
   });
 
   it("should save document thunk successfully", async () => {
     const doc: Document = {
       id: "doc-123",
       title: "Doc to Save",
+      userId: "user-michael",
       tableSnapshot: {
         gridSnapshot: { cells: {}, rowIds: [], colIds: [] },
         colWidths: {},
@@ -270,7 +331,7 @@ describe("documentsSlice reducer", () => {
     });
 
     // Populate the documents list in state
-    store.dispatch(documentsActions.importDocument(doc));
+    store.dispatch(importDoc.fulfilled(doc, "req-6", doc));
 
     const newSnapshot = {
       gridSnapshot: { cells: { r_c: "saved-val" }, rowIds: [], colIds: [] },

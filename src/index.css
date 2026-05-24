@@ -478,3 +478,30 @@ button {
     background: var(--color-neutral-600);
   }
 }
+
+/* Custom Table Constants & Utilities */
+:root {
+  --min-col-width: 64px;
+  --min-row-height: 24px;
+}
+
+/* Boot Loader Screen */
+.boot-loader-screen {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: var(--color-text-primary, #111827);
+  background-color: var(--color-background, #ffffff);
+}
+
+.boot-loader-spinner {
+  color: var(--color-primary-600);
+}
+
+.boot-loader-text {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+}

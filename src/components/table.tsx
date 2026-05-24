@@ -5,7 +5,6 @@ import {
   useCellSelection,
   useGridSize,
   useHeaderSelected,
-  useRowHeight,
   useSelectedCell,
 } from "@/hooks/useTableStore";
 import { getCellAddress, getColumnHeader } from "@/lib/table";
@@ -70,21 +69,16 @@ const TableContent = ({
 
   return (
     <div
-      className={clsx("table", className)}
-      style={{
-        height: `${totalHeight + MIN_ROW_HEIGHT}px`,
-        width: `${totalWidth + MIN_COL_WIDTH}px`,
-        position: "relative",
-      }}
+      className={clsx("table table-absolute", className)}
+      style={
+        {
+          "--table-height": `${totalHeight + MIN_ROW_HEIGHT}px`,
+          "--table-width": `${totalWidth + MIN_COL_WIDTH}px`,
+        } as React.CSSProperties
+      }
       {...props}
     >
-      <div
-        className="table-header corner"
-        style={{
-          width: `${MIN_COL_WIDTH}px`,
-          height: `${MIN_ROW_HEIGHT}px`,
-        }}
-      />
+      <div className="table-header corner" />
 
       <div className="col-headers-sticky-wrapper">
         {Array.from({ length: endCol - startCol + 1 }).map((_, i) => {
@@ -93,13 +87,13 @@ const TableContent = ({
             <TableHead
               key={`col-${colIdx}`}
               col={colIdx}
-              style={{
-                position: "absolute",
-                left: `${MIN_COL_WIDTH + colOffsets[colIdx]}px`,
-                top: 0,
-                width: `${colWidths[colIdx]}px`,
-                height: `${MIN_ROW_HEIGHT}px`,
-              }}
+              className="col-header-absolute"
+              style={
+                {
+                  "--col-left": `${MIN_COL_WIDTH + colOffsets[colIdx]}px`,
+                  "--col-width": `${colWidths[colIdx]}px`,
+                } as React.CSSProperties
+              }
             >
               {getColumnHeader(colIdx)}
             </TableHead>
@@ -114,13 +108,13 @@ const TableContent = ({
             <TableHead
               key={`row-header-${rowIdx}`}
               row={rowIdx}
-              style={{
-                position: "absolute",
-                top: `${MIN_ROW_HEIGHT + rowOffsets[rowIdx]}px`,
-                left: 0,
-                width: `${MIN_COL_WIDTH}px`,
-                height: `${rowHeights[rowIdx]}px`,
-              }}
+              className="row-header-absolute"
+              style={
+                {
+                  "--row-top": `${MIN_ROW_HEIGHT + rowOffsets[rowIdx]}px`,
+                  "--row-height": `${rowHeights[rowIdx]}px`,
+                } as React.CSSProperties
+              }
             >
               {rowIdx + 1}
             </TableHead>
@@ -134,14 +128,13 @@ const TableContent = ({
           <TableRow
             key={`row-${rowIdx}`}
             row={rowIdx}
-            className="data-row"
-            style={{
-              position: "absolute",
-              top: `${MIN_ROW_HEIGHT + rowOffsets[rowIdx]}px`,
-              left: 0,
-              width: "100%",
-              height: `${rowHeights[rowIdx]}px`,
-            }}
+            className="data-row row-absolute"
+            style={
+              {
+                "--row-top": `${MIN_ROW_HEIGHT + rowOffsets[rowIdx]}px`,
+                "--row-height": `${rowHeights[rowIdx]}px`,
+              } as React.CSSProperties
+            }
           >
             {Array.from({ length: endCol - startCol + 1 }).map((_, j) => {
               const colIdx = startCol + j;
@@ -150,12 +143,14 @@ const TableContent = ({
                   key={`cell-${rowIdx}-${colIdx}`}
                   row={rowIdx}
                   col={colIdx}
-                  style={{
-                    position: "absolute",
-                    left: `${MIN_COL_WIDTH + colOffsets[colIdx]}px`,
-                    width: `${colWidths[colIdx]}px`,
-                    height: `${rowHeights[rowIdx]}px`,
-                  }}
+                  className="cell-absolute"
+                  style={
+                    {
+                      "--cell-left": `${MIN_COL_WIDTH + colOffsets[colIdx]}px`,
+                      "--cell-width": `${colWidths[colIdx]}px`,
+                      "--cell-height": `${rowHeights[rowIdx]}px`,
+                    } as React.CSSProperties
+                  }
                 />
               );
             })}
@@ -176,14 +171,8 @@ export const TableRow = ({
   style,
   ...props
 }: TableRowProps) => {
-  const height = useRowHeight(row);
-
   return (
-    <div
-      className={clsx("table-row", className)}
-      style={{ ...style, height }}
-      {...props}
-    />
+    <div className={clsx("table-row", className)} style={style} {...props} />
   );
 };
 
@@ -314,36 +303,8 @@ export const TableHead = ({
           )}
         </ContextMenuContent>
       </ContextMenu>
-      {isCol && (
-        <div
-          className="col-resizer"
-          onMouseDown={handleMouseDown}
-          style={{
-            position: "absolute",
-            top: 0,
-            right: 0,
-            bottom: 0,
-            width: "6px",
-            cursor: "col-resize",
-            zIndex: 10,
-          }}
-        />
-      )}
-      {isRow && (
-        <div
-          className="row-resizer"
-          onMouseDown={handleMouseDown}
-          style={{
-            position: "absolute",
-            left: 0,
-            right: 0,
-            bottom: 0,
-            height: "6px",
-            cursor: "row-resize",
-            zIndex: 10,
-          }}
-        />
-      )}
+      {isCol && <div className="col-resizer" onMouseDown={handleMouseDown} />}
+      {isRow && <div className="row-resizer" onMouseDown={handleMouseDown} />}
     </div>
   );
 };

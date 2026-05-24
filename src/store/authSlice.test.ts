@@ -8,13 +8,19 @@ describe("authSlice reducer", () => {
       name: "Михаил",
       email: "michael@example.com",
     },
+    accessToken: "mock-access-token",
     isAuthenticated: true,
+    isInitialLoading: false,
+    error: null,
   };
 
   it("should return the initial state", () => {
     expect(authReducer(undefined, { type: "" })).toEqual({
       user: null,
+      accessToken: null,
       isAuthenticated: false,
+      isInitialLoading: true,
+      error: null,
     });
   });
 
@@ -36,6 +42,7 @@ describe("authSlice reducer", () => {
   it("should handle logout", () => {
     const nextState = authReducer(mockAuthState, authActions.logout());
     expect(nextState.user).toBeNull();
+    expect(nextState.accessToken).toBeNull();
     expect(nextState.isAuthenticated).toBe(false);
   });
 });

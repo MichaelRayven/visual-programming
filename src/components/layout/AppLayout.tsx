@@ -5,14 +5,13 @@ import {
   DownloadIcon,
   FileJsonIcon,
   FileSpreadsheetIcon,
-  LoaderIcon,
   LogOutIcon,
   MenuIcon,
   SaveIcon,
   UserIcon,
 } from "lucide-react";
 import { type ChangeEventHandler, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import {
   NavLink,
   Outlet,
@@ -21,6 +20,7 @@ import {
   useParams,
 } from "react-router-dom";
 import { Button } from "@/components/button";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { Dropdown, MenuItem } from "@/components/menu";
 import {
   useDocumentById,
@@ -32,8 +32,9 @@ import {
   exportDocToCsv,
   exportDocToJson,
 } from "@/lib/document";
-import { type RootState } from "@/store";
-import { authActions } from "@/store/authSlice";
+import { type RootState, useAppDispatch } from "@/store";
+import { logoutUser } from "@/store/authSlice";
+import { documentsActions } from "@/store/documentsSlice";
 import { spreadsheetActions } from "@/store/spreadsheetSlice";
 import "./AppLayout.css";
 
@@ -43,7 +44,7 @@ export function AppLayout() {
   const saveStatus = useDocumentSaveStatus();
   const location = useLocation();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const docStore = useDocumentStore();
   const tableState = useSelector((state: RootState) => state.spreadsheet);
@@ -114,7 +115,8 @@ export function AppLayout() {
   };
 
   const handleLogout = () => {
-    dispatch(authActions.logout());
+    dispatch(logoutUser());
+    dispatch(documentsActions.clearDocuments());
   };
 
   const handleNavigateToProfile = () => {
@@ -181,7 +183,7 @@ export function AppLayout() {
                 )}
                 {saveStatus === "saving" && (
                   <>
-                    <LoaderIcon size={14} className="animate-spin" />
+                    <LoadingSpinner size={14} />
                     <span>Сохранение...</span>
                   </>
                 )}

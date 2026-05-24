@@ -104,14 +104,14 @@ export const ContextMenuContent = ({
   const menuContent = (
     <MenuContent
       ref={menuRef}
-      className={className}
-      style={{
-        top: position.y,
-        left: position.x,
-        position: "fixed",
-        zIndex: "var(--z-popover)",
-        ...style,
-      }}
+      className={clsx("context-menu-position", className)}
+      style={
+        {
+          ...style,
+          "--context-menu-top": `${position.y}px`,
+          "--context-menu-left": `${position.x}px`,
+        } as React.CSSProperties
+      }
       {...props}
     >
       {children}

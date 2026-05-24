@@ -84,3 +84,10 @@
     transform: scale(1);
   }
 }
+
+.context-menu-position {
+  position: fixed;
+  top: var(--context-menu-top);
+  left: var(--context-menu-left);
+  z-index: var(--z-popover);
+}

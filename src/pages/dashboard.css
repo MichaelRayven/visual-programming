@@ -216,6 +216,7 @@
 
 .document-preview-grid {
   display: grid;
+  grid-template-columns: repeat(var(--preview-cols, 3), 1fr);
   gap: 1px;
   padding: var(--spacing-2);
   background: var(--color-border-light);

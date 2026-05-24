@@ -1,12 +1,11 @@
 import {
   AlertCircleIcon,
   FileSpreadsheetIcon,
-  LoaderIcon,
   LockIcon,
   MailIcon,
 } from "lucide-react";
 import { type SubmitEventHandler, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/button";
 import {
   FieldError,
@@ -14,8 +13,9 @@ import {
   FieldInput,
   FieldLabel,
 } from "@/components/field";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { authActions } from "@/store/authSlice";
+import { loginUser } from "@/store/authSlice";
 import "./login.css";
 
 export function LoginPage() {
@@ -30,9 +30,13 @@ export function LoginPage() {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
-  // If already authenticated, redirect immediately to dashboard
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const from = location.state?.from?.pathname || "/dashboard";
+
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to={from} replace />;
   }
 
   const validateForm = (): boolean => {
@@ -52,19 +56,18 @@ export function LoginPage() {
       }
     }
 
-    // Validate password presence and length
     if (!password) {
       setPasswordError("Введите пароль");
       isValid = false;
-    } else if (password.length < 6) {
-      setPasswordError("Пароль должен содержать не менее 6 символов");
+    } else if (password.length < 8) {
+      setPasswordError("Пароль должен содержать не менее 8 символов");
       isValid = false;
     }
 
     return isValid;
   };
 
-  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (e) => {
+  const handleSubmit: SubmitEventHandler<HTMLFormElement> = async (e) => {
     e.preventDefault();
 
     if (!validateForm()) {
@@ -72,24 +75,19 @@ export function LoginPage() {
     }
 
     setLoading(true);
+    setFormError(null);
 
-    setTimeout(() => {
-      // Demo authentication logic
-      const targetEmail = email.trim().toLowerCase();
+    const resultAction = await dispatch(loginUser({ email, password }));
+    setLoading(false);
 
-      if (targetEmail === "michael@example.com" && password === "password123") {
-        dispatch(
-          authActions.setUser({
-            id: "mock-user-123",
-            name: "Михаил",
-            email: "michael@example.com",
-          })
-        );
-      } else {
-        setFormError("Неверный адрес электронной почты или пароль");
-        setLoading(false);
-      }
-    }, 1200);
+    if (loginUser.fulfilled.match(resultAction)) {
+      navigate(from, { replace: true });
+    } else {
+      setFormError(
+        (resultAction.payload as string) ||
+          "Неверный адрес электронной почты или пароль"
+      );
+    }
   };
 
   return (
@@ -158,13 +156,12 @@ export function LoginPage() {
 
           {/* Demo account hint card */}
           <div className="demo-info-card">
-            <div className="demo-info-title">Демонстрационный аккаунт:</div>
-            <div>
-              Email:{" "}
-              <span className="demo-credentials">michael@example.com</span>
+            <div className="demo-info-title">Демонстрационные аккаунты:</div>
+            <div className="demo-info-item">
+              <strong>Михаил:</strong> michael@example.com / password123
             </div>
             <div>
-              Пароль: <span className="demo-credentials">password123</span>
+              <strong>Роман:</strong> roman@example.com / password123
             </div>
           </div>
 
@@ -178,13 +175,21 @@ export function LoginPage() {
           >
             {loading ? (
               <>
-                <LoaderIcon size={18} className="login-spinner animate-spin" />
+                <LoadingSpinner size={18} className="login-spinner" />
                 Выполняется вход...
               </>
             ) : (
               "Войти"
             )}
           </Button>
+
+          {/* Transition link to registration page */}
+          <div className="login-footer-link">
+            <span>Нет аккаунта? </span>
+            <Link to="/register" className="auth-link">
+              Зарегистрироваться
+            </Link>
+          </div>
         </form>
       </div>
     </div>

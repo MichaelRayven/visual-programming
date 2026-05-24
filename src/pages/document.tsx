@@ -1,41 +1,47 @@
-import { AlertCircleIcon, LoaderIcon } from "lucide-react";
-import { useEffect } from "react";
-import { useDispatch } from "react-redux";
+import { AlertCircleIcon } from "lucide-react";
+import { useEffect, useRef } from "react";
 import { useBlocker, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/button";
 import { Dialog } from "@/components/dialog";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { Table } from "@/components/table";
 import {
   useDocumentById,
   useDocumentLoadingStatus,
   useDocumentSaveStatus,
-  useDocumentStore,
 } from "@/hooks/useDocumentStore";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { documentsActions, fetchDocumentById } from "@/store/documentsSlice";
 import { spreadsheetActions } from "@/store/spreadsheetSlice";
 import "./document.css";
 
 export function DocumentPage() {
   const { documentId } = useParams<{ documentId: string }>();
   const navigate = useNavigate();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
 
   const document = useDocumentById(documentId || "");
   const loadingStatus = useDocumentLoadingStatus();
   const saveStatus = useDocumentSaveStatus();
-  const docStore = useDocumentStore();
+  const error = useAppSelector((state) => state.documents.error);
 
   useEffect(() => {
     if (documentId) {
-      docStore.setOpenDocument(documentId);
+      dispatch(documentsActions.setActiveDocumentId(documentId));
+      // Retrieve document details on mount/reload to assert permission & populate state
+      dispatch(fetchDocumentById(documentId));
     }
     return () => {
-      docStore.setOpenDocument(null);
+      dispatch(documentsActions.setActiveDocumentId(null));
     };
-  }, [documentId, docStore]);
+  }, [documentId, dispatch]);
+
+  const initializedIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (document) {
+    if (document && initializedIdRef.current !== document.id) {
       dispatch(spreadsheetActions.initTable(document.tableSnapshot));
+      initializedIdRef.current = document.id;
     }
   }, [document, dispatch]);
 
@@ -79,14 +85,32 @@ export function DocumentPage() {
     navigate("/dashboard");
   };
 
+  // Render 403 Forbidden Access Page State
+  if (loadingStatus === "failed" && error === "403") {
+    return (
+      <div className="forbidden-page-container">
+        <div className="forbidden-card">
+          <div className="forbidden-icon-wrapper">
+            <AlertCircleIcon size={32} />
+          </div>
+          <h1 className="forbidden-title">Доступ ограничен (403)</h1>
+          <p className="forbidden-message">
+            Вы не являетесь владельцем этого документа и не имеете прав на его
+            просмотр.
+          </p>
+          <Button variant="primary" size="md" onClick={handleBackToDashboard}>
+            Вернуться в Мои документы
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   if (!document && loadingStatus === "loading") {
     return (
       <div className="not-found-container">
         <div className="not-found-card">
-          <LoaderIcon
-            size={40}
-            className="animate-spin document-loading-icon"
-          />
+          <LoadingSpinner size={40} className="document-loading-icon" />
           <h2 className="not-found-subtitle document-loading-title">
             Загрузка документа...
           </h2>
