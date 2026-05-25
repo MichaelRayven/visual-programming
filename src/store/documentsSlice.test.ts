@@ -47,7 +47,6 @@ describe("documentsSlice reducer", () => {
   const getInitialState = (): DocumentsState => ({
     documents: [],
     activeDocumentId: null,
-    loadingStatus: "idle",
     error: null,
   });
 
@@ -260,11 +259,8 @@ describe("documentsSlice reducer", () => {
 
     const resultPromise = store.dispatch(fetchDocuments());
 
-    expect(store.getState().documents.loadingStatus).toBe("loading");
-
     await resultPromise;
 
-    expect(store.getState().documents.loadingStatus).toBe("succeeded");
     expect(store.getState().documents.documents.length).toBe(2);
     expect(store.getState().documents.documents[0].title).toBe("Doc 1");
   });
@@ -291,7 +287,6 @@ describe("documentsSlice reducer", () => {
 
     await store.dispatch(fetchDocumentById("doc-123"));
 
-    expect(store.getState().documents.loadingStatus).toBe("succeeded");
     expect(store.getState().documents.activeDocumentId).toBe("doc-123");
     expect(store.getState().documents.documents[0].title).toBe("Target Doc");
   });
@@ -306,7 +301,6 @@ describe("documentsSlice reducer", () => {
     const action = await store.dispatch(fetchDocumentById("non-existent"));
 
     expect(action.meta.requestStatus).toBe("rejected");
-    expect(store.getState().documents.loadingStatus).toBe("failed");
     expect(store.getState().documents.error).toBe("404");
   });
 

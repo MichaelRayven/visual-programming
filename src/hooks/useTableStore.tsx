@@ -50,9 +50,9 @@ export const useTableStore = () => {
       toggleBold: () => dispatch(spreadsheetActions.toggleBold()),
       toggleItalic: () => dispatch(spreadsheetActions.toggleItalic()),
       toggleUnderline: () => dispatch(spreadsheetActions.toggleUnderline()),
-      setBgColor: (color: string) =>
+      setBgColor: (color: string | undefined) =>
         dispatch(spreadsheetActions.setBgColor(color)),
-      setTextColor: (color: string) =>
+      setTextColor: (color: string | undefined) =>
         dispatch(spreadsheetActions.setTextColor(color)),
       setAlign: (align: CellStyle["align"]) =>
         dispatch(spreadsheetActions.setAlign(align)),

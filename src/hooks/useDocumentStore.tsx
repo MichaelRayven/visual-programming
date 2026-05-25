@@ -56,10 +56,6 @@ export function useDocumentList() {
   return useAppSelector((state) => state.documents.documents);
 }
 
-export function useDocumentLoadingStatus() {
-  return useAppSelector((state) => state.documents.loadingStatus);
-}
-
 export function useOpenDocument() {
   return useAppSelector((state) =>
     state.documents.activeDocumentId

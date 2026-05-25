@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   type BlockerFunction,
   useBlocker,
@@ -7,10 +7,9 @@ import {
 } from "react-router-dom";
 import {
   useDocumentById,
-  useDocumentLoadingStatus,
   useDocumentSaveStatus,
 } from "@/hooks/useDocumentStore";
-import { useAppDispatch, useAppSelector } from "@/store";
+import { useAppDispatch } from "@/store";
 import { documentsActions } from "@/store/documentsSlice";
 import { spreadsheetActions } from "@/store/spreadsheetSlice";
 
@@ -20,28 +19,39 @@ export function useDocumentPage() {
   const dispatch = useAppDispatch();
 
   const document = useDocumentById(documentId || "");
-  const loadingStatus = useDocumentLoadingStatus();
   const saveStatus = useDocumentSaveStatus();
-  const error = useAppSelector((state) => state.documents.error);
 
-  const initializedIdRef = useRef<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (documentId) {
-      dispatch(documentsActions.setActiveDocumentId(documentId));
-      dispatch(documentsActions.fetchDocumentById(documentId));
-    }
+    if (!documentId) return;
+
+    setLoading(true);
+    setError(null);
+    dispatch(documentsActions.setActiveDocumentId(documentId));
+    dispatch(spreadsheetActions.clearTable());
+
+    const loadDocument = async (documentId: string) => {
+      try {
+        const doc = await dispatch(
+          documentsActions.fetchDocumentById(documentId)
+        ).unwrap();
+        dispatch(spreadsheetActions.initTable(doc.tableSnapshot));
+      } catch (err) {
+        setError(err || "Failed to load document");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadDocument(documentId);
+
     return () => {
       dispatch(documentsActions.setActiveDocumentId(null));
+      dispatch(spreadsheetActions.clearTable());
     };
   }, [documentId, dispatch]);
-
-  useEffect(() => {
-    if (document && initializedIdRef.current !== document.id) {
-      dispatch(spreadsheetActions.initTable(document.tableSnapshot));
-      initializedIdRef.current = document.id;
-    }
-  }, [document, dispatch]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -55,37 +65,36 @@ export function useDocumentPage() {
 
       if (isForeignInput) return;
 
-      if (e.ctrlKey && e.key === "s") {
+      const key = e.key.toLowerCase();
+
+      if (e.ctrlKey && key === "s") {
         e.preventDefault();
         dispatch(spreadsheetActions.triggerSave());
-      } else if (e.ctrlKey && e.key === "z") {
+      } else if (e.ctrlKey && key === "z") {
         e.preventDefault();
         dispatch(spreadsheetActions.undo());
-      } else if (e.ctrlKey && e.key === "y") {
+      } else if (e.ctrlKey && key === "y") {
         e.preventDefault();
         dispatch(spreadsheetActions.redo());
-      } else if (e.ctrlKey && e.shiftKey && e.key === "Z") {
-        e.preventDefault();
-        dispatch(spreadsheetActions.redo());
-      } else if (e.ctrlKey && e.key === "c") {
+      } else if (e.ctrlKey && key === "c") {
         e.preventDefault();
         dispatch(spreadsheetActions.copySelection());
-      } else if (e.ctrlKey && e.key === "x") {
+      } else if (e.ctrlKey && key === "x") {
         e.preventDefault();
         dispatch(spreadsheetActions.cutSelection());
-      } else if (e.ctrlKey && e.key === "v") {
+      } else if (e.ctrlKey && key === "v") {
         e.preventDefault();
         dispatch(spreadsheetActions.pasteSelection());
-      } else if (e.ctrlKey && e.key === "a") {
+      } else if (e.ctrlKey && key === "a") {
         e.preventDefault();
         dispatch(spreadsheetActions.selectAll());
-      } else if (e.ctrlKey && e.key === "b") {
+      } else if (e.ctrlKey && key === "b") {
         e.preventDefault();
         dispatch(spreadsheetActions.toggleBold());
-      } else if (e.ctrlKey && e.key === "i") {
+      } else if (e.ctrlKey && key === "i") {
         e.preventDefault();
         dispatch(spreadsheetActions.toggleItalic());
-      } else if (e.ctrlKey && e.key === "u") {
+      } else if (e.ctrlKey && key === "u") {
         e.preventDefault();
         dispatch(spreadsheetActions.toggleUnderline());
       }
@@ -119,7 +128,7 @@ export function useDocumentPage() {
 
   return {
     document,
-    loadingStatus,
+    loading,
     error,
     blocker,
     handleBackToDashboard,

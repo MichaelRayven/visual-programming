@@ -97,6 +97,7 @@ export const spreadsheetSlice = createSlice({
   name: "spreadsheet",
   initialState,
   reducers: {
+    clearTable: () => JSON.parse(JSON.stringify(initialState)),
     initTable: (state, action: PayloadAction<TableSnapshot>) => {
       state.gridSnapshot = JSON.parse(
         JSON.stringify(action.payload.gridSnapshot)
@@ -238,6 +239,15 @@ export const spreadsheetSlice = createSlice({
         }
       });
 
+      const styles = state.gridSnapshot.cellStyles;
+      if (styles) {
+        Object.keys(styles).forEach((key) => {
+          if (key.endsWith(`_${colId}`)) {
+            delete styles[key];
+          }
+        });
+      }
+
       if (state.selectedCell.col === col) {
         state.selectedCell.col = Math.min(
           state.selectedCell.col,
@@ -288,6 +298,15 @@ export const spreadsheetSlice = createSlice({
           delete state.gridSnapshot.cells[key];
         }
       });
+
+      const styles = state.gridSnapshot.cellStyles;
+      if (styles) {
+        Object.keys(styles).forEach((key) => {
+          if (key.startsWith(`${rowId}_`)) {
+            delete styles[key];
+          }
+        });
+      }
 
       if (state.selectedCell.row === row) {
         state.selectedCell.row = Math.min(

@@ -478,4 +478,67 @@ describe("spreadsheetSlice reducer", () => {
     );
     expect(state.gridSnapshot.cells["row-1_col-1"]).toBe("98765");
   });
+
+  it("should undo column and row deletions", () => {
+    const initialState = getInitialState();
+    // 1. Initialize table with some data
+    let state = spreadsheetReducer(
+      initialState,
+      spreadsheetActions.initTable({
+        gridSnapshot: {
+          cells: {
+            "row-1_col-1": "A",
+            "row-1_col-2": "B",
+            "row-2_col-1": "C",
+            "row-2_col-2": "D",
+          },
+          rowIds: ["row-1", "row-2"],
+          colIds: ["col-1", "col-2"],
+        },
+        gridSize: { rows: 2, cols: 2 },
+        colWidths: { "col-1": 100, "col-2": 100 },
+        rowHeights: { "row-1": 30, "row-2": 30 },
+      })
+    );
+
+    // 2. Delete column 1 (index 1)
+    state = spreadsheetReducer(state, spreadsheetActions.deleteColumn(1));
+    expect(state.gridSize.cols).toBe(1);
+    expect(state.gridSnapshot.colIds).toEqual(["col-1"]);
+    expect(state.gridSnapshot.cells).toEqual({
+      "row-1_col-1": "A",
+      "row-2_col-1": "C",
+    });
+
+    // 3. Undo column deletion
+    state = spreadsheetReducer(state, spreadsheetActions.undo());
+    expect(state.gridSize.cols).toBe(2);
+    expect(state.gridSnapshot.colIds).toEqual(["col-1", "col-2"]);
+    expect(state.gridSnapshot.cells).toEqual({
+      "row-1_col-1": "A",
+      "row-1_col-2": "B",
+      "row-2_col-1": "C",
+      "row-2_col-2": "D",
+    });
+
+    // 4. Delete row 1 (index 1)
+    state = spreadsheetReducer(state, spreadsheetActions.deleteRow(1));
+    expect(state.gridSize.rows).toBe(1);
+    expect(state.gridSnapshot.rowIds).toEqual(["row-1"]);
+    expect(state.gridSnapshot.cells).toEqual({
+      "row-1_col-1": "A",
+      "row-1_col-2": "B",
+    });
+
+    // 5. Undo row deletion
+    state = spreadsheetReducer(state, spreadsheetActions.undo());
+    expect(state.gridSize.rows).toBe(2);
+    expect(state.gridSnapshot.rowIds).toEqual(["row-1", "row-2"]);
+    expect(state.gridSnapshot.cells).toEqual({
+      "row-1_col-1": "A",
+      "row-1_col-2": "B",
+      "row-2_col-1": "C",
+      "row-2_col-2": "D",
+    });
+  });
 });

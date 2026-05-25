@@ -68,6 +68,7 @@ export function useRenameDocumentForm() {
     setErrors({});
 
     try {
+      if (!document) return;
       await dispatch(
         documentsActions.updateDocument({
           id: document.id,

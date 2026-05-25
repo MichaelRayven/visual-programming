@@ -18,18 +18,16 @@ export type Document = {
 export type DocumentsState = {
   documents: Document[];
   activeDocumentId: string | null;
-  loadingStatus: "idle" | "loading" | "succeeded" | "failed";
   error: string | null;
 };
 
 const initialState: DocumentsState = {
   documents: [],
   activeDocumentId: null,
-  loadingStatus: "idle",
   error: null,
 };
 
-const fetchDocuments = createAsyncThunk(
+export const fetchDocuments = createAsyncThunk(
   "documents/fetchDocuments",
   async (_, thunkAPI) => {
     try {
@@ -44,7 +42,7 @@ const fetchDocuments = createAsyncThunk(
   }
 );
 
-const fetchDocumentById = createAsyncThunk(
+export const fetchDocumentById = createAsyncThunk(
   "documents/fetchDocumentById",
   async (id: string, thunkAPI) => {
     try {
@@ -73,7 +71,7 @@ export const saveDocument = createAsyncThunk(
   }
 );
 
-const createDoc = createAsyncThunk(
+export const createDoc = createAsyncThunk(
   "documents/createDoc",
   async (
     { title, rows, cols }: { title: string; rows: number; cols: number },
@@ -91,7 +89,7 @@ const createDoc = createAsyncThunk(
   }
 );
 
-const updateDoc = createAsyncThunk(
+export const updateDoc = createAsyncThunk(
   "documents/updateDoc",
   async ({ id, title }: { id: string; title: string }, thunkAPI) => {
     try {
@@ -106,7 +104,7 @@ const updateDoc = createAsyncThunk(
   }
 );
 
-const duplicateDoc = createAsyncThunk(
+export const duplicateDoc = createAsyncThunk(
   "documents/duplicateDoc",
   async (id: string, thunkAPI) => {
     try {
@@ -121,7 +119,7 @@ const duplicateDoc = createAsyncThunk(
   }
 );
 
-const deleteDoc = createAsyncThunk(
+export const deleteDoc = createAsyncThunk(
   "documents/deleteDoc",
   async (id: string, thunkAPI) => {
     try {
@@ -136,7 +134,7 @@ const deleteDoc = createAsyncThunk(
   }
 );
 
-const importDoc = createAsyncThunk(
+export const importDoc = createAsyncThunk(
   "documents/importDoc",
   async (doc: Omit<Document, "userId">, thunkAPI) => {
     try {
@@ -175,30 +173,24 @@ export const documentsSlice = createSlice({
     clearDocuments: (state) => {
       state.documents = [];
       state.activeDocumentId = null;
-      state.loadingStatus = "idle";
       state.error = null;
     },
   },
   extraReducers: (builder) => {
     builder
       .addCase(fetchDocuments.pending, (state) => {
-        state.loadingStatus = "loading";
         state.error = null;
       })
       .addCase(fetchDocuments.fulfilled, (state, action) => {
-        state.loadingStatus = "succeeded";
         state.documents = action.payload;
       })
       .addCase(fetchDocuments.rejected, (state, action) => {
-        state.loadingStatus = "failed";
         state.error = action.payload as string;
       })
       .addCase(fetchDocumentById.pending, (state) => {
-        state.loadingStatus = "loading";
         state.error = null;
       })
       .addCase(fetchDocumentById.fulfilled, (state, action) => {
-        state.loadingStatus = "succeeded";
         state.activeDocumentId = action.payload.id;
         const exists = state.documents.some((d) => d.id === action.payload.id);
         if (!exists) {
@@ -206,7 +198,6 @@ export const documentsSlice = createSlice({
         }
       })
       .addCase(fetchDocumentById.rejected, (state, action) => {
-        state.loadingStatus = "failed";
         state.error = action.payload as string; // Will store "403" or "404" for page check
       })
       .addCase(saveDocument.fulfilled, (state, action) => {

@@ -8,14 +8,14 @@ import styles from "./document-page.module.css";
 import { useDocumentPage } from "./hooks/useDocumentPage";
 
 export function DocumentPage() {
-  const { document, loadingStatus, error, blocker, handleBackToDashboard } =
+  const { document, loading, error, blocker, handleBackToDashboard } =
     useDocumentPage();
 
-  if (loadingStatus === "failed" && error === "403") {
+  if (error === "403") {
     return <ForbiddenAccess onBack={handleBackToDashboard} />;
   }
 
-  if (!document && loadingStatus === "loading") {
+  if (loading) {
     return <DocumentLoading />;
   }
 
