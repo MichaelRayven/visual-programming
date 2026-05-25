@@ -12,7 +12,7 @@
     "prepare": "husky"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx,json,md,html,yml,yaml,css,scss}": ["biome check --write"],
+    "*.{js,jsx,ts,tsx,json,html,css,scss}": ["biome check --write"],
     "*.{css,scss}": ["stylelint --fix"]
   },
   "dependencies": {
