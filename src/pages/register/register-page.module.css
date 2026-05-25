@@ -139,20 +139,6 @@
   opacity: 0.8;
 }
 
-.registerSpinner {
-  margin-right: var(--spacing-2);
-  animation: registerSpin 1s linear infinite;
-}
-
-@keyframes registerSpin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .registerFooterLink {
   margin-top: var(--spacing-2);
   font-size: var(--font-size-sm);

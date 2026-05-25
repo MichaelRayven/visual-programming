@@ -157,20 +157,6 @@
   opacity: 0.8;
 }
 
-.loginSpinner {
-  margin-right: var(--spacing-2);
-  animation: loginSpin 1s linear infinite;
-}
-
-@keyframes loginSpin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .loginFooterLink {
   margin-top: var(--spacing-2);
   font-size: var(--font-size-sm);

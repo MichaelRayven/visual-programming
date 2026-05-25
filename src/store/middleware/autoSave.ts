@@ -1,5 +1,5 @@
 import { createListenerMiddleware, isAnyOf } from "@reduxjs/toolkit";
-import { saveDocument } from "../documentsSlice";
+import { documentsActions } from "../documentsSlice";
 import type { RootState } from "../index";
 import { spreadsheetActions } from "../spreadsheetSlice";
 
@@ -50,7 +50,7 @@ autoSaveMiddleware.startListening({
       };
 
       await listenerApi.dispatch(
-        saveDocument({ id: activeDocumentId, snapshot })
+        documentsActions.saveDocument({ id: activeDocumentId, snapshot })
       );
     } catch (_e) {
       // Errors are caught and handled by the thunk/extraReducers

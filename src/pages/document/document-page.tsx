@@ -1,9 +1,9 @@
-import { Table } from "@/components/table";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { DocumentLoading } from "./components/document-loading";
 import { DocumentNotFound } from "./components/document-not-found";
 import { ForbiddenAccess } from "./components/forbidden-access";
+import { Table } from "./components/table";
 import styles from "./document-page.module.css";
 import { useDocumentPage } from "./useDocumentPage";
 

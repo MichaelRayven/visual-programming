@@ -3,33 +3,15 @@ import { type SubmitEventHandler, useEffect, useState } from "react";
 import { toast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldInput, FieldLabel } from "@/components/ui/field";
+import type {
+  PersonalInfoErrors,
+  PersonalInfoState,
+} from "@/pages/profile/types/personalInfo";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { authActions, updateUserProfile } from "@/store/authSlice";
+import { selectProfileState, selectUser } from "../hooks/selectors";
 import styles from "../profile-page.module.css";
-import { selectProfileState, selectUser } from "../selectors";
-
-type PersonalInfoState = {
-  name: string;
-  email: string;
-};
-
-type PersonalInfoErrors = {
-  name?: string;
-  email?: string;
-};
-
-function validatePersonalInfo(state: PersonalInfoState): PersonalInfoErrors {
-  const errors: PersonalInfoErrors = {};
-  if (!state.name.trim()) {
-    errors.name = "Имя не может быть пустым";
-  }
-  if (!state.email.trim()) {
-    errors.email = "Электронная почта не может быть пустой";
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(state.email)) {
-    errors.email = "Неверный формат электронной почты";
-  }
-  return errors;
-}
+import { validatePersonalInfo } from "../utils/validatePersonalInfo";
 
 export function PersonalInfoForm() {
   const dispatch = useAppDispatch();

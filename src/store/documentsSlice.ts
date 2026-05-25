@@ -29,7 +29,7 @@ const initialState: DocumentsState = {
   error: null,
 };
 
-export const fetchDocuments = createAsyncThunk(
+const fetchDocuments = createAsyncThunk(
   "documents/fetchDocuments",
   async (_, thunkAPI) => {
     try {
@@ -44,7 +44,7 @@ export const fetchDocuments = createAsyncThunk(
   }
 );
 
-export const fetchDocumentById = createAsyncThunk(
+const fetchDocumentById = createAsyncThunk(
   "documents/fetchDocumentById",
   async (id: string, thunkAPI) => {
     try {
@@ -73,7 +73,7 @@ export const saveDocument = createAsyncThunk(
   }
 );
 
-export const createDoc = createAsyncThunk(
+const createDoc = createAsyncThunk(
   "documents/createDoc",
   async (
     { title, rows, cols }: { title: string; rows: number; cols: number },
@@ -91,7 +91,7 @@ export const createDoc = createAsyncThunk(
   }
 );
 
-export const updateDoc = createAsyncThunk(
+const updateDoc = createAsyncThunk(
   "documents/updateDoc",
   async ({ id, title }: { id: string; title: string }, thunkAPI) => {
     try {
@@ -106,7 +106,7 @@ export const updateDoc = createAsyncThunk(
   }
 );
 
-export const duplicateDoc = createAsyncThunk(
+const duplicateDoc = createAsyncThunk(
   "documents/duplicateDoc",
   async (id: string, thunkAPI) => {
     try {
@@ -121,7 +121,7 @@ export const duplicateDoc = createAsyncThunk(
   }
 );
 
-export const deleteDoc = createAsyncThunk(
+const deleteDoc = createAsyncThunk(
   "documents/deleteDoc",
   async (id: string, thunkAPI) => {
     try {
@@ -136,7 +136,7 @@ export const deleteDoc = createAsyncThunk(
   }
 );
 
-export const importDoc = createAsyncThunk(
+const importDoc = createAsyncThunk(
   "documents/importDoc",
   async (doc: Omit<Document, "userId">, thunkAPI) => {
     try {
@@ -253,6 +253,9 @@ export const documentsActions = {
   duplicateDocument: duplicateDoc,
   deleteDocument: deleteDoc,
   importDocument: importDoc,
+  fetchDocuments: fetchDocuments,
+  fetchDocumentById: fetchDocumentById,
+  saveDocument: saveDocument,
 };
 
 export default documentsSlice.reducer;

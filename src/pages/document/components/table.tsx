@@ -2,6 +2,13 @@ import clsx from "clsx";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { shallowEqual } from "react-redux";
 import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from "@/components/ui/context-menu";
+import { Input } from "@/components/ui/input";
+import {
   useCellData,
   useCellSelection,
   useHeaderSelected,
@@ -14,18 +21,11 @@ import {
   spreadsheetActions,
   type TableSnapshot,
 } from "@/store/spreadsheetSlice";
-import {
-  ContextMenu,
-  ContextMenuContent,
-  ContextMenuItem,
-  ContextMenuTrigger,
-} from "./context-menu";
-import { Input } from "./ui/input";
-import "@/components/table.css";
+import "./table.css";
+import { TableToolbar } from "@/components/toolbar";
 import { useTableStore } from "@/hooks/useTableStore";
 import { useVirtualTable } from "@/hooks/useVirtualTable";
 import { store as reduxStore, useAppDispatch, useAppSelector } from "@/store";
-import { TableToolbar } from "./toolbar";
 
 // Registry for cell textarea refs, keyed by "row_col"
 const cellInputRegistry = new Map<string, HTMLTextAreaElement>();
@@ -37,7 +37,6 @@ type TableProps = {
 export const Table = ({ snapshot, className, ...props }: TableProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Single keyboard handler for all cell navigation (Fix 4)
   useTableKeyboard();
 
   return (
@@ -85,12 +84,10 @@ function useTableKeyboard() {
       }
 
       if (isEditingCell) {
-        // Editing mode handlers
         if (e.key === "Enter") {
           if (!e.shiftKey && !e.ctrlKey && !e.altKey) {
             e.preventDefault();
             activeInput?.blur();
-            // Move selection down
             if (row + 1 < gridSize.rows) {
               dispatch(
                 spreadsheetActions.setSelectedCell({ row: row + 1, col })
@@ -107,7 +104,6 @@ function useTableKeyboard() {
           }
         } else if (e.key === "Escape") {
           e.preventDefault();
-          // The cell component handles restoring value on blur via its own state
           activeInput?.blur();
         } else if (e.key === "Tab") {
           e.preventDefault();
@@ -143,7 +139,6 @@ function useTableKeyboard() {
           }
         }
       } else {
-        // Navigation mode handlers
         if (e.key === "Enter") {
           e.preventDefault();
           activeInput?.focus();
@@ -543,7 +538,6 @@ export const TableCell = React.memo(
       isColEnd,
     } = useCellSelection(row, col);
 
-    // Fix 3: shallowEqual prevents re-renders when other cells' styles change
     const cellStyles = useAppSelector((state) => {
       const rowId = state.spreadsheet.gridSnapshot.rowIds[row];
       const colId = state.spreadsheet.gridSnapshot.colIds[col];
@@ -558,7 +552,6 @@ export const TableCell = React.memo(
       setValue(isFocused ? rawValue : String(displayValue));
     }, [isFocused, rawValue, displayValue]);
 
-    // Fix 4: Register/unregister textarea ref in the global registry
     useEffect(() => {
       const key = `${row}_${col}`;
       const el = internalInputRef.current;
@@ -570,7 +563,6 @@ export const TableCell = React.memo(
       };
     }, [row, col]);
 
-    // Handle Escape to restore value (local state concern)
     const handleKeyDown = useCallback(
       (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === "Escape") {
@@ -613,7 +605,6 @@ export const TableCell = React.memo(
         }}
         onClick={(e) => {
           if (e.shiftKey) {
-            // Read active cell on-demand — no reactive subscription needed
             const activeCell = reduxStore.getState().spreadsheet.selectedCell;
             store.setSelection({
               rowStart: activeCell.row,

@@ -6,7 +6,6 @@ import {
   UserIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
 import {
   FieldError,
@@ -14,6 +13,7 @@ import {
   FieldInput,
   FieldLabel,
 } from "@/components/ui/field";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useRegisterForm } from "../hooks/useRegisterForm";
 import styles from "../register-page.module.css";
 
@@ -140,7 +140,7 @@ export function RegisterForm() {
         >
           {loading ? (
             <>
-              <LoadingSpinner size={18} className={styles.registerSpinner} />
+              <LoadingSpinner size={18} />
               Создание аккаунта...
             </>
           ) : (

@@ -1,4 +1,4 @@
-import { type SubmitEventHandler, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import {
   FieldError,
@@ -7,69 +7,15 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { useDocumentStore, useUIModals } from "@/hooks/useDocumentStore";
+import { useCreateDocumentForm } from "../hooks/useCreateDocumentForm"; // Adjust path accordingly
 import styles from "./create-document-dialog.module.css";
-
-type CreateDocumentState = {
-  title: string;
-  rows: string;
-  cols: string;
-};
-
-type CreateDocumentErrors = {
-  rows?: string;
-  cols?: string;
-};
-
-function validateCreateDocument(state: CreateDocumentState): {
-  isValid: boolean;
-  errors: CreateDocumentErrors;
-} {
-  const errors: CreateDocumentErrors = {};
-  const r = parseInt(state.rows);
-  const c = parseInt(state.cols);
-
-  if (isNaN(r) || r <= 0) errors.rows = "Укажите корректное число";
-  if (isNaN(c) || c <= 0) errors.cols = "Укажите корректное число";
-
-  return { isValid: Object.keys(errors).length === 0, errors };
-}
 
 export function CreateDocumentDialog() {
   const documentStore = useDocumentStore();
   const { createOpen } = useUIModals();
 
-  const [formState, setFormState] = useState<CreateDocumentState>({
-    title: "",
-    rows: "",
-    cols: "",
-  });
-  const [errors, setErrors] = useState<CreateDocumentErrors>({});
-
-  const handleChange = (field: keyof CreateDocumentState, value: string) => {
-    setFormState((prev) => ({ ...prev, [field]: value }));
-    if (errors[field as keyof CreateDocumentErrors]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    }
-  };
-
-  const handleSubmit: SubmitEventHandler<HTMLFormElement> = (e) => {
-    e.preventDefault();
-    const { isValid, errors: validationErrors } =
-      validateCreateDocument(formState);
-    if (!isValid) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    documentStore.createDocument(
-      formState.title,
-      parseInt(formState.rows),
-      parseInt(formState.cols)
-    );
-    setErrors({});
-    setFormState({ title: "", rows: "", cols: "" });
-    documentStore.setCreateModalOpen(false);
-  };
+  const { formState, errors, loading, handleChange, handleSubmit } =
+    useCreateDocumentForm();
 
   return (
     <Dialog
@@ -79,13 +25,17 @@ export function CreateDocumentDialog() {
       title="Новый документ"
       content={
         <form id="create-document-form" onSubmit={handleSubmit}>
+          {errors.form && <div className={styles.formError}>{errors.form}</div>}
+
           <FieldGroup>
             <FieldLabel htmlFor="doc-name">Название</FieldLabel>
             <FieldInput
               id="doc-name"
               value={formState.title}
+              error={!!errors.title}
               onChange={(e) => handleChange("title", e.target.value)}
             />
+            {errors.title && <FieldError>{errors.title}</FieldError>}
           </FieldGroup>
 
           <FieldLabel htmlFor="doc-rows">Начальный размер</FieldLabel>
@@ -122,13 +72,9 @@ export function CreateDocumentDialog() {
         </form>
       }
       footer={
-        <button
-          type="submit"
-          form="create-document-form"
-          className={styles.submitButton}
-        >
-          Создать
-        </button>
+        <Button type="submit" form="create-document-form" disabled={loading}>
+          {loading ? "Создание..." : "Создать"}
+        </Button>
       }
     />
   );

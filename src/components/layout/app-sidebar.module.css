@@ -1,0 +1,119 @@
+.sidebar {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  width: 15rem; /* 240px */
+  padding: var(--spacing-4) var(--spacing-3);
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: var(--color-surface-elevated);
+  border-right: 0.0625rem solid var(--color-border-light);
+  transition:
+    width var(--transition-base),
+    background-color var(--transition-base);
+}
+
+.sidebar.collapsed {
+  width: 4.5rem; /* 72px */
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-1_5);
+}
+
+.link {
+  display: flex;
+  gap: var(--spacing-3);
+  align-items: center;
+  padding: var(--spacing-3) var(--spacing-3_5);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  text-decoration: none;
+  border-radius: var(--radius-lg);
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.link:hover {
+  color: var(--color-text-primary);
+  text-decoration: none;
+  background-color: var(--color-neutral-100);
+}
+
+.link.active {
+  color: var(--color-primary-600);
+  background-color: var(--color-primary-50);
+}
+
+.icon {
+  flex-shrink: 0;
+  transition: color var(--transition-fast);
+}
+
+.link.active .icon {
+  color: var(--color-primary-600);
+}
+
+.linkText {
+  max-width: 100%;
+  overflow: hidden;
+  opacity: 1;
+  transition:
+    opacity var(--transition-fast),
+    max-width var(--transition-base);
+}
+
+/* Collapsed state: hide text, center icon */
+.sidebar.collapsed .link {
+  gap: 0;
+  justify-content: start;
+  padding: var(--spacing-3);
+}
+
+.sidebar.collapsed .linkText {
+  max-width: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+
+/* Responsive: overlay on mobile */
+@media (max-width: 48rem) {
+  .sidebar {
+    position: absolute;
+    top: 4rem;
+    bottom: 0;
+    left: 0;
+    z-index: var(--z-sticky);
+    width: 15rem;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar.collapsed {
+    width: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+  .link:hover {
+    background-color: var(--color-neutral-800);
+  }
+
+  .link.active {
+    color: var(--color-primary-400);
+    background-color: var(--color-neutral-800);
+  }
+
+  .link.active .icon {
+    color: var(--color-primary-400);
+  }
+}

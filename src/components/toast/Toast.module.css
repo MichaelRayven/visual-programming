@@ -34,13 +34,11 @@
 
 /* Animations */
 .slideIn {
-  animation: slideInDesktop var(--transition-base) var(--transition-smooth)
-    forwards;
+  animation: slideInDesktop 250ms var(--transition-smooth) forwards;
 }
 
 .slideOut {
-  animation: slideOutDesktop var(--transition-base) var(--transition-smooth)
-    forwards;
+  animation: slideOutDesktop 250ms var(--transition-smooth) forwards;
 }
 
 /* Type variations */
@@ -174,12 +172,10 @@
   }
 
   .slideIn {
-    animation: slideInMobile var(--transition-base) var(--transition-smooth)
-      forwards;
+    animation: slideInMobile 250ms var(--transition-smooth) forwards;
   }
 
   .slideOut {
-    animation: slideOutMobile var(--transition-base) var(--transition-smooth)
-      forwards;
+    animation: slideOutMobile 250ms var(--transition-smooth) forwards;
   }
 }

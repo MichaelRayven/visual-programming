@@ -6,7 +6,8 @@ import {
   type Position,
   useContextMenu,
 } from "@/hooks/useContextMenu";
-import { MenuContent, MenuItem } from "./ui/menu";
+import styles from "./context-menu.module.css";
+import { MenuContent, MenuItem } from "./menu";
 
 type ContextMenuProps = {
   children: React.ReactNode;
@@ -47,7 +48,7 @@ export const ContextMenuTrigger = ({
 
   return (
     <div
-      className={clsx("context-menu-trigger", className)}
+      className={clsx(styles.trigger, className)}
       onContextMenu={handleContextMenu}
       {...props}
     >
@@ -85,6 +86,7 @@ export const ContextMenuContent = ({
       }
     };
 
+    // Delay prevents the triggering right-click from immediately closing the menu
     const timeoutId = setTimeout(() => {
       document.addEventListener("click", handleClickOutside);
       document.addEventListener("contextmenu", handleClickOutside);
@@ -104,7 +106,7 @@ export const ContextMenuContent = ({
   const menuContent = (
     <MenuContent
       ref={menuRef}
-      className={clsx("context-menu-position", className)}
+      className={clsx(styles.position, className)}
       style={
         {
           ...style,

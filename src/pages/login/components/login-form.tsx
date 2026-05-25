@@ -5,7 +5,6 @@ import {
   MailIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { LoadingSpinner } from "@/components/loading-spinner";
 import { Button } from "@/components/ui/button";
 import {
   FieldError,
@@ -13,6 +12,7 @@ import {
   FieldInput,
   FieldLabel,
 } from "@/components/ui/field";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useLoginForm } from "../hooks/useLoginForm";
 import styles from "../login-page.module.css";
 
@@ -69,7 +69,7 @@ export function LoginForm({ from }: LoginFormProps) {
             id="password-input"
             type="password"
             icon={LockIcon}
-            placeholder="••••••••"
+            placeholder="********"
             value={formState.password}
             onChange={(e) => handleChange("password", e.target.value)}
             disabled={loading}
@@ -104,7 +104,7 @@ export function LoginForm({ from }: LoginFormProps) {
         >
           {loading ? (
             <>
-              <LoadingSpinner size={18} className={styles.loginSpinner} />
+              <LoadingSpinner size={18} />
               Выполняется вход...
             </>
           ) : (

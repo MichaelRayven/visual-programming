@@ -5,34 +5,10 @@ import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldInput, FieldLabel } from "@/components/ui/field";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { authActions, updateUserPassword } from "@/store/authSlice";
+import { selectPasswordState } from "../hooks/selectors";
 import styles from "../profile-page.module.css";
-import { selectPasswordState } from "../selectors";
-
-type SecurityState = {
-  password: string;
-  confirmPassword: string;
-};
-
-type SecurityErrors = {
-  password?: string;
-  confirmPassword?: string;
-};
-
-function validateSecurity(state: SecurityState): SecurityErrors {
-  const errors: SecurityErrors = {};
-  const pass = String(state.password || "");
-  const confirm = String(state.confirmPassword || "");
-
-  if (pass.length < 8) {
-    errors.password = "Пароль должен содержать не менее 8 символов";
-  }
-
-  if (pass !== confirm) {
-    errors.confirmPassword = "Пароли не совпадают";
-  }
-
-  return errors;
-}
+import type { SecurityErrors, SecurityState } from "../types/security";
+import { validateSecurity } from "../utils/validateSecurity";
 
 export function SecurityForm() {
   const dispatch = useAppDispatch();

@@ -11,7 +11,7 @@ import {
   useDocumentSaveStatus,
 } from "@/hooks/useDocumentStore";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { documentsActions, fetchDocumentById } from "@/store/documentsSlice";
+import { documentsActions } from "@/store/documentsSlice";
 import { spreadsheetActions } from "@/store/spreadsheetSlice";
 
 export function useDocumentPage() {
@@ -29,7 +29,7 @@ export function useDocumentPage() {
   useEffect(() => {
     if (documentId) {
       dispatch(documentsActions.setActiveDocumentId(documentId));
-      dispatch(fetchDocumentById(documentId));
+      dispatch(documentsActions.fetchDocumentById(documentId));
     }
     return () => {
       dispatch(documentsActions.setActiveDocumentId(null));

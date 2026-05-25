@@ -1,10 +1,5 @@
 import { useAppDispatch, useAppSelector } from "@/store";
-import {
-  type Document,
-  documentsActions,
-  fetchDocumentById,
-  fetchDocuments,
-} from "@/store/documentsSlice";
+import { type Document, documentsActions } from "@/store/documentsSlice";
 import { uiActions } from "@/store/uiSlice";
 
 export const useDocumentStore = () => {
@@ -30,10 +25,10 @@ export const useDocumentStore = () => {
       dispatch(documentsActions.importDocument(doc));
     },
     fetchDocuments: () => {
-      dispatch(fetchDocuments());
+      dispatch(documentsActions.fetchDocuments());
     },
     fetchDocumentById: (id: string) => {
-      dispatch(fetchDocumentById(id));
+      dispatch(documentsActions.fetchDocumentById(id));
     },
     setCreateModalOpen: (open: boolean) => {
       dispatch(uiActions.setCreateModalOpen(open));

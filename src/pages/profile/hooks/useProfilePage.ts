@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useDocumentList } from "@/hooks/useDocumentStore";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { fetchDocuments } from "@/store/documentsSlice";
+import { documentsActions } from "@/store/documentsSlice";
 import { selectUser } from "./selectors";
 
 export function useProfilePage() {
@@ -9,9 +9,8 @@ export function useProfilePage() {
   const user = useAppSelector(selectUser);
   const documents = useDocumentList();
 
-  // Ensure documents count and user data are loaded
   useEffect(() => {
-    dispatch(fetchDocuments());
+    dispatch(documentsActions.fetchDocuments());
   }, [dispatch]);
 
   const registrationDate = user?.registeredAt

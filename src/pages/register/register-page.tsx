@@ -1,6 +1,6 @@
 import { Navigate } from "react-router-dom";
 import { useAppSelector } from "@/store";
-import { RegisterForm } from "./components/RegisterForm";
+import { RegisterForm } from "./components/register-form";
 import styles from "./register-page.module.css";
 
 export function RegisterPage() {

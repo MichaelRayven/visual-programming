@@ -2,8 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useAppSelector } from "@/store";
 import type { Notification } from "@/store/uiSlice";
-import { Toast } from "./Toast";
-import styles from "./Toast.module.css";
+import { Toast } from "./toast";
+import styles from "./toast.module.css";
 import { toast } from "./toastManager";
 
 export function ToastContainer() {

@@ -6,8 +6,8 @@ import {
   RouterProvider,
   useLocation,
 } from "react-router-dom";
-import { AppLayout } from "@/components/layout/AppLayout";
-import { LoadingSpinner } from "@/components/loading-spinner";
+import { AppLayout } from "@/components/layout/app-layout";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { DashboardPage } from "@/pages/dashboard";
 import { DocumentPage } from "@/pages/document";
 import { LoginPage } from "@/pages/login";

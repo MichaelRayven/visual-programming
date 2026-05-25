@@ -1,8 +1,8 @@
 import { PersonalInfoForm } from "./components/personal-info-form";
 import { ProfileSidebar } from "./components/profile-sidebar";
 import { SecurityForm } from "./components/security-form";
+import { useProfilePage } from "./hooks/useProfilePage";
 import styles from "./profile-page.module.css";
-import { useProfilePage } from "./useProfilePage";
 
 export function ProfilePage() {
   const { user, documentsCount, registrationDate } = useProfilePage();

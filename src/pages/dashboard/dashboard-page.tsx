@@ -1,9 +1,9 @@
-import { RenameDocumentDialog } from "@/components/rename-document-dialog";
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
 import { DashboardControls } from "./components/dashboard-controls";
 import { DocumentCard } from "./components/document-card";
 import { EmptyState } from "./components/empty-state";
+import { RenameDocumentDialog } from "./components/rename-document-dialog";
 import styles from "./dashboard-page.module.css";
 import { useDashboardPage } from "./useDashboardPage";
 
@@ -85,12 +85,7 @@ export function DashboardPage() {
         <RenameDocumentDialog
           open={!!renameOpen}
           onOpenChange={(open) => !open && docStore.setRenameModal(null)}
-          currentTitle={renameOpen?.title || ""}
-          onRename={(newTitle) => {
-            if (renameOpen) {
-              docStore.updateDocument(renameOpen.id, newTitle);
-            }
-          }}
+          documentId={renameOpen?.id ?? ""}
         />
       </main>
     </div>

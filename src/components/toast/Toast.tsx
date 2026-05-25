@@ -7,7 +7,7 @@ import {
 } from "lucide-react";
 import type React from "react";
 import type { NotificationType } from "@/store/uiSlice";
-import styles from "./Toast.module.css";
+import styles from "./toast.module.css";
 
 type ToastProps = {
   type: NotificationType;

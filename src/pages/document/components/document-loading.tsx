@@ -1,4 +1,4 @@
-import { LoadingSpinner } from "@/components/loading-spinner";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import styles from "../document-page.module.css";
 
 export function DocumentLoading() {
