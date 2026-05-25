@@ -3,10 +3,13 @@ import { saveDocument } from "./documentsSlice";
 
 export type SaveStatus = "saved" | "saving" | "error";
 
+export type NotificationType = "error" | "info" | "success" | "default";
+
 export type Notification = {
   id: string;
   message: string;
-  type: "info" | "success" | "error";
+  type: NotificationType;
+  duration?: number;
 };
 
 export type UIState = {
@@ -48,15 +51,18 @@ export const uiSlice = createSlice({
     addNotification: (
       state,
       action: PayloadAction<{
+        id?: string;
         message: string;
-        type: "info" | "success" | "error";
+        type: NotificationType;
+        duration?: number;
       }>
     ) => {
-      const { message, type } = action.payload;
+      const { id, message, type, duration } = action.payload;
       state.notifications.push({
-        id: Math.random().toString(36).substring(2, 9),
+        id: id || Math.random().toString(36).substring(2, 9),
         message,
         type,
+        duration,
       });
     },
     removeNotification: (state, action: PayloadAction<string>) => {

@@ -21,6 +21,7 @@ import {
 import { Button } from "@/components/button";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { Dropdown, MenuItem } from "@/components/menu";
+import { ToastContainer } from "@/components/toast";
 import {
   useDocumentById,
   useDocumentSaveStatus,
@@ -275,6 +276,7 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+      <ToastContainer />
     </div>
   );
 }
