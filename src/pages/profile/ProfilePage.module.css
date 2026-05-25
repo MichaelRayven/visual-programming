@@ -113,10 +113,6 @@
   gap: var(--spacing-6);
 }
 
-.formCard {
-  /* Inherits styles from .card and adds styling specific to forms if needed */
-}
-
 .title {
   margin-bottom: var(--spacing-5);
   font-size: var(--font-size-lg);

@@ -1,6 +1,7 @@
 import { evaluateCell } from "@/lib/formula";
 import { getCellAddress } from "@/lib/table";
 import type { TableSnapshot } from "@/store/spreadsheetSlice";
+import styles from "../DashboardPage.module.css";
 
 type TablePreviewProps = {
   snapshot: TableSnapshot;
@@ -13,7 +14,7 @@ export function TablePreview({ snapshot }: TablePreviewProps) {
 
   return (
     <div
-      className="document-preview-grid"
+      className={styles.documentPreviewGrid}
       style={{ "--preview-cols": previewCols } as React.CSSProperties}
     >
       {Array.from({ length: previewRows }).map((_, r) =>
@@ -26,7 +27,7 @@ export function TablePreview({ snapshot }: TablePreviewProps) {
               : cellData.value;
 
           return (
-            <div key={`${r}-${c}`} className="document-preview-cell">
+            <div key={`${r}-${c}`} className={styles.documentPreviewCell}>
               {displayValue}
             </div>
           );

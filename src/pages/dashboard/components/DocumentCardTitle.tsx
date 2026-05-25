@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Input } from "@/components/input";
+import styles from "../DashboardPage.module.css";
 
 type DocumentCardTitleProps = {
   title?: string;
@@ -12,14 +13,13 @@ export function DocumentCardTitle({
 }: DocumentCardTitleProps) {
   const [value, setValue] = useState(title);
 
-  // Update local state when prop changes
   useEffect(() => {
     setValue(title);
   }, [title]);
 
   return (
     <Input
-      className="document-card-title"
+      className={styles.documentCardTitle}
       value={value}
       onChange={(e) => setValue(e.target.value)}
       onBlur={() => {
