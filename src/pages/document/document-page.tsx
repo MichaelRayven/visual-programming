@@ -5,7 +5,7 @@ import { DocumentNotFound } from "./components/document-not-found";
 import { ForbiddenAccess } from "./components/forbidden-access";
 import { Table } from "./components/table";
 import styles from "./document-page.module.css";
-import { useDocumentPage } from "./useDocumentPage";
+import { useDocumentPage } from "./hooks/useDocumentPage";
 
 export function DocumentPage() {
   const { document, loadingStatus, error, blocker, handleBackToDashboard } =

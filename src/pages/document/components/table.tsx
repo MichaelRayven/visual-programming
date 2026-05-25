@@ -22,9 +22,9 @@ import {
   type TableSnapshot,
 } from "@/store/spreadsheetSlice";
 import "./table.css";
-import { TableToolbar } from "@/components/toolbar";
 import { useTableStore } from "@/hooks/useTableStore";
 import { useVirtualTable } from "@/hooks/useVirtualTable";
+import { TableToolbar } from "@/pages/document/components/toolbar";
 import { store as reduxStore, useAppDispatch, useAppSelector } from "@/store";
 
 // Registry for cell textarea refs, keyed by "row_col"
@@ -54,180 +54,77 @@ export const Table = ({ snapshot, className, ...props }: TableProps) => {
   );
 };
 
-/**
- * Single table-level keyboard handler that replaces per-cell keydown listeners.
- * Reads current cell position from the store on-demand via store.getState().
- */
-function useTableKeyboard() {
+export function useTableKeyboard() {
   const dispatch = useAppDispatch();
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement;
+
       const state = reduxStore.getState().spreadsheet;
       const { row, col } = state.selectedCell;
-      const gridSize = state.gridSize;
+      const { rows, cols } = state.gridSize;
 
-      const cellKey = `${row}_${col}`;
-      const activeInput = cellInputRegistry.get(cellKey);
+      const activeInput = cellInputRegistry.get(`${row}_${col}`);
       const isEditingCell = target === activeInput;
 
-      // If focusing other inputs (e.g. formula bar, toolbar), don't trigger cell hotkeys
-      if (
-        (target.tagName === "INPUT" ||
-          target.tagName === "TEXTAREA" ||
-          target.tagName === "SELECT") &&
-        !isEditingCell &&
-        !target.classList.contains("table-top-bar-input")
-      ) {
-        return;
-      }
+      const isFormInput = ["INPUT", "TEXTAREA", "SELECT"].includes(
+        target.tagName
+      );
+      if (isFormInput && !isEditingCell) return;
+
+      const moveSelection = (nextRow: number, nextCol: number) => {
+        if (nextRow < 0 || nextRow >= rows || nextCol < 0 || nextCol >= cols)
+          return;
+
+        dispatch(
+          spreadsheetActions.setSelectedCell({ row: nextRow, col: nextCol })
+        );
+        dispatch(
+          spreadsheetActions.setSelection({
+            rowStart: nextRow,
+            colStart: nextCol,
+            rowEnd: nextRow,
+            colEnd: nextCol,
+          })
+        );
+      };
 
       if (isEditingCell) {
-        if (e.key === "Enter") {
-          if (!e.shiftKey && !e.ctrlKey && !e.altKey) {
-            e.preventDefault();
-            activeInput?.blur();
-            if (row + 1 < gridSize.rows) {
-              dispatch(
-                spreadsheetActions.setSelectedCell({ row: row + 1, col })
-              );
-              dispatch(
-                spreadsheetActions.setSelection({
-                  rowStart: row + 1,
-                  colStart: col,
-                  rowEnd: row + 1,
-                  colEnd: col,
-                })
-              );
-            }
-          }
-        } else if (e.key === "Escape") {
+        if (["Enter", "Escape", "Tab"].includes(e.key)) {
           e.preventDefault();
           activeInput?.blur();
-        } else if (e.key === "Tab") {
-          e.preventDefault();
-          activeInput?.blur();
-          if (e.shiftKey) {
-            if (col > 0) {
-              dispatch(
-                spreadsheetActions.setSelectedCell({ row, col: col - 1 })
-              );
-              dispatch(
-                spreadsheetActions.setSelection({
-                  rowStart: row,
-                  colStart: col - 1,
-                  rowEnd: row,
-                  colEnd: col - 1,
-                })
-              );
-            }
-          } else {
-            if (col + 1 < gridSize.cols) {
-              dispatch(
-                spreadsheetActions.setSelectedCell({ row, col: col + 1 })
-              );
-              dispatch(
-                spreadsheetActions.setSelection({
-                  rowStart: row,
-                  colStart: col + 1,
-                  rowEnd: row,
-                  colEnd: col + 1,
-                })
-              );
-            }
-          }
+
+          if (e.key === "Enter") moveSelection(row + 1, col);
+          if (e.key === "Tab")
+            moveSelection(row, e.shiftKey ? col - 1 : col + 1);
         }
       } else {
+        if (e.key === "Delete" || e.key === "Backspace") {
+          e.preventDefault();
+          dispatch(spreadsheetActions.clearSelectedCells());
+          return;
+        }
+
         if (e.key === "Enter") {
           e.preventDefault();
           activeInput?.focus();
-        } else if (e.key === "Tab") {
+          return;
+        }
+
+        const directionalOffsets: Record<string, [number, number]> = {
+          ArrowUp: [-1, 0],
+          ArrowDown: [1, 0],
+          ArrowLeft: [0, -1],
+          ArrowRight: [0, 1],
+          Tab: [0, e.shiftKey ? -1 : 1],
+        };
+
+        const offset = directionalOffsets[e.key];
+        if (offset) {
           e.preventDefault();
-          if (e.shiftKey) {
-            if (col > 0) {
-              dispatch(
-                spreadsheetActions.setSelectedCell({ row, col: col - 1 })
-              );
-              dispatch(
-                spreadsheetActions.setSelection({
-                  rowStart: row,
-                  colStart: col - 1,
-                  rowEnd: row,
-                  colEnd: col - 1,
-                })
-              );
-            }
-          } else {
-            if (col + 1 < gridSize.cols) {
-              dispatch(
-                spreadsheetActions.setSelectedCell({ row, col: col + 1 })
-              );
-              dispatch(
-                spreadsheetActions.setSelection({
-                  rowStart: row,
-                  colStart: col + 1,
-                  rowEnd: row,
-                  colEnd: col + 1,
-                })
-              );
-            }
-          }
-        } else if (e.key === "Delete" || e.key === "Backspace") {
-          e.preventDefault();
-          dispatch(spreadsheetActions.clearSelectedCells());
-        } else if (e.key === "ArrowUp") {
-          e.preventDefault();
-          if (row > 0) {
-            dispatch(spreadsheetActions.setSelectedCell({ row: row - 1, col }));
-            dispatch(
-              spreadsheetActions.setSelection({
-                rowStart: row - 1,
-                colStart: col,
-                rowEnd: row - 1,
-                colEnd: col,
-              })
-            );
-          }
-        } else if (e.key === "ArrowDown") {
-          e.preventDefault();
-          if (row + 1 < gridSize.rows) {
-            dispatch(spreadsheetActions.setSelectedCell({ row: row + 1, col }));
-            dispatch(
-              spreadsheetActions.setSelection({
-                rowStart: row + 1,
-                colStart: col,
-                rowEnd: row + 1,
-                colEnd: col,
-              })
-            );
-          }
-        } else if (e.key === "ArrowLeft") {
-          e.preventDefault();
-          if (col > 0) {
-            dispatch(spreadsheetActions.setSelectedCell({ row, col: col - 1 }));
-            dispatch(
-              spreadsheetActions.setSelection({
-                rowStart: row,
-                colStart: col - 1,
-                rowEnd: row,
-                colEnd: col - 1,
-              })
-            );
-          }
-        } else if (e.key === "ArrowRight") {
-          e.preventDefault();
-          if (col + 1 < gridSize.cols) {
-            dispatch(spreadsheetActions.setSelectedCell({ row, col: col + 1 }));
-            dispatch(
-              spreadsheetActions.setSelection({
-                rowStart: row,
-                colStart: col + 1,
-                rowEnd: row,
-                colEnd: col + 1,
-              })
-            );
-          }
+          const [rowOffset, colOffset] = offset;
+          moveSelection(row + rowOffset, col + colOffset);
         }
       }
     };
@@ -478,26 +375,26 @@ export const TableHead = ({
           {isCol && (
             <>
               <ContextMenuItem onClick={() => store.insertColumn(col, "left")}>
-                Insert column left
+                Вставить столбец слева
               </ContextMenuItem>
               <ContextMenuItem onClick={() => store.insertColumn(col, "right")}>
-                Insert column right
+                Вставить столбец справа
               </ContextMenuItem>
               <ContextMenuItem onClick={() => store.deleteColumn(col)}>
-                Delete column
+                Удалить столбец
               </ContextMenuItem>
             </>
           )}
           {isRow && (
             <>
               <ContextMenuItem onClick={() => store.insertRow(row, "above")}>
-                Insert row above
+                Вставить строку выше
               </ContextMenuItem>
               <ContextMenuItem onClick={() => store.insertRow(row, "below")}>
-                Insert row below
+                Вставить строку ниже
               </ContextMenuItem>
               <ContextMenuItem onClick={() => store.deleteRow(row)}>
-                Delete row
+                Удалить строку
               </ContextMenuItem>
             </>
           )}

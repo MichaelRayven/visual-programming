@@ -19,7 +19,7 @@ export function useCreateDocumentForm(onSuccess?: () => void) {
   });
 
   const [errors, setErrors] = useState<CreateDocumentErrors>({});
-  const [loading, setLoading] = useState(false); // Added to match the rename hook structure
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (field: keyof CreateDocumentState, value: string) => {
     setFormState((prev) => ({

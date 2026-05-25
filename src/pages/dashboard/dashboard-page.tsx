@@ -5,7 +5,7 @@ import { DocumentCard } from "./components/document-card";
 import { EmptyState } from "./components/empty-state";
 import { RenameDocumentDialog } from "./components/rename-document-dialog";
 import styles from "./dashboard-page.module.css";
-import { useDashboardPage } from "./useDashboardPage";
+import { useDashboardPage } from "./hooks/useDashboardPage";
 
 export function DashboardPage() {
   const {
@@ -14,7 +14,6 @@ export function DashboardPage() {
     setSearchQuery,
     sortBy,
     setSortBy,
-    renameOpen,
     deleteOpen,
     importInputRef,
     docStore,
@@ -82,11 +81,7 @@ export function DashboardPage() {
           }
         />
 
-        <RenameDocumentDialog
-          open={!!renameOpen}
-          onOpenChange={(open) => !open && docStore.setRenameModal(null)}
-          documentId={renameOpen?.id ?? ""}
-        />
+        <RenameDocumentDialog />
       </main>
     </div>
   );

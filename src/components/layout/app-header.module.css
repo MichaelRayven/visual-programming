@@ -43,32 +43,6 @@
   background-color: var(--color-neutral-100);
 }
 
-.saveBadge {
-  display: flex;
-  gap: var(--spacing-1_5);
-  align-items: center;
-  padding: var(--spacing-1) var(--spacing-3);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  border-radius: var(--radius-md);
-  transition: all var(--transition-base);
-}
-
-.saved {
-  color: var(--color-success-dark);
-  background-color: var(--color-success-light);
-}
-
-.saving {
-  color: var(--color-info-dark);
-  background-color: var(--color-info-light);
-}
-
-.error {
-  color: var(--color-error-dark);
-  background-color: var(--color-error-light);
-}
-
 /* Document actions */
 .documentActions {
   display: flex;

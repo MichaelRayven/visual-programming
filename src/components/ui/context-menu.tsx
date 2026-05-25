@@ -106,7 +106,7 @@ export const ContextMenuContent = ({
   const menuContent = (
     <MenuContent
       ref={menuRef}
-      className={clsx(styles.position, className)}
+      className={clsx(styles.content, className)}
       style={
         {
           ...style,

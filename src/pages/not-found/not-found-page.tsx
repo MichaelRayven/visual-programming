@@ -1,7 +1,7 @@
 import { FileQuestionIcon, HomeIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import styles from "./NotFoundPage.module.css";
+import styles from "./not-found-page.module.css";
 
 export function NotFoundPage() {
   return (

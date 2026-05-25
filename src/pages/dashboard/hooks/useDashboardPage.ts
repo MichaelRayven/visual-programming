@@ -12,7 +12,7 @@ import {
   importDocFromCsv,
 } from "@/lib/document";
 import { type Document } from "@/store/documentsSlice";
-import { type SortOption } from "./components/sort-dropdown";
+import { type SortOption } from "../components/sort-dropdown";
 
 export const SORT_STRATEGIES: Record<
   SortOption,
@@ -27,7 +27,7 @@ export function useDashboardPage() {
   const navigate = useNavigate();
   const documents = useDocumentList();
   const docStore = useDocumentStore();
-  const { renameOpen, deleteOpen } = useUIModals();
+  const { deleteOpen } = useUIModals();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("dateModified");
@@ -88,7 +88,6 @@ export function useDashboardPage() {
     setSearchQuery,
     sortBy,
     setSortBy,
-    renameOpen,
     deleteOpen,
     importInputRef,
     docStore,

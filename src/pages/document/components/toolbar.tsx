@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import {
   AlertTriangleIcon,
   AlignCenterIcon,
@@ -9,7 +10,7 @@ import {
   ClipboardIcon,
   CopyIcon,
   ItalicIcon,
-  Loader2,
+  Loader2Icon,
   PaintBucketIcon,
   Redo2Icon,
   ScissorsIcon,
@@ -17,6 +18,7 @@ import {
   Undo2Icon,
 } from "lucide-react";
 import React from "react";
+import { Button } from "@/components/ui/button";
 import { useDocumentSaveStatus } from "@/hooks/useDocumentStore";
 import { useActiveCellStyles, useTableStore } from "@/hooks/useTableStore";
 import styles from "./toolbar.module.css";
@@ -42,126 +44,154 @@ export function TableToolbar() {
   };
 
   return (
-    <div className={styles.toolbar}>
+    <div className={styles.tableToolbar}>
       {/* 1. History Group */}
-      <div className={styles.group}>
-        <button
-          className={styles.btn}
+      <div className={styles.toolbarGroup}>
+        <Button
+          size="icon"
+          variant="ghost"
           onClick={() => store.undo()}
           title="Отменить (Ctrl + Z)"
         >
           <Undo2Icon size={16} />
-        </button>
-        <button
-          className={styles.btn}
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
           onClick={() => store.redo()}
           title="Повторить (Ctrl + Y)"
         >
           <Redo2Icon size={16} />
-        </button>
+        </Button>
       </div>
 
-      <span className={styles.separator} />
+      <span className={styles.toolbarSeparator} />
 
       {/* 2. Clipboard Group */}
-      <div className={styles.group}>
-        <button
-          className={styles.btn}
+      <div className={styles.toolbarGroup}>
+        <Button
+          size="icon"
+          variant="ghost"
           onClick={() => store.copySelection()}
           title="Копировать (Ctrl + C)"
         >
           <CopyIcon size={16} />
-        </button>
-        <button
-          className={styles.btn}
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
           onClick={() => store.cutSelection()}
           title="Вырезать (Ctrl + X)"
         >
           <ScissorsIcon size={16} />
-        </button>
-        <button
-          className={styles.btn}
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
           onClick={() => store.pasteSelection()}
           title="Вставить (Ctrl + V)"
         >
           <ClipboardIcon size={16} />
-        </button>
+        </Button>
       </div>
 
-      <span className={styles.separator} />
+      <span className={styles.toolbarSeparator} />
 
-      {/* 3. Typography Group */}
-      <div className={styles.group}>
-        <button
-          className={`${styles.btn} ${activeStyles.bold ? styles.active : ""}`}
+      {/* 3. Typography Styles Group */}
+      <div className={styles.toolbarGroup}>
+        <Button
+          size="icon"
+          variant="ghost"
+          className={clsx({ [styles.active]: activeStyles.bold })}
           onClick={() => store.toggleBold()}
           title="Жирный (Ctrl + B)"
         >
           <BoldIcon size={16} />
-        </button>
-        <button
-          className={`${styles.btn} ${activeStyles.italic ? styles.active : ""}`}
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className={clsx({ [styles.active]: activeStyles.italic })}
           onClick={() => store.toggleItalic()}
           title="Курсив (Ctrl + I)"
         >
           <ItalicIcon size={16} />
-        </button>
-        <button
-          className={`${styles.btn} ${activeStyles.underline ? styles.active : ""}`}
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className={clsx({ [styles.active]: activeStyles.underline })}
           onClick={() => store.toggleUnderline()}
           title="Подчеркнутый (Ctrl + U)"
         >
           <UnderlineIcon size={16} />
-        </button>
+        </Button>
       </div>
 
-      <span className={styles.separator} />
+      <span className={styles.toolbarSeparator} />
 
       {/* 4. Alignment Group */}
-      <div className={styles.group}>
-        <button
-          className={`${styles.btn} ${activeStyles.align === "left" || !activeStyles.align ? styles.active : ""}`}
+      <div className={styles.toolbarGroup}>
+        <Button
+          size="icon"
+          variant="ghost"
+          className={clsx({
+            [styles.active]:
+              activeStyles.align === "left" || !activeStyles.align,
+          })}
           onClick={() => store.setAlign("left")}
           title="Выравнивание по левому краю"
         >
           <AlignLeftIcon size={16} />
-        </button>
-        <button
-          className={`${styles.btn} ${activeStyles.align === "center" ? styles.active : ""}`}
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className={clsx({ [styles.active]: activeStyles.align === "center" })}
           onClick={() => store.setAlign("center")}
           title="Выравнивание по центру"
         >
           <AlignCenterIcon size={16} />
-        </button>
-        <button
-          className={`${styles.btn} ${activeStyles.align === "right" ? styles.active : ""}`}
+        </Button>
+        <Button
+          size="icon"
+          variant="ghost"
+          className={clsx({ [styles.active]: activeStyles.align === "right" })}
           onClick={() => store.setAlign("right")}
           title="Выравнивание по правому краю"
         >
           <AlignRightIcon size={16} />
-        </button>
+        </Button>
       </div>
 
-      <span className={styles.separator} />
+      <span className={styles.toolbarSeparator} />
 
-      {/* 5. Colors Group */}
-      <div className={styles.group}>
+      {/* 5. Colors Picker Group */}
+      <div className={styles.toolbarGroup}>
         <div className={styles.colorPickerWrapper} title="Цвет текста">
-          <label htmlFor="text-color-picker" className={styles.btn}>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => store.setTextColor(undefined)}
+          >
             <BaselineIcon size={16} />
-          </label>
+          </Button>
           <input
             id="text-color-picker"
             type="color"
             className={styles.colorInput}
-            value={activeStyles.textColor || "#000000"}
+            value={activeStyles.textColor || "#ffffff"}
             onChange={handleTextColorChange}
           />
         </div>
         <div className={styles.colorPickerWrapper} title="Цвет фона ячейки">
-          <label htmlFor="bg-color-picker" className={styles.btn}>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => store.setBgColor(undefined)}
+          >
             <PaintBucketIcon size={16} />
-          </label>
+          </Button>
           <input
             id="bg-color-picker"
             type="color"
@@ -172,12 +202,12 @@ export function TableToolbar() {
         </div>
       </div>
 
-      <span className={styles.separator} />
+      <span className={styles.toolbarSeparator} />
 
-      {/* 6. Format Select Group */}
-      <div className={styles.group}>
+      {/* 6. Formats Selection Group */}
+      <div className={styles.toolbarGroup}>
         <select
-          className={styles.formatSelect}
+          className={styles.toolbarSelect}
           value={activeStyles.format || ""}
           onChange={handleFormatChange}
           title="Числовой формат ячейки"
@@ -190,23 +220,23 @@ export function TableToolbar() {
         </select>
       </div>
 
-      {/* Right side: Save status */}
-      <div className={styles.saveStatus}>
+      {/* Right side: Save indicators */}
+      <div className={styles.toolbarSaveStatus}>
         {saveStatus === "saving" && (
           <div className={`${styles.statusIndicator} ${styles.statusSaving}`}>
-            <Loader2 className={styles.spinnerIcon} size={14} />
+            <Loader2Icon className={styles.spinnerIcon} size={16} />
             <span>Сохранение...</span>
           </div>
         )}
         {saveStatus === "saved" && (
           <div className={`${styles.statusIndicator} ${styles.statusSaved}`}>
-            <CheckCircle2Icon size={14} />
+            <CheckCircle2Icon size={16} />
             <span>Сохранено</span>
           </div>
         )}
         {saveStatus === "error" && (
           <div className={`${styles.statusIndicator} ${styles.statusError}`}>
-            <AlertTriangleIcon size={14} />
+            <AlertTriangleIcon size={16} />
             <span>Ошибка сохранения</span>
           </div>
         )}

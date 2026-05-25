@@ -1,3 +1,10 @@
 .trigger {
   display: contents;
 }
+
+.content {
+  position: absolute;
+  top: var(--context-menu-top);
+  left: var(--context-menu-left);
+  z-index: var(--z-modal);
+}

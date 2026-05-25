@@ -1,6 +1,4 @@
 import {
-  AlertCircleIcon,
-  CheckCircleIcon,
   ChevronDownIcon,
   DownloadIcon,
   FileJsonIcon,
@@ -12,13 +10,8 @@ import {
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { Dropdown, MenuItem } from "@/components/ui/menu";
-import {
-  useDocumentById,
-  useDocumentSaveStatus,
-  useDocumentStore,
-} from "@/hooks/useDocumentStore";
+import { useDocumentById, useDocumentStore } from "@/hooks/useDocumentStore";
 import {
   downloadDocumentFile,
   exportDocToCsv,
@@ -39,7 +32,6 @@ type AppHeaderProps = {
 export function AppHeader({ onToggleSidebar }: AppHeaderProps) {
   const { documentId } = useParams<{ documentId: string }>();
   const activeDocument = useDocumentById(documentId || "");
-  const saveStatus = useDocumentSaveStatus();
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   const docStore = useDocumentStore();
@@ -120,33 +112,6 @@ export function AppHeader({ onToggleSidebar }: AppHeaderProps) {
           onTitleBlur={handleTitleBlur}
         />
       </div>
-
-      {isDocumentPage && activeDocument && (
-        <div className={styles.center}>
-          {saveStatus && (
-            <div className={`${styles.saveBadge} ${styles[saveStatus]}`}>
-              {saveStatus === "saved" && (
-                <>
-                  <CheckCircleIcon size={14} />
-                  <span>Сохранено</span>
-                </>
-              )}
-              {saveStatus === "saving" && (
-                <>
-                  <LoadingSpinner size={14} />
-                  <span>Сохранение...</span>
-                </>
-              )}
-              {saveStatus === "error" && (
-                <>
-                  <AlertCircleIcon size={14} />
-                  <span>Ошибка</span>
-                </>
-              )}
-            </div>
-          )}
-        </div>
-      )}
 
       <div className={styles.right}>
         {isDocumentPage && activeDocument && (
