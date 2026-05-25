@@ -1,18 +1,18 @@
 import { FileQuestionIcon, HomeIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/button";
-import "./not-found.css";
+import styles from "./NotFoundPage.module.css";
 
 export function NotFoundPage() {
   return (
-    <div className="not-found-container">
-      <div className="not-found-card">
-        <div className="not-found-icon-wrapper">
-          <FileQuestionIcon size={48} className="not-found-icon" />
+    <div className={styles.notFoundContainer}>
+      <div className={styles.notFoundCard}>
+        <div className={styles.notFoundIconWrapper}>
+          <FileQuestionIcon size={48} className={styles.notFoundIcon} />
         </div>
-        <h1 className="not-found-title">404</h1>
-        <h2 className="not-found-subtitle">Страница не найдена</h2>
-        <p className="not-found-description">
+        <h1 className={styles.notFoundTitle}>404</h1>
+        <h2 className={styles.notFoundSubtitle}>Страница не найдена</h2>
+        <p className={styles.notFoundDescription}>
           К сожалению, запрашиваемая вами страница не существует, была удалена
           или перенесена по новому адресу.
         </p>

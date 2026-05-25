@@ -1,8 +1,4 @@
-/* ==========================================================================
-   REGISTER PAGE STYLES
-   ========================================================================== */
-
-.register-page-container {
+.registerPageContainer {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12,20 +8,20 @@
   transition: background var(--transition-base);
 }
 
-.register-card {
+.registerCard {
   position: relative;
   width: 100%;
-  max-width: 440px;
+  max-width: 27.5rem; /* 440px equivalent */
   padding: var(--spacing-8) var(--spacing-10);
   background: rgba(255, 255, 255, 0.7);
-  border: 1px solid rgba(255, 255, 255, 0.5);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.5);
   border-radius: var(--radius-2xl);
   box-shadow:
-    0 10px 25px -5px rgba(0, 0, 0, 0.05),
-    0 8px 10px -6px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.8);
-  -webkit-backdrop-filter: blur(16px);
-  backdrop-filter: blur(16px);
+    0 0.625rem 1.5625rem -0.3125rem rgba(0, 0, 0, 0.05),
+    0 0.5rem 0.625rem -0.375rem rgba(0, 0, 0, 0.05),
+    inset 0 0.0625rem 0 rgba(255, 255, 255, 0.8);
+  -webkit-backdrop-filter: blur(1rem);
+  backdrop-filter: blur(1rem);
   transition:
     transform var(--transition-base),
     box-shadow var(--transition-base);
@@ -35,7 +31,7 @@
 @keyframes registerCardFadeIn {
   from {
     opacity: 0;
-    transform: translateY(20px);
+    transform: translateY(1.25rem); /* 20px equivalent */
   }
   to {
     opacity: 1;
@@ -43,17 +39,17 @@
   }
 }
 
-.register-header {
+.registerHeader {
   margin-bottom: var(--spacing-6);
   text-align: center;
 }
 
-.register-logo-wrapper {
+.registerLogoWrapper {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 48px;
-  height: 48px;
+  width: 3rem; /* 48px equivalent */
+  height: 3rem;
   margin-bottom: var(--spacing-4);
   color: white;
   background: linear-gradient(
@@ -62,11 +58,23 @@
     var(--color-primary-600) 100%
   );
   border-radius: var(--radius-xl);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 0.25rem 0.75rem rgba(37, 99, 235, 0.25);
   animation: logoPulse 2s infinite ease-in-out;
 }
 
-.register-title {
+@keyframes logoPulse {
+  0%,
+  100% {
+    box-shadow: 0 0.25rem 0.75rem rgba(37, 99, 235, 0.25);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0.375rem 1rem rgba(37, 99, 235, 0.4);
+    transform: scale(1.03);
+  }
+}
+
+.registerTitle {
   margin-bottom: var(--spacing-1);
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
@@ -74,19 +82,19 @@
   letter-spacing: var(--letter-spacing-tight);
 }
 
-.register-form {
+.registerForm {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-4);
 }
 
 /* Custom fields height matching login form */
-.register-form .field-input-icon-wrapper input {
-  height: 44px;
+.registerForm :global(.field-input-icon-wrapper) :global(input) {
+  height: 2.75rem; /* 44px equivalent */
 }
 
 /* Global Alert Callout */
-.register-error-alert {
+.registerErrorAlert {
   display: flex;
   gap: var(--spacing-2_5);
   align-items: flex-start;
@@ -94,44 +102,44 @@
   font-size: var(--font-size-sm);
   color: var(--color-error-dark);
   background-color: var(--color-error-light);
-  border: 1px solid rgb(239 68 68 / 20%);
+  border: 0.0625rem solid rgb(239 68 68 / 20%);
   border-radius: var(--radius-lg);
   animation: registerCardFadeIn 0.3s ease-out;
 }
 
-.register-error-alert-icon {
+.registerErrorAlertIcon {
   flex-shrink: 0;
-  margin-top: 2px;
+  margin-top: 0.125rem; /* 2px equivalent */
 }
 
 /* Button & Loading overlay */
-.btn-submit-register {
+.btnSubmitRegister {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  height: 44px;
+  height: 2.75rem; /* 44px equivalent */
   margin-top: var(--spacing-2);
   font-weight: var(--font-weight-semibold);
   transition: all var(--transition-fast) !important;
 }
 
-.btn-submit-register:hover:not(:disabled) {
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
-  transform: translateY(-1px);
+.btnSubmitRegister:hover:not(:disabled) {
+  box-shadow: 0 0.25rem 0.75rem rgba(37, 99, 235, 0.2);
+  transform: translateY(-0.0625rem); /* -1px equivalent */
 }
 
-.btn-submit-register:active:not(:disabled) {
+.btnSubmitRegister:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.btn-submit-register:disabled {
+.btnSubmitRegister:disabled {
   cursor: not-allowed;
   opacity: 0.8;
 }
 
-.register-spinner {
+.registerSpinner {
   margin-right: var(--spacing-2);
   animation: registerSpin 1s linear infinite;
 }
@@ -145,42 +153,54 @@
   }
 }
 
-.register-footer-link {
+.registerFooterLink {
   margin-top: var(--spacing-2);
   font-size: var(--font-size-sm);
   color: var(--color-neutral-600);
   text-align: center;
 }
 
-/* ==========================================================================
-   DARK MODE OVERRIDES
-   ========================================================================== */
+.authLink {
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-primary-600);
+  text-decoration: none;
+  cursor: pointer;
+}
 
+.authLink:hover {
+  text-decoration: underline;
+}
+
+/* Dark mode overrides */
 @media (prefers-color-scheme: dark) {
-  .register-page-container {
+  .registerPageContainer {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   }
 
-  .register-card {
+  .registerCard {
     background: rgba(30, 41, 59, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    border: 0.0625rem solid rgba(255, 255, 255, 0.08);
     box-shadow:
-      0 10px 25px -5px rgba(0, 0, 0, 0.3),
-      0 8px 10px -6px rgba(0, 0, 0, 0.3),
-      inset 0 1px 0 rgba(255, 255, 255, 0.05);
+      0 0.625rem 1.5625rem -0.3125rem rgba(0, 0, 0, 0.3),
+      0 0.5rem 0.625rem -0.375rem rgba(0, 0, 0, 0.3),
+      inset 0 0.0625rem 0 rgba(255, 255, 255, 0.05);
   }
 
-  .register-title {
+  .registerTitle {
     color: white;
   }
 
-  .register-error-alert {
+  .registerErrorAlert {
     color: var(--color-error);
     background-color: rgba(239, 68, 68, 0.1);
     border-color: rgba(239, 68, 68, 0.2);
   }
 
-  .register-footer-link {
+  .registerFooterLink {
     color: var(--color-neutral-400);
+  }
+
+  .authLink {
+    color: var(--color-primary-400);
   }
 }

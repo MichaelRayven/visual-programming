@@ -1,8 +1,8 @@
 import { CalendarIcon, ClockIcon } from "lucide-react";
-import { CardActionsDropdown } from "@/components/card-actions-dropdown";
 import { formatDate } from "@/lib/utils";
 import { type Document } from "@/store/documentsSlice";
 import styles from "../DashboardPage.module.css";
+import { DocumentCardDropdown } from "./DocumentCardDropdown";
 import { DocumentCardTitle } from "./DocumentCardTitle";
 import { TablePreview } from "./TablePreview";
 
@@ -48,7 +48,7 @@ export function DocumentCard({
           title={doc.title}
           onTitleChange={(t) => onUpdateTitle(doc.id, t)}
         />
-        <CardActionsDropdown
+        <DocumentCardDropdown
           onRename={() => onSetRenameModal({ id: doc.id, title: doc.title })}
           onDuplicate={() => onDuplicate(doc.id)}
           onExportCsv={() => onExportCsv(doc)}

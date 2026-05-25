@@ -14,6 +14,15 @@ import {
 import { type Document } from "@/store/documentsSlice";
 import { type SortOption } from "./components/SortDropdown";
 
+export const SORT_STRATEGIES: Record<
+  SortOption,
+  (a: Document, b: Document) => number
+> = {
+  name: (a, b) => a.title.localeCompare(b.title),
+  dateCreated: (a, b) => b.createdAt - a.createdAt,
+  dateModified: (a, b) => b.updatedAt - a.updatedAt,
+};
+
 export function useDashboardPage() {
   const navigate = useNavigate();
   const documents = useDocumentList();
@@ -39,18 +48,7 @@ export function useDashboardPage() {
       );
     }
 
-    return [...filtered].sort((a, b) => {
-      switch (sortBy) {
-        case "name":
-          return a.title.localeCompare(b.title);
-        case "dateCreated":
-          return b.createdAt - a.createdAt;
-        case "dateModified":
-          return b.updatedAt - a.updatedAt;
-        default:
-          return 0;
-      }
-    });
+    return [...filtered].sort(SORT_STRATEGIES[sortBy]);
   }, [documents, searchQuery, sortBy]);
 
   const handleExportCsv = (doc: Document) => {

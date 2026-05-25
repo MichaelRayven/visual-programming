@@ -6,10 +6,11 @@ import {
   PencilIcon,
   Trash2Icon,
 } from "lucide-react";
-import { Button } from "./button";
-import { Dropdown, MenuItem, MenuSeparator } from "./menu";
+import { Button } from "@/components/button";
+import { Dropdown, MenuItem, MenuSeparator } from "@/components/menu";
+import styles from "../DashboardPage.module.css";
 
-type CardActionsDropdownProps = {
+type DocumentCardDropdownProps = {
   onRename: () => void;
   onDuplicate: () => void;
   onExportCsv: () => void;
@@ -17,20 +18,21 @@ type CardActionsDropdownProps = {
   onDelete: () => void;
 };
 
-export function CardActionsDropdown({
+export function DocumentCardDropdown({
   onRename,
   onDuplicate,
   onExportCsv,
   onExportJson,
   onDelete,
-}: CardActionsDropdownProps) {
+}: DocumentCardDropdownProps) {
   return (
     <Dropdown
-      className="card-actions-dropdown"
+      className={styles.cardDropdown}
       trigger={
         <Button
           variant="ghost"
-          className="btn-icon btn-icon-sm"
+          size="icon"
+          className={styles.dropdownTrigger}
           aria-label="Document actions"
         >
           <MoreHorizontalIcon size={16} />

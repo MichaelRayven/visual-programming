@@ -1,9 +1,9 @@
 import clsx from "clsx";
-import "./button.css";
+import styles from "./Button.module.css";
 
 type ButtonProps = {
   variant?: "primary" | "outline" | "ghost" | "destructive";
-  size?: "sm" | "md";
+  size?: "sm" | "md" | "icon";
 } & React.ComponentProps<"button">;
 
 export function Button({
@@ -17,12 +17,10 @@ export function Button({
     <button
       type={type}
       className={clsx(
-        "btn",
-        variant === "primary" && "btn-primary",
-        variant === "outline" && "btn-outline",
-        variant === "ghost" && "btn-ghost",
-        variant === "destructive" && "btn-danger",
-        size === "sm" && "btn-sm",
+        styles.btn,
+        styles[variant],
+        size === "sm" && styles.sm,
+        size === "icon" && styles.icon,
         className
       )}
       {...props}

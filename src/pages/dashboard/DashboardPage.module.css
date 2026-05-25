@@ -220,3 +220,8 @@
   white-space: nowrap;
   background: var(--color-surface);
 }
+
+.cardDropdown {
+  position: relative;
+  display: inline-flex;
+}

@@ -1,4 +1,4 @@
-.not-found-container {
+.notFoundContainer {
   display: flex;
   flex: 1;
   align-items: center;
@@ -8,7 +8,7 @@
   background-color: var(--color-background);
 }
 
-.not-found-card {
+.notFoundCard {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -17,17 +17,17 @@
   padding: var(--spacing-8) var(--spacing-6);
   text-align: center;
   background-color: var(--color-surface-elevated);
-  border: 1px solid var(--color-border-light);
+  border: 0.0625rem solid var(--color-border-light);
   border-radius: var(--radius-2xl);
   box-shadow: var(--shadow-lg);
 }
 
-.not-found-icon-wrapper {
+.notFoundIconWrapper {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 80px;
-  height: 80px;
+  width: 5rem; /* 80px equivalent */
+  height: 5rem;
   margin-bottom: var(--spacing-6);
   color: var(--color-primary-600);
   background-color: var(--color-primary-50);
@@ -35,11 +35,11 @@
   box-shadow: var(--shadow-inner);
 }
 
-.not-found-icon {
+.notFoundIcon {
   color: var(--color-primary-500);
 }
 
-.not-found-title {
+.notFoundTitle {
   margin-bottom: var(--spacing-2);
   font-size: 5rem;
   font-weight: var(--font-weight-black);
@@ -48,14 +48,14 @@
   letter-spacing: var(--letter-spacing-tight);
 }
 
-.not-found-subtitle {
+.notFoundSubtitle {
   margin-bottom: var(--spacing-3);
   font-size: var(--font-size-2xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-primary);
 }
 
-.not-found-description {
+.notFoundDescription {
   margin-bottom: var(--spacing-8);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
@@ -64,12 +64,12 @@
 
 /* Dark Mode Support */
 @media (prefers-color-scheme: dark) {
-  .not-found-icon-wrapper {
+  .notFoundIconWrapper {
     color: var(--color-primary-400);
     background-color: var(--color-neutral-800);
   }
 
-  .not-found-title {
+  .notFoundTitle {
     color: var(--color-primary-400);
   }
 }
