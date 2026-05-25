@@ -1,7 +1,7 @@
 import { type SubmitEventHandler, useRef, useState } from "react";
-import { Button } from "./button";
-import { Dialog } from "./dialog";
-import { FieldError, FieldGroup, FieldInput, FieldLabel } from "./field";
+import { Button } from "./ui/button";
+import { Dialog } from "./ui/dialog";
+import { FieldError, FieldGroup, FieldInput, FieldLabel } from "./ui/field";
 
 type RenameDocumentDialogProps = {
   open: boolean;

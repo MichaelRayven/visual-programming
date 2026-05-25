@@ -1,11 +1,11 @@
 import { CheckIcon, KeyIcon, Loader2 } from "lucide-react";
 import { type SubmitEventHandler, useState } from "react";
-import { Button } from "@/components/button";
-import { FieldGroup, FieldInput, FieldLabel } from "@/components/field";
 import { toast } from "@/components/toast";
+import { Button } from "@/components/ui/button";
+import { FieldGroup, FieldInput, FieldLabel } from "@/components/ui/field";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { authActions, updateUserPassword } from "@/store/authSlice";
-import styles from "../ProfilePage.module.css";
+import styles from "../profile-page.module.css";
 import { selectPasswordState } from "../selectors";
 
 type SecurityState = {

@@ -1,10 +1,10 @@
 import { CalendarIcon, ClockIcon } from "lucide-react";
 import { formatDate } from "@/lib/utils";
 import { type Document } from "@/store/documentsSlice";
-import styles from "../DashboardPage.module.css";
-import { DocumentCardDropdown } from "./DocumentCardDropdown";
-import { DocumentCardTitle } from "./DocumentCardTitle";
-import { TablePreview } from "./TablePreview";
+import styles from "../dashboard-page.module.css";
+import { DocumentCardDropdown } from "./document-card-dropdown";
+import { DocumentCardTitle } from "./document-card-title";
+import { TablePreview } from "./table-preview";
 
 type DocumentCardProps = {
   doc: Document;

@@ -1,4 +1,4 @@
-#modal {
+.modalOverlay {
   position: absolute;
   inset: var(--spacing-0);
   z-index: var(--z-modal);
@@ -22,7 +22,7 @@
   box-shadow: var(--shadow-md);
 }
 
-.dialog-header {
+.dialogHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -31,19 +31,19 @@
   border-bottom: var(--spacing-px) solid var(--color-border-light);
 }
 
-.dialog-title {
+.dialogTitle {
   margin: var(--spacing-0);
   font-size: var(--font-size-lg);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
 }
 
-.dialog-action {
+.dialogAction {
   display: flex;
   align-items: center;
 }
 
-.dialog-close {
+.dialogClose {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -56,32 +56,30 @@
   transition: all var(--transition-base);
 }
 
-.dialog-close:hover {
+.dialogClose:hover {
   color: var(--color-text-secondary);
   background-color: var(--color-surface);
 }
 
-.dialog-close svg {
+.dialogClose svg {
   width: var(--spacing-5);
   height: var(--spacing-5);
 }
 
-.dialog-content {
+.dialogContent {
   max-height: 60vh;
   padding-inline: var(--spacing-6);
-
   overflow-y: auto;
   font-size: var(--font-size-sm);
   line-height: var(--line-height-relaxed);
   color: var(--color-text-secondary);
 }
 
-.dialog-footer {
+.dialogFooter {
   display: flex;
   gap: var(--spacing-3);
   justify-content: flex-end;
   padding-block: var(--spacing-4);
   padding-inline: var(--spacing-6);
-
   border-top: var(--spacing-px) solid var(--color-border-light);
 }

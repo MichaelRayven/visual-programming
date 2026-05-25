@@ -1,5 +1,5 @@
 import { LoadingSpinner } from "@/components/loading-spinner";
-import styles from "../DocumentPage.module.css";
+import styles from "../document-page.module.css";
 
 export function DocumentLoading() {
   return (

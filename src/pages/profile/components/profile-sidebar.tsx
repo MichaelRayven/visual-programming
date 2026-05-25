@@ -1,5 +1,5 @@
 import { CalendarIcon, FileSpreadsheetIcon, UserIcon } from "lucide-react";
-import styles from "../ProfilePage.module.css";
+import styles from "../profile-page.module.css";
 
 type ProfileSidebarProps = {
   name: string;

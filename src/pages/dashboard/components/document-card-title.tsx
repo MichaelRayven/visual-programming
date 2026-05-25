@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import { Input } from "@/components/input";
-import styles from "../DashboardPage.module.css";
+import { Input } from "@/components/ui/input";
+import styles from "../dashboard-page.module.css";
 
 type DocumentCardTitleProps = {
   title?: string;

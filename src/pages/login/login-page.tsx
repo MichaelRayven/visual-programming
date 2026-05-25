@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from "react-router-dom";
 import { useAppSelector } from "@/store";
 import { LoginForm } from "./components/LoginForm";
-import styles from "./LoginPage.module.css";
+import styles from "./login-page.module.css";
 
 export function LoginPage() {
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);

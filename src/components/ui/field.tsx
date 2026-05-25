@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import type { LucideIcon } from "lucide-react";
-import "./field.css";
+import styles from "./field.module.css";
 import { Input } from "./input";
 
 export const FieldGroup = ({
@@ -9,7 +9,7 @@ export const FieldGroup = ({
 }: {
   children: React.ReactNode;
   className?: string;
-}) => <div className={clsx("field-group", className)}>{children}</div>;
+}) => <div className={clsx(styles.fieldGroup, className)}>{children}</div>;
 
 export const FieldLabel = ({
   children,
@@ -18,7 +18,7 @@ export const FieldLabel = ({
   children: React.ReactNode;
   htmlFor: string;
 }) => (
-  <label className="field-label" htmlFor={htmlFor}>
+  <label className={styles.fieldLabel} htmlFor={htmlFor}>
     {children}
   </label>
 );
@@ -31,12 +31,12 @@ export const FieldInput = ({
 }: React.ComponentProps<"input"> & { error?: boolean; icon?: LucideIcon }) => {
   if (Icon) {
     return (
-      <div className="field-input-icon-wrapper">
-        <Icon size={16} className="field-input-icon" />
+      <div className={styles.fieldInputIconWrapper}>
+        <Icon size={16} className={styles.fieldInputIcon} />
         <Input
           className={clsx(
-            { "field-input-error": error },
-            "field-input-with-icon",
+            error && styles.fieldInputError,
+            styles.fieldInputWithIcon,
             className
           )}
           {...props}
@@ -46,7 +46,7 @@ export const FieldInput = ({
   }
   return (
     <Input
-      className={clsx({ "field-input-error": error }, className)}
+      className={clsx(error && styles.fieldInputError, className)}
       {...props}
     />
   );
@@ -58,4 +58,4 @@ export const FieldError = ({
 }: {
   children: React.ReactNode;
   className?: string;
-}) => <span className={clsx("field-error", className)}>{children}</span>;
+}) => <span className={clsx(styles.fieldError, className)}>{children}</span>;

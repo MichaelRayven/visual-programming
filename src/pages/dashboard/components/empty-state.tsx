@@ -1,5 +1,5 @@
 import { FileTextIcon } from "lucide-react";
-import styles from "../DashboardPage.module.css";
+import styles from "../dashboard-page.module.css";
 
 type EmptyStateProps = {
   hasQuery: boolean;

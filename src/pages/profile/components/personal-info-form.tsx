@@ -1,11 +1,11 @@
 import { CheckIcon, Loader2, MailIcon, UserIcon } from "lucide-react";
 import { type SubmitEventHandler, useEffect, useState } from "react";
-import { Button } from "@/components/button";
-import { FieldGroup, FieldInput, FieldLabel } from "@/components/field";
 import { toast } from "@/components/toast";
+import { Button } from "@/components/ui/button";
+import { FieldGroup, FieldInput, FieldLabel } from "@/components/ui/field";
 import { useAppDispatch, useAppSelector } from "@/store";
 import { authActions, updateUserProfile } from "@/store/authSlice";
-import styles from "../ProfilePage.module.css";
+import styles from "../profile-page.module.css";
 import { selectProfileState, selectUser } from "../selectors";
 
 type PersonalInfoState = {

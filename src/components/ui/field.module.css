@@ -1,33 +1,36 @@
-.field-group {
+.fieldGroup {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-1);
   margin-bottom: var(--spacing-4);
 }
 
-.field-label {
+.fieldLabel {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-text-primary);
 }
 
-.field-input-error {
+.fieldInputError {
   border-color: var(--color-error);
 }
 
-.field-error {
+.fieldError {
+  display: flex;
+  gap: var(--spacing-2);
+  align-items: center;
   font-size: var(--font-size-xs);
   color: var(--color-error);
 }
 
-.field-input-icon-wrapper {
+.fieldInputIconWrapper {
   position: relative;
   display: flex;
   align-items: center;
   width: 100%;
 }
 
-.field-input-icon {
+.fieldInputIcon {
   position: absolute;
   left: var(--spacing-3_5);
   color: var(--color-text-tertiary);
@@ -35,16 +38,16 @@
   transition: color var(--transition-fast);
 }
 
-.field-input-icon-wrapper:focus-within .field-input-icon {
+.fieldInputIconWrapper:focus-within .fieldInputIcon {
   color: var(--color-primary-500);
 }
 
-.field-input-with-icon {
+.fieldInputWithIcon {
   padding-left: var(--spacing-10) !important;
 }
 
 @media (prefers-color-scheme: dark) {
-  .field-input-icon-wrapper:focus-within .field-input-icon {
+  .fieldInputIconWrapper:focus-within .fieldInputIcon {
     color: var(--color-primary-400);
   }
 }

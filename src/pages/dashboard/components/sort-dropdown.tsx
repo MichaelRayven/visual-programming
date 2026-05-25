@@ -1,6 +1,6 @@
 import { ChevronDownIcon } from "lucide-react";
-import { Button } from "@/components/button";
-import { Dropdown, MenuItem } from "@/components/menu";
+import { Button } from "@/components/ui/button";
+import { Dropdown, MenuItem } from "@/components/ui/menu";
 
 export type SortOption = "name" | "dateCreated" | "dateModified";
 

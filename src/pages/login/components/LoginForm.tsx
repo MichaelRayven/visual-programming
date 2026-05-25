@@ -5,16 +5,16 @@ import {
   MailIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/button";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { Button } from "@/components/ui/button";
 import {
   FieldError,
   FieldGroup,
   FieldInput,
   FieldLabel,
-} from "@/components/field";
-import { LoadingSpinner } from "@/components/loading-spinner";
+} from "@/components/ui/field";
 import { useLoginForm } from "../hooks/useLoginForm";
-import styles from "../LoginPage.module.css";
+import styles from "../login-page.module.css";
 
 type LoginFormProps = {
   from: string;
@@ -56,7 +56,7 @@ export function LoginForm({ from }: LoginFormProps) {
             required
           />
           {errors.email && (
-            <FieldError className="flex items-center gap-2">
+            <FieldError>
               <AlertCircleIcon size={12} />
               {errors.email}
             </FieldError>
@@ -78,7 +78,7 @@ export function LoginForm({ from }: LoginFormProps) {
             required
           />
           {errors.password && (
-            <FieldError className="flex items-center gap-2">
+            <FieldError>
               <AlertCircleIcon size={12} />
               {errors.password}
             </FieldError>

@@ -18,10 +18,10 @@ import {
   useNavigate,
   useParams,
 } from "react-router-dom";
-import { Button } from "@/components/button";
 import { LoadingSpinner } from "@/components/loading-spinner";
-import { Dropdown, MenuItem } from "@/components/menu";
 import { ToastContainer } from "@/components/toast";
+import { Button } from "@/components/ui/button";
+import { Dropdown, MenuItem } from "@/components/ui/menu";
 import {
   useDocumentById,
   useDocumentSaveStatus,

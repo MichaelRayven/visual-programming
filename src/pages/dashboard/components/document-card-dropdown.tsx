@@ -6,9 +6,9 @@ import {
   PencilIcon,
   Trash2Icon,
 } from "lucide-react";
-import { Button } from "@/components/button";
-import { Dropdown, MenuItem, MenuSeparator } from "@/components/menu";
-import styles from "../DashboardPage.module.css";
+import { Button } from "@/components/ui/button";
+import { Dropdown, MenuItem, MenuSeparator } from "@/components/ui/menu";
+import styles from "../dashboard-page.module.css";
 
 type DocumentCardDropdownProps = {
   onRename: () => void;

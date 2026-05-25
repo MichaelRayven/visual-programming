@@ -1,6 +1,6 @@
 import { AlertCircleIcon } from "lucide-react";
-import { Button } from "@/components/button";
-import styles from "../DocumentPage.module.css";
+import { Button } from "@/components/ui/button";
+import styles from "../document-page.module.css";
 
 type ForbiddenAccessProps = {
   onBack: () => void;

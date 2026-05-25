@@ -1,8 +1,8 @@
-import { createPortal } from "react-dom";
-import "./dialog.css";
 import { XIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "./button";
+import styles from "./dialog.module.css";
 
 type DialogProps = {
   open?: boolean;
@@ -72,21 +72,23 @@ function DialogPortal({
 }: DialogPortalProps) {
   return createPortal(
     open && (
-      <div id="modal">
-        <div className="dialog">
-          <div className="dialog-header">
-            <p className="dialog-title">{title}</p>
-            <div className="dialog-action">
-              <Button
-                className="dialog-close"
+      <div className={styles.modalOverlay}>
+        <div className={styles.dialog}>
+          <div className={styles.dialogHeader}>
+            <p className={styles.dialogTitle}>{title}</p>
+            <div className={styles.dialogAction}>
+              <button
+                type="button"
+                className={styles.dialogClose}
                 onClick={() => onOpenChange(false)}
+                aria-label="Close dialog"
               >
                 <XIcon />
-              </Button>
+              </button>
             </div>
           </div>
-          <div className="dialog-content">{content}</div>
-          <div className="dialog-footer">{footer}</div>
+          <div className={styles.dialogContent}>{content}</div>
+          <div className={styles.dialogFooter}>{footer}</div>
         </div>
       </div>
     ),

@@ -6,7 +6,7 @@ import React, {
   useRef,
   useState,
 } from "react";
-import "./menu.css";
+import styles from "./menu.module.css";
 
 export const DropdownContext = createContext<{ close: () => void } | null>(
   null
@@ -61,11 +61,11 @@ export function Dropdown({
     <DropdownContext.Provider value={{ close }}>
       <div
         ref={containerRef}
-        className={clsx("menu-dropdown-wrapper", className)}
+        className={clsx(styles.menuDropdownWrapper, className)}
       >
         <span
           onClick={() => setOpen((prev) => !prev)}
-          className="dropdown-trigger-container"
+          className={styles.dropdownTriggerContainer}
           aria-expanded={open}
         >
           {trigger}
@@ -73,8 +73,8 @@ export function Dropdown({
         {open && (
           <MenuContent
             className={clsx(
-              "menu-dropdown",
-              align === "left" && "align-left",
+              styles.menuDropdown,
+              align === "left" && styles.alignLeft,
               menuClassName
             )}
           >
@@ -90,7 +90,7 @@ export const MenuContent = React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<"div">
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={clsx("menu-content", className)} {...props} />
+  <div ref={ref} className={clsx(styles.menuContent, className)} {...props} />
 ));
 MenuContent.displayName = "MenuContent";
 
@@ -113,7 +113,11 @@ export const MenuItem = React.forwardRef<
     <button
       ref={ref}
       type="button"
-      className={clsx("menu-item", danger && "menu-item-danger", className)}
+      className={clsx(
+        styles.menuItem,
+        danger && styles.menuItemDanger,
+        className
+      )}
       onClick={handleClick}
       {...props}
     />
@@ -125,6 +129,6 @@ export const MenuSeparator = React.forwardRef<
   HTMLDivElement,
   React.ComponentPropsWithoutRef<"div">
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={clsx("menu-separator", className)} {...props} />
+  <div ref={ref} className={clsx(styles.menuSeparator, className)} {...props} />
 ));
 MenuSeparator.displayName = "MenuSeparator";

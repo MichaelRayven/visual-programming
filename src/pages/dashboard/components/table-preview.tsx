@@ -1,7 +1,7 @@
 import { evaluateCell } from "@/lib/formula";
 import { getCellAddress } from "@/lib/table";
 import type { TableSnapshot } from "@/store/spreadsheetSlice";
-import styles from "../DashboardPage.module.css";
+import styles from "../dashboard-page.module.css";
 
 type TablePreviewProps = {
   snapshot: TableSnapshot;

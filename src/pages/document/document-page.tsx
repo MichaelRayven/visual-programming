@@ -1,10 +1,10 @@
-import { Button } from "@/components/button";
-import { Dialog } from "@/components/dialog";
 import { Table } from "@/components/table";
-import { DocumentLoading } from "./components/DocumentLoading";
-import { DocumentNotFound } from "./components/DocumentNotFound";
-import { ForbiddenAccess } from "./components/ForbiddenAccess";
-import styles from "./DocumentPage.module.css";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { DocumentLoading } from "./components/document-loading";
+import { DocumentNotFound } from "./components/document-not-found";
+import { ForbiddenAccess } from "./components/forbidden-access";
+import styles from "./document-page.module.css";
 import { useDocumentPage } from "./useDocumentPage";
 
 export function DocumentPage() {

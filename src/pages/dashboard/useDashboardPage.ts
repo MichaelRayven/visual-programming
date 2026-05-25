@@ -12,7 +12,7 @@ import {
   importDocFromCsv,
 } from "@/lib/document";
 import { type Document } from "@/store/documentsSlice";
-import { type SortOption } from "./components/SortDropdown";
+import { type SortOption } from "./components/sort-dropdown";
 
 export const SORT_STRATEGIES: Record<
   SortOption,

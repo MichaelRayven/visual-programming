@@ -20,7 +20,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "./context-menu";
-import { Input } from "./input";
+import { Input } from "./ui/input";
 import "@/components/table.css";
 import { useTableStore } from "@/hooks/useTableStore";
 import { useVirtualTable } from "@/hooks/useVirtualTable";

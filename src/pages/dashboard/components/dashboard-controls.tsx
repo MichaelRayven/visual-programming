@@ -1,9 +1,9 @@
 import { SearchIcon, UploadIcon } from "lucide-react";
 import type { ChangeEvent, RefObject } from "react";
-import { Button } from "@/components/button";
-import { CreateDocumentDialog } from "@/components/create-document-dialog";
-import styles from "../DashboardPage.module.css";
-import { SortDropdown, type SortOption } from "./SortDropdown";
+import { Button } from "@/components/ui/button";
+import styles from "../dashboard-page.module.css";
+import { CreateDocumentDialog } from "./create-document-dialog";
+import { SortDropdown, type SortOption } from "./sort-dropdown";
 
 type DashboardControlsProps = {
   searchQuery: string;

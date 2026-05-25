@@ -1,10 +1,10 @@
-import { Button } from "@/components/button";
-import { Dialog } from "@/components/dialog";
 import { RenameDocumentDialog } from "@/components/rename-document-dialog";
-import { DashboardControls } from "./components/DashboardControls";
-import { DocumentCard } from "./components/DocumentCard";
-import { EmptyState } from "./components/EmptyState";
-import styles from "./DashboardPage.module.css";
+import { Button } from "@/components/ui/button";
+import { Dialog } from "@/components/ui/dialog";
+import { DashboardControls } from "./components/dashboard-controls";
+import { DocumentCard } from "./components/document-card";
+import { EmptyState } from "./components/empty-state";
+import styles from "./dashboard-page.module.css";
 import { useDashboardPage } from "./useDashboardPage";
 
 export function DashboardPage() {

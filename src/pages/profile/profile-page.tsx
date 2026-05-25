@@ -1,7 +1,7 @@
-import { PersonalInfoForm } from "./components/PersonalInfoForm";
-import { ProfileSidebar } from "./components/ProfileSidebar";
-import { SecurityForm } from "./components/SecurityForm";
-import styles from "./ProfilePage.module.css";
+import { PersonalInfoForm } from "./components/personal-info-form";
+import { ProfileSidebar } from "./components/profile-sidebar";
+import { SecurityForm } from "./components/security-form";
+import styles from "./profile-page.module.css";
 import { useProfilePage } from "./useProfilePage";
 
 export function ProfilePage() {

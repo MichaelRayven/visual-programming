@@ -6,16 +6,16 @@ import {
   UserIcon,
 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Button } from "@/components/button";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { Button } from "@/components/ui/button";
 import {
   FieldError,
   FieldGroup,
   FieldInput,
   FieldLabel,
-} from "@/components/field";
-import { LoadingSpinner } from "@/components/loading-spinner";
+} from "@/components/ui/field";
 import { useRegisterForm } from "../hooks/useRegisterForm";
-import styles from "../RegisterPage.module.css";
+import styles from "../register-page.module.css";
 
 export function RegisterForm() {
   const { formState, errors, loading, handleChange, handleSubmit } =
@@ -56,7 +56,7 @@ export function RegisterForm() {
             required
           />
           {errors.name && (
-            <FieldError className="flex items-center gap-2">
+            <FieldError>
               <AlertCircleIcon size={12} />
               {errors.name}
             </FieldError>
@@ -78,7 +78,7 @@ export function RegisterForm() {
             required
           />
           {errors.email && (
-            <FieldError className="flex items-center gap-2">
+            <FieldError>
               <AlertCircleIcon size={12} />
               {errors.email}
             </FieldError>
@@ -100,7 +100,7 @@ export function RegisterForm() {
             required
           />
           {errors.password && (
-            <FieldError className="flex items-center gap-2">
+            <FieldError>
               <AlertCircleIcon size={12} />
               {errors.password}
             </FieldError>
@@ -124,7 +124,7 @@ export function RegisterForm() {
             required
           />
           {errors.confirmPassword && (
-            <FieldError className="flex items-center gap-2">
+            <FieldError>
               <AlertCircleIcon size={12} />
               {errors.confirmPassword}
             </FieldError>

@@ -6,7 +6,7 @@ import {
   type Position,
   useContextMenu,
 } from "@/hooks/useContextMenu";
-import { MenuContent, MenuItem } from "./menu";
+import { MenuContent, MenuItem } from "./ui/menu";
 
 type ContextMenuProps = {
   children: React.ReactNode;
