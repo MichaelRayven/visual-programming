@@ -482,7 +482,7 @@ button {
 /* Custom Table Constants & Utilities */
 :root {
   --min-col-width: 64px;
-  --min-row-height: 24px;
+  --min-row-height: 32px;
 }
 
 /* Boot Loader Screen */

@@ -45,8 +45,19 @@ export function DocumentPage() {
     }
   }, [document, dispatch]);
 
+  // Keyboard shortcuts — stable deps, not re-bound on save status changes
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const isSpreadsheetInput =
+        target.classList?.contains("table-cell-input") ||
+        target.classList?.contains("table-top-bar-input");
+      const isForeignInput =
+        (target.tagName === "INPUT" || target.tagName === "TEXTAREA") &&
+        !isSpreadsheetInput;
+
+      if (isForeignInput) return;
+
       if (e.ctrlKey && e.key === "s") {
         e.preventDefault();
         dispatch(spreadsheetActions.triggerSave());
@@ -59,23 +70,45 @@ export function DocumentPage() {
       } else if (e.ctrlKey && e.shiftKey && e.key === "Z") {
         e.preventDefault();
         dispatch(spreadsheetActions.redo());
+      } else if (e.ctrlKey && e.key === "c") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.copySelection());
+      } else if (e.ctrlKey && e.key === "x") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.cutSelection());
+      } else if (e.ctrlKey && e.key === "v") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.pasteSelection());
+      } else if (e.ctrlKey && e.key === "a") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.selectAll());
+      } else if (e.ctrlKey && e.key === "b") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.toggleBold());
+      } else if (e.ctrlKey && e.key === "i") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.toggleItalic());
+      } else if (e.ctrlKey && e.key === "u") {
+        e.preventDefault();
+        dispatch(spreadsheetActions.toggleUnderline());
       }
     };
 
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [dispatch]);
+
+  // Unload guard — depends on saveStatus
+  useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (saveStatus === "saving") {
         e.preventDefault();
       }
     };
 
-    window.addEventListener("keydown", handleKeyDown);
     window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-    };
-  }, [saveStatus, dispatch]);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [saveStatus]);
 
   const blocker = useBlocker(() => {
     return saveStatus === "saving";

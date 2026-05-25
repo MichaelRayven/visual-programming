@@ -182,3 +182,15 @@
     grid-template-columns: 1fr;
   }
 }
+
+.profile-success-message {
+  margin-top: var(--spacing-2);
+  font-size: var(--font-size-sm);
+  color: var(--color-success-dark);
+}
+
+@media (prefers-color-scheme: dark) {
+  .profile-success-message {
+    color: var(--color-success);
+  }
+}

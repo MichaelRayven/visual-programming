@@ -36,8 +36,9 @@ export const fetchDocuments = createAsyncThunk(
       const docs = await api.getDocuments();
       return docs;
     } catch (error) {
+      const err = error as { message?: string };
       return thunkAPI.rejectWithValue(
-        error.message || "Failed to load documents"
+        err.message || "Failed to load documents"
       );
     }
   }
@@ -50,9 +51,8 @@ export const fetchDocumentById = createAsyncThunk(
       const doc = await api.getDocumentById(id);
       return doc;
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.message || "Failed to load document"
-      );
+      const err = error as { message?: string };
+      return thunkAPI.rejectWithValue(err.message || "Failed to load document");
     }
   }
 );
@@ -67,9 +67,8 @@ export const saveDocument = createAsyncThunk(
       const savedDoc = await api.saveDocument(id, snapshot);
       return savedDoc;
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.message || "Failed to save document"
-      );
+      const err = error as { message?: string };
+      return thunkAPI.rejectWithValue(err.message || "Failed to save document");
     }
   }
 );
@@ -84,8 +83,9 @@ export const createDoc = createAsyncThunk(
       const newDoc = await api.createDocument(title, rows, cols);
       return newDoc;
     } catch (error) {
+      const err = error as { message?: string };
       return thunkAPI.rejectWithValue(
-        error.message || "Failed to create document"
+        err.message || "Failed to create document"
       );
     }
   }
@@ -98,8 +98,9 @@ export const updateDoc = createAsyncThunk(
       const updatedDoc = await api.updateDocument(id, title);
       return updatedDoc;
     } catch (error) {
+      const err = error as { message?: string };
       return thunkAPI.rejectWithValue(
-        error.message || "Failed to update document"
+        err.message || "Failed to update document"
       );
     }
   }
@@ -112,8 +113,9 @@ export const duplicateDoc = createAsyncThunk(
       const duplicate = await api.duplicateDocument(id);
       return duplicate;
     } catch (error) {
+      const err = error as { message?: string };
       return thunkAPI.rejectWithValue(
-        error.message || "Failed to duplicate document"
+        err.message || "Failed to duplicate document"
       );
     }
   }
@@ -126,8 +128,9 @@ export const deleteDoc = createAsyncThunk(
       const deletedId = await api.deleteDocument(id);
       return deletedId;
     } catch (error) {
+      const err = error as { message?: string };
       return thunkAPI.rejectWithValue(
-        error.message || "Failed to delete document"
+        err.message || "Failed to delete document"
       );
     }
   }
@@ -154,8 +157,9 @@ export const importDoc = createAsyncThunk(
       localStorage.setItem("spreadsheet_docs", JSON.stringify(docs));
       return importedDoc;
     } catch (error) {
+      const err = error as { message?: string };
       return thunkAPI.rejectWithValue(
-        error.message || "Failed to import document"
+        err.message || "Failed to import document"
       );
     }
   }

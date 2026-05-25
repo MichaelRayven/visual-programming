@@ -17,6 +17,15 @@ autoSaveMiddleware.startListening({
     spreadsheetActions.deleteRow,
     spreadsheetActions.undo,
     spreadsheetActions.redo,
+    spreadsheetActions.toggleBold,
+    spreadsheetActions.toggleItalic,
+    spreadsheetActions.toggleUnderline,
+    spreadsheetActions.setBgColor,
+    spreadsheetActions.setTextColor,
+    spreadsheetActions.setAlign,
+    spreadsheetActions.setFormat,
+    spreadsheetActions.pasteSelection,
+    spreadsheetActions.clearSelectedCells,
     spreadsheetActions.triggerSave
   ),
   effect: async (_, listenerApi) => {

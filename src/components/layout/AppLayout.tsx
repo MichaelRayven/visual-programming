@@ -11,7 +11,6 @@ import {
   UserIcon,
 } from "lucide-react";
 import { type ChangeEventHandler, useEffect, useState } from "react";
-import { useSelector } from "react-redux";
 import {
   NavLink,
   Outlet,
@@ -32,7 +31,7 @@ import {
   exportDocToCsv,
   exportDocToJson,
 } from "@/lib/document";
-import { type RootState, useAppDispatch } from "@/store";
+import { store as reduxStore, useAppDispatch, useAppSelector } from "@/store";
 import { logoutUser } from "@/store/authSlice";
 import { documentsActions } from "@/store/documentsSlice";
 import { spreadsheetActions } from "@/store/spreadsheetSlice";
@@ -47,8 +46,7 @@ export function AppLayout() {
   const dispatch = useAppDispatch();
 
   const docStore = useDocumentStore();
-  const tableState = useSelector((state: RootState) => state.spreadsheet);
-  const user = useSelector((state: RootState) => state.auth.user);
+  const user = useAppSelector((state) => state.auth.user);
 
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     const saved = localStorage.getItem("sidebar_collapsed");
@@ -88,6 +86,7 @@ export function AppLayout() {
   };
 
   const getLiveSnapshot = () => {
+    const tableState = reduxStore.getState().spreadsheet;
     return {
       colWidths: tableState.colWidths,
       rowHeights: tableState.rowHeights,

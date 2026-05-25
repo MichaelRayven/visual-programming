@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSelector } from "react-redux";
+import { shallowEqual, useSelector } from "react-redux";
 import type { RootState } from "@/store";
 import {
   DEFAULT_COL_WIDTH,
@@ -24,16 +24,15 @@ export function useVirtualTable(
   const [scroll, setScroll] = useState({ top: 0, left: 0 });
   const [dimentions, setDimentions] = useState({ height: 0, width: 0 });
 
-  const size = useSelector((state: RootState) => state.spreadsheet.gridSize);
-  const colIds = useSelector(
-    (state: RootState) => state.spreadsheet.gridSnapshot.colIds
-  );
-  const rowIds = useSelector(
-    (state: RootState) => state.spreadsheet.gridSnapshot.rowIds
-  );
-  const widths = useSelector((state: RootState) => state.spreadsheet.colWidths);
-  const heights = useSelector(
-    (state: RootState) => state.spreadsheet.rowHeights
+  const { size, colIds, rowIds, widths, heights } = useSelector(
+    (state: RootState) => ({
+      size: state.spreadsheet.gridSize,
+      colIds: state.spreadsheet.gridSnapshot.colIds,
+      rowIds: state.spreadsheet.gridSnapshot.rowIds,
+      widths: state.spreadsheet.colWidths,
+      heights: state.spreadsheet.rowHeights,
+    }),
+    shallowEqual
   );
 
   const layout = useMemo(() => {

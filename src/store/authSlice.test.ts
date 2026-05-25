@@ -7,11 +7,18 @@ describe("authSlice reducer", () => {
       id: "mock-user-123",
       name: "Михаил",
       email: "michael@example.com",
+      registeredAt: 1779676800000,
     },
     accessToken: "mock-access-token",
     isAuthenticated: true,
     isInitialLoading: false,
     error: null,
+    updateProfileLoading: false,
+    profileError: null,
+    profileSuccess: false,
+    changePasswordLoading: false,
+    passwordError: null,
+    passwordSuccess: false,
   };
 
   it("should return the initial state", () => {
@@ -21,6 +28,12 @@ describe("authSlice reducer", () => {
       isAuthenticated: false,
       isInitialLoading: true,
       error: null,
+      updateProfileLoading: false,
+      profileError: null,
+      profileSuccess: false,
+      changePasswordLoading: false,
+      passwordError: null,
+      passwordSuccess: false,
     });
   });
 
@@ -29,6 +42,7 @@ describe("authSlice reducer", () => {
       id: "user-456",
       name: "Иван",
       email: "ivan@example.com",
+      registeredAt: 1779676800000,
     };
     const nextState = authReducer(mockAuthState, authActions.setUser(newUser));
     expect(nextState.user).toEqual(newUser);
@@ -44,5 +58,33 @@ describe("authSlice reducer", () => {
     expect(nextState.user).toBeNull();
     expect(nextState.accessToken).toBeNull();
     expect(nextState.isAuthenticated).toBe(false);
+  });
+
+  it("should handle resetProfileStatus and resetPasswordStatus", () => {
+    const errorState: AuthState = {
+      ...mockAuthState,
+      updateProfileLoading: true,
+      profileError: "Email already taken",
+      profileSuccess: false,
+      changePasswordLoading: true,
+      passwordError: "Too short",
+      passwordSuccess: false,
+    };
+
+    const nextState1 = authReducer(
+      errorState,
+      authActions.resetProfileStatus()
+    );
+    expect(nextState1.updateProfileLoading).toBe(false);
+    expect(nextState1.profileError).toBeNull();
+    expect(nextState1.profileSuccess).toBe(false);
+
+    const nextState2 = authReducer(
+      errorState,
+      authActions.resetPasswordStatus()
+    );
+    expect(nextState2.changePasswordLoading).toBe(false);
+    expect(nextState2.passwordError).toBeNull();
+    expect(nextState2.passwordSuccess).toBe(false);
   });
 });

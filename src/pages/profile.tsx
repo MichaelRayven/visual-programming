@@ -3,16 +3,21 @@ import {
   CheckIcon,
   FileSpreadsheetIcon,
   KeyIcon,
+  Loader2,
   MailIcon,
   UserIcon,
 } from "lucide-react";
-import { type SubmitEventHandler, useState } from "react";
+import { type SubmitEventHandler, useEffect, useState } from "react";
 import { Button } from "@/components/button";
 import { FieldGroup, FieldInput, FieldLabel } from "@/components/field";
 import { useDocumentList } from "@/hooks/useDocumentStore";
 import { useAppDispatch, useAppSelector } from "@/store";
-import { authActions } from "@/store/authSlice";
-import { uiActions } from "@/store/uiSlice";
+import {
+  authActions,
+  updateUserPassword,
+  updateUserProfile,
+} from "@/store/authSlice";
+import { fetchDocuments } from "@/store/documentsSlice";
 import "./profile.css";
 
 export function ProfilePage() {
@@ -20,63 +25,92 @@ export function ProfilePage() {
   const user = useAppSelector((state) => state.auth.user);
   const documents = useDocumentList();
 
+  // Profile forms states from redux auth slice
+  const {
+    updateProfileLoading,
+    profileError,
+    profileSuccess,
+    changePasswordLoading,
+    passwordError,
+    passwordSuccess,
+  } = useAppSelector((state) => state.auth);
+
   const [name, setName] = useState(user?.name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const [nameSaved, setNameSaved] = useState(false);
-  const [passwordSaved, setPasswordSaved] = useState(false);
-  const [errorMsg, setErrorMsg] = useState("");
+  const [passwordLocalError, setPasswordLocalError] = useState("");
+
+  // Ensure documents count and user data are loaded
+  useEffect(() => {
+    dispatch(fetchDocuments());
+    return () => {
+      dispatch(authActions.resetProfileStatus());
+      dispatch(authActions.resetPasswordStatus());
+    };
+  }, [dispatch]);
+
+  // Keep state in sync with loaded user
+  useEffect(() => {
+    if (user) {
+      setName(user.name);
+      setEmail(user.email);
+    }
+  }, [user]);
+
+  // Reset statuses after timeout
+  useEffect(() => {
+    if (profileSuccess) {
+      const timer = setTimeout(() => {
+        dispatch(authActions.resetProfileStatus());
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [profileSuccess, dispatch]);
+
+  useEffect(() => {
+    if (passwordSuccess) {
+      const timer = setTimeout(() => {
+        dispatch(authActions.resetPasswordStatus());
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [passwordSuccess, dispatch]);
 
   const handleUpdateProfile: SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    if (!name.trim() || !email.trim()) return;
 
-    if (user) {
-      dispatch(
-        authActions.setUser({
-          ...user,
-          name: name.trim(),
-          email: email.trim(),
-        })
-      );
-      setNameSaved(true);
-      dispatch(
-        uiActions.addNotification({
-          message: "Имя профиля успешно обновлено!",
-          type: "success",
-        })
-      );
-      setTimeout(() => setNameSaved(false), 2500);
-    }
+    dispatch(updateUserProfile({ name: name.trim(), email: email.trim() }));
   };
 
   const handleChangePassword: SubmitEventHandler<HTMLFormElement> = (e) => {
     e.preventDefault();
-    setErrorMsg("");
+    setPasswordLocalError("");
+    dispatch(authActions.resetPasswordStatus());
 
     if (password.length < 8) {
-      setErrorMsg("Пароль должен содержать не менее 8 символов");
+      setPasswordLocalError("Пароль должен содержать не менее 8 символов");
       return;
     }
 
     if (password !== confirmPassword) {
-      setErrorMsg("Пароли не совпадают");
+      setPasswordLocalError("Пароли не совпадают");
       return;
     }
 
-    setPasswordSaved(true);
-    setPassword("");
-    setConfirmPassword("");
-    dispatch(
-      uiActions.addNotification({
-        message: "Пароль успешно изменен!",
-        type: "success",
-      })
-    );
-    setTimeout(() => setPasswordSaved(false), 2500);
+    dispatch(updateUserPassword(password)).then((result) => {
+      if (result.meta.requestStatus === "fulfilled") {
+        setPassword("");
+        setConfirmPassword("");
+      }
+    });
   };
+
+  const registrationDate = user?.registeredAt
+    ? new Date(user.registeredAt).toLocaleDateString("ru-RU")
+    : "24.05.2026";
 
   return (
     <div className="profile-container">
@@ -107,7 +141,7 @@ export function ProfilePage() {
                 <CalendarIcon size={18} />
               </div>
               <div className="profile-stat-details">
-                <span className="profile-stat-value">24.05.2026</span>
+                <span className="profile-stat-value">{registrationDate}</span>
                 <span className="profile-stat-label">Дата регистрации</span>
               </div>
             </div>
@@ -129,6 +163,7 @@ export function ProfilePage() {
                   className="profile-input-field"
                   value={name}
                   required
+                  disabled={updateProfileLoading}
                   onChange={(e) => setName(e.target.value)}
                 />
               </FieldGroup>
@@ -142,18 +177,33 @@ export function ProfilePage() {
                   className="profile-input-field"
                   value={email}
                   required
+                  disabled={updateProfileLoading}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </FieldGroup>
+
+              {profileError && (
+                <p className="profile-error-message">{profileError}</p>
+              )}
+              {profileSuccess && (
+                <p className="profile-success-message">
+                  Профиль успешно обновлен!
+                </p>
+              )}
 
               <div className="profile-form-footer">
                 <Button
                   type="submit"
                   variant="primary"
                   size="md"
-                  disabled={nameSaved}
+                  disabled={updateProfileLoading || profileSuccess}
                 >
-                  {nameSaved ? (
+                  {updateProfileLoading ? (
+                    <>
+                      <Loader2 className="spinner-icon" size={16} />
+                      Сохранение...
+                    </>
+                  ) : profileSuccess ? (
                     <>
                       <CheckIcon size={16} />
                       Сохранено
@@ -180,6 +230,7 @@ export function ProfilePage() {
                   className="profile-input-field"
                   value={password}
                   required
+                  disabled={changePasswordLoading}
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </FieldGroup>
@@ -196,20 +247,35 @@ export function ProfilePage() {
                   className="profile-input-field"
                   value={confirmPassword}
                   required
+                  disabled={changePasswordLoading}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                 />
               </FieldGroup>
 
-              {errorMsg && <p className="profile-error-message">{errorMsg}</p>}
+              {(passwordLocalError || passwordError) && (
+                <p className="profile-error-message">
+                  {passwordLocalError || passwordError}
+                </p>
+              )}
+              {passwordSuccess && (
+                <p className="profile-success-message">
+                  Пароль успешно изменен!
+                </p>
+              )}
 
               <div className="profile-form-footer">
                 <Button
                   type="submit"
                   variant="outline"
                   size="md"
-                  disabled={passwordSaved}
+                  disabled={changePasswordLoading || passwordSuccess}
                 >
-                  {passwordSaved ? (
+                  {changePasswordLoading ? (
+                    <>
+                      <Loader2 className="spinner-icon" size={16} />
+                      Обновление...
+                    </>
+                  ) : passwordSuccess ? (
                     <>
                       <CheckIcon size={16} />
                       Пароль изменен

@@ -29,6 +29,7 @@ export type APIUser = {
   name: string;
   email: string;
   passwordHash: string;
+  registeredAt?: number;
 };
 
 const initUserDB = (): APIUser[] => {
@@ -41,12 +42,14 @@ const initUserDB = (): APIUser[] => {
       name: "Михаил",
       email: "michael@example.com",
       passwordHash: "password123",
+      registeredAt: 1779676800000, // May 24, 2026
     },
     {
       id: "user-roman",
       name: "Роман",
       email: "roman@example.com",
       passwordHash: "password123",
+      registeredAt: 1779676800000, // May 24, 2026
     },
   ];
 
@@ -147,6 +150,7 @@ export const api = {
       name: name.trim(),
       email: normalizedEmail,
       passwordHash: password,
+      registeredAt: Date.now(),
     };
 
     db.push(newUser);
@@ -186,6 +190,7 @@ export const api = {
         id: user.id,
         name: user.name,
         email: user.email,
+        registeredAt: user.registeredAt || Date.now(),
       },
       accessToken,
     };
@@ -228,6 +233,7 @@ export const api = {
         id: user.id,
         name: user.name,
         email: user.email,
+        registeredAt: user.registeredAt || Date.now(),
       },
       accessToken: newAccessToken,
     };
@@ -426,5 +432,55 @@ export const api = {
     docs = docs.filter((d) => d.id !== id);
     safeLocalStorage.setItem("spreadsheet_docs", JSON.stringify(docs));
     return id;
+  },
+
+  async updateProfile(name: string, email: string) {
+    await this.ensureValidToken();
+    await delay(300);
+    const activeUserId = this.getActiveUserId();
+    if (!activeUserId) throw new Error("401");
+
+    const db = initUserDB();
+    const userIndex = db.findIndex((u) => u.id === activeUserId);
+    if (userIndex === -1) throw new Error("Пользователь не найден");
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const emailExists = db.some(
+      (u) => u.id !== activeUserId && u.email === normalizedEmail
+    );
+    if (emailExists) {
+      throw new Error(
+        "Пользователь с таким адресом электронной почты уже зарегистрирован"
+      );
+    }
+
+    db[userIndex] = {
+      ...db[userIndex],
+      name: name.trim(),
+      email: normalizedEmail,
+    };
+    safeLocalStorage.setItem("auth_users", JSON.stringify(db));
+
+    return {
+      id: db[userIndex].id,
+      name: db[userIndex].name,
+      email: db[userIndex].email,
+      registeredAt: db[userIndex].registeredAt || Date.now(),
+    };
+  },
+
+  async changePassword(password: string) {
+    await this.ensureValidToken();
+    await delay(300);
+    const activeUserId = this.getActiveUserId();
+    if (!activeUserId) throw new Error("401");
+
+    const db = initUserDB();
+    const userIndex = db.findIndex((u) => u.id === activeUserId);
+    if (userIndex === -1) throw new Error("Пользователь не найден");
+
+    db[userIndex].passwordHash = password;
+    safeLocalStorage.setItem("auth_users", JSON.stringify(db));
+    return true;
   },
 };

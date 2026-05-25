@@ -30,11 +30,11 @@
   transition: background-color var(--transition-fast) var(--transition-smooth);
 }
 
-.table-row.data-row:nth-child(even) .table-cell {
+.table-row.data-row.row-odd .table-cell {
   background-color: var(--color-surface);
 }
 
-.table-row.data-row:nth-child(odd) .table-cell {
+.table-row.data-row.row-even .table-cell {
   background-color: var(--color-background);
 }
 
@@ -113,17 +113,25 @@
 }
 
 .table-cell-input {
+  box-sizing: border-box;
   width: 100%;
   height: 100%;
-  padding: 0 var(--spacing-1);
+  padding: var(--spacing-1) var(--spacing-2);
   margin: 0;
   font-family: var(--font-family-primary);
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
+  word-wrap: break-word;
+  white-space: pre-wrap;
   pointer-events: none;
+  resize: none;
   outline: none;
   background: transparent;
   border: none;
+}
+
+.table-cell-input:focus {
+  pointer-events: auto;
 }
 
 /* Selection */

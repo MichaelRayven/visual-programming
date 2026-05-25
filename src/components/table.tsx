@@ -1,9 +1,9 @@
 import clsx from "clsx";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import { shallowEqual } from "react-redux";
 import {
   useCellData,
   useCellSelection,
-  useGridSize,
   useHeaderSelected,
   useSelectedCell,
 } from "@/hooks/useTableStore";
@@ -11,6 +11,7 @@ import { getCellAddress, getColumnHeader } from "@/lib/table";
 import {
   MIN_COL_WIDTH,
   MIN_ROW_HEIGHT,
+  spreadsheetActions,
   type TableSnapshot,
 } from "@/store/spreadsheetSlice";
 import {
@@ -23,6 +24,11 @@ import { Input } from "./input";
 import "@/components/table.css";
 import { useTableStore } from "@/hooks/useTableStore";
 import { useVirtualTable } from "@/hooks/useVirtualTable";
+import { store as reduxStore, useAppDispatch, useAppSelector } from "@/store";
+import { TableToolbar } from "./toolbar";
+
+// Registry for cell textarea refs, keyed by "row_col"
+const cellInputRegistry = new Map<string, HTMLTextAreaElement>();
 
 type TableProps = {
   snapshot: TableSnapshot;
@@ -31,8 +37,12 @@ type TableProps = {
 export const Table = ({ snapshot, className, ...props }: TableProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  // Single keyboard handler for all cell navigation (Fix 4)
+  useTableKeyboard();
+
   return (
     <div className="table-wrapper">
+      <TableToolbar />
       <TableTopBar />
       <div className="table-scrollable" ref={scrollContainerRef}>
         <TableContent
@@ -44,6 +54,193 @@ export const Table = ({ snapshot, className, ...props }: TableProps) => {
     </div>
   );
 };
+
+/**
+ * Single table-level keyboard handler that replaces per-cell keydown listeners.
+ * Reads current cell position from the store on-demand via store.getState().
+ */
+function useTableKeyboard() {
+  const dispatch = useAppDispatch();
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement;
+      const state = reduxStore.getState().spreadsheet;
+      const { row, col } = state.selectedCell;
+      const gridSize = state.gridSize;
+
+      const cellKey = `${row}_${col}`;
+      const activeInput = cellInputRegistry.get(cellKey);
+      const isEditingCell = target === activeInput;
+
+      // If focusing other inputs (e.g. formula bar, toolbar), don't trigger cell hotkeys
+      if (
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.tagName === "SELECT") &&
+        !isEditingCell &&
+        !target.classList.contains("table-top-bar-input")
+      ) {
+        return;
+      }
+
+      if (isEditingCell) {
+        // Editing mode handlers
+        if (e.key === "Enter") {
+          if (!e.shiftKey && !e.ctrlKey && !e.altKey) {
+            e.preventDefault();
+            activeInput?.blur();
+            // Move selection down
+            if (row + 1 < gridSize.rows) {
+              dispatch(
+                spreadsheetActions.setSelectedCell({ row: row + 1, col })
+              );
+              dispatch(
+                spreadsheetActions.setSelection({
+                  rowStart: row + 1,
+                  colStart: col,
+                  rowEnd: row + 1,
+                  colEnd: col,
+                })
+              );
+            }
+          }
+        } else if (e.key === "Escape") {
+          e.preventDefault();
+          // The cell component handles restoring value on blur via its own state
+          activeInput?.blur();
+        } else if (e.key === "Tab") {
+          e.preventDefault();
+          activeInput?.blur();
+          if (e.shiftKey) {
+            if (col > 0) {
+              dispatch(
+                spreadsheetActions.setSelectedCell({ row, col: col - 1 })
+              );
+              dispatch(
+                spreadsheetActions.setSelection({
+                  rowStart: row,
+                  colStart: col - 1,
+                  rowEnd: row,
+                  colEnd: col - 1,
+                })
+              );
+            }
+          } else {
+            if (col + 1 < gridSize.cols) {
+              dispatch(
+                spreadsheetActions.setSelectedCell({ row, col: col + 1 })
+              );
+              dispatch(
+                spreadsheetActions.setSelection({
+                  rowStart: row,
+                  colStart: col + 1,
+                  rowEnd: row,
+                  colEnd: col + 1,
+                })
+              );
+            }
+          }
+        }
+      } else {
+        // Navigation mode handlers
+        if (e.key === "Enter") {
+          e.preventDefault();
+          activeInput?.focus();
+        } else if (e.key === "Tab") {
+          e.preventDefault();
+          if (e.shiftKey) {
+            if (col > 0) {
+              dispatch(
+                spreadsheetActions.setSelectedCell({ row, col: col - 1 })
+              );
+              dispatch(
+                spreadsheetActions.setSelection({
+                  rowStart: row,
+                  colStart: col - 1,
+                  rowEnd: row,
+                  colEnd: col - 1,
+                })
+              );
+            }
+          } else {
+            if (col + 1 < gridSize.cols) {
+              dispatch(
+                spreadsheetActions.setSelectedCell({ row, col: col + 1 })
+              );
+              dispatch(
+                spreadsheetActions.setSelection({
+                  rowStart: row,
+                  colStart: col + 1,
+                  rowEnd: row,
+                  colEnd: col + 1,
+                })
+              );
+            }
+          }
+        } else if (e.key === "Delete" || e.key === "Backspace") {
+          e.preventDefault();
+          dispatch(spreadsheetActions.clearSelectedCells());
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault();
+          if (row > 0) {
+            dispatch(spreadsheetActions.setSelectedCell({ row: row - 1, col }));
+            dispatch(
+              spreadsheetActions.setSelection({
+                rowStart: row - 1,
+                colStart: col,
+                rowEnd: row - 1,
+                colEnd: col,
+              })
+            );
+          }
+        } else if (e.key === "ArrowDown") {
+          e.preventDefault();
+          if (row + 1 < gridSize.rows) {
+            dispatch(spreadsheetActions.setSelectedCell({ row: row + 1, col }));
+            dispatch(
+              spreadsheetActions.setSelection({
+                rowStart: row + 1,
+                colStart: col,
+                rowEnd: row + 1,
+                colEnd: col,
+              })
+            );
+          }
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault();
+          if (col > 0) {
+            dispatch(spreadsheetActions.setSelectedCell({ row, col: col - 1 }));
+            dispatch(
+              spreadsheetActions.setSelection({
+                rowStart: row,
+                colStart: col - 1,
+                rowEnd: row,
+                colEnd: col - 1,
+              })
+            );
+          }
+        } else if (e.key === "ArrowRight") {
+          e.preventDefault();
+          if (col + 1 < gridSize.cols) {
+            dispatch(spreadsheetActions.setSelectedCell({ row, col: col + 1 }));
+            dispatch(
+              spreadsheetActions.setSelection({
+                rowStart: row,
+                colStart: col + 1,
+                rowEnd: row,
+                colEnd: col + 1,
+              })
+            );
+          }
+        }
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [dispatch]);
+}
 
 type TableContentProps = {
   containerRef: React.RefObject<HTMLDivElement | null>;
@@ -172,7 +369,15 @@ export const TableRow = ({
   ...props
 }: TableRowProps) => {
   return (
-    <div className={clsx("table-row", className)} style={style} {...props} />
+    <div
+      className={clsx(
+        "table-row",
+        row % 2 === 0 ? "row-even" : "row-odd",
+        className
+      )}
+      style={style}
+      {...props}
+    />
   );
 };
 
@@ -326,7 +531,7 @@ export const TableCell = React.memo(
   }: TableCellProps) => {
     const store = useTableStore();
     const [isFocused, setIsFocused] = useState(false);
-    const internalInputRef = useRef<HTMLInputElement>(null);
+    const internalInputRef = useRef<HTMLTextAreaElement>(null);
 
     const { rawValue, displayValue } = useCellData(row, col);
     const {
@@ -337,8 +542,14 @@ export const TableCell = React.memo(
       isColStart,
       isColEnd,
     } = useCellSelection(row, col);
-    const gridSize = useGridSize();
-    const activeCell = useSelectedCell();
+
+    // Fix 3: shallowEqual prevents re-renders when other cells' styles change
+    const cellStyles = useAppSelector((state) => {
+      const rowId = state.spreadsheet.gridSnapshot.rowIds[row];
+      const colId = state.spreadsheet.gridSnapshot.colIds[col];
+      if (!rowId || !colId) return undefined;
+      return state.spreadsheet.gridSnapshot.cellStyles?.[`${rowId}_${colId}`];
+    }, shallowEqual);
 
     const [value, setValue] = useState(
       isFocused ? rawValue : String(displayValue)
@@ -347,31 +558,39 @@ export const TableCell = React.memo(
       setValue(isFocused ? rawValue : String(displayValue));
     }, [isFocused, rawValue, displayValue]);
 
+    // Fix 4: Register/unregister textarea ref in the global registry
     useEffect(() => {
-      if (!isSelected) return;
-
-      const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          internalInputRef.current?.focus();
-        } else if (e.key === "Tab") {
-          e.preventDefault();
-          internalInputRef.current?.blur();
-          if (col + 1 < gridSize.cols) {
-            store.setSelectedCell({ row, col: col + 1 });
-            store.setSelection({
-              rowStart: row,
-              colStart: col + 1,
-              rowEnd: row,
-              colEnd: col + 1,
-            });
-          }
-        }
+      const key = `${row}_${col}`;
+      const el = internalInputRef.current;
+      if (el) {
+        cellInputRegistry.set(key, el);
+      }
+      return () => {
+        cellInputRegistry.delete(key);
       };
+    }, [row, col]);
 
-      document.addEventListener("keydown", handleKeyDown);
-      return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [isSelected, row, col, gridSize, store]);
+    // Handle Escape to restore value (local state concern)
+    const handleKeyDown = useCallback(
+      (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+        if (e.key === "Escape") {
+          e.preventDefault();
+          setValue(rawValue);
+          setIsFocused(false);
+          internalInputRef.current?.blur();
+        }
+      },
+      [rawValue]
+    );
+
+    const cellCustomStyles: React.CSSProperties = {
+      ...style,
+      fontWeight: cellStyles?.bold ? "bold" : "normal",
+      fontStyle: cellStyles?.italic ? "italic" : "normal",
+      textDecoration: cellStyles?.underline ? "underline" : "none",
+      backgroundColor: cellStyles?.bgColor || undefined,
+      color: cellStyles?.textColor || undefined,
+    };
 
     return (
       <div
@@ -387,13 +606,15 @@ export const TableCell = React.memo(
           },
           className
         )}
-        style={style}
+        style={cellCustomStyles}
         onDoubleClick={(e) => {
           internalInputRef.current?.focus();
           onDoubleClick?.(e);
         }}
         onClick={(e) => {
           if (e.shiftKey) {
+            // Read active cell on-demand — no reactive subscription needed
+            const activeCell = reduxStore.getState().spreadsheet.selectedCell;
             store.setSelection({
               rowStart: activeCell.row,
               colStart: activeCell.col,
@@ -413,11 +634,19 @@ export const TableCell = React.memo(
         }}
         {...props}
       >
-        <Input
+        <textarea
           ref={internalInputRef}
           className="table-cell-input"
+          style={{
+            textAlign: cellStyles?.align || "left",
+            fontWeight: cellStyles?.bold ? "bold" : "normal",
+            fontStyle: cellStyles?.italic ? "italic" : "normal",
+            textDecoration: cellStyles?.underline ? "underline" : "none",
+            color: cellStyles?.textColor || undefined,
+          }}
           value={value}
           onChange={(e) => setValue(e.target.value)}
+          onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={() => {
             setIsFocused(false);
@@ -425,6 +654,24 @@ export const TableCell = React.memo(
           }}
         />
       </div>
+    );
+  },
+  (prevProps, nextProps) => {
+    const prevStyle = prevProps.style as Record<
+      string,
+      string | number | undefined
+    >;
+    const nextStyle = nextProps.style as Record<
+      string,
+      string | number | undefined
+    >;
+    return (
+      prevProps.row === nextProps.row &&
+      prevProps.col === nextProps.col &&
+      prevProps.className === nextProps.className &&
+      prevStyle?.["--cell-left"] === nextStyle?.["--cell-left"] &&
+      prevStyle?.["--cell-width"] === nextStyle?.["--cell-width"] &&
+      prevStyle?.["--cell-height"] === nextStyle?.["--cell-height"]
     );
   }
 );

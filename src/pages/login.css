@@ -1,7 +1,4 @@
-/* ==========================================================================
-   LOGIN PAGE STYLES
-   ========================================================================== */
-
+/* Login page */
 .login-page-container {
   display: flex;
   align-items: center;
@@ -29,18 +26,6 @@
   transition:
     transform var(--transition-base),
     box-shadow var(--transition-base);
-  animation: loginCardFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes loginCardFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
 }
 
 .login-header {
@@ -191,10 +176,7 @@
   }
 }
 
-/* ==========================================================================
-   DARK MODE OVERRIDES
-   ========================================================================== */
-
+/* Dark mode */
 @media (prefers-color-scheme: dark) {
   .login-page-container {
     background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);

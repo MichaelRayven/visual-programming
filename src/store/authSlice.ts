@@ -9,6 +9,7 @@ export type User = {
   id: string;
   name: string;
   email: string;
+  registeredAt: number;
 };
 
 export type AuthState = {
@@ -17,6 +18,12 @@ export type AuthState = {
   isAuthenticated: boolean;
   isInitialLoading: boolean;
   error: string | null;
+  updateProfileLoading: boolean;
+  profileError: string | null;
+  profileSuccess: boolean;
+  changePasswordLoading: boolean;
+  passwordError: string | null;
+  passwordSuccess: boolean;
 };
 
 const initialState: AuthState = {
@@ -25,9 +32,45 @@ const initialState: AuthState = {
   isAuthenticated: false,
   isInitialLoading: true,
   error: null,
+  updateProfileLoading: false,
+  profileError: null,
+  profileSuccess: false,
+  changePasswordLoading: false,
+  passwordError: null,
+  passwordSuccess: false,
 };
 
 // Async Thunks for Authentication
+export const updateUserProfile = createAsyncThunk(
+  "auth/updateUserProfile",
+  async (userData: { name: string; email: string }, thunkAPI) => {
+    try {
+      const user = await api.updateProfile(userData.name, userData.email);
+      return user;
+    } catch (error) {
+      const err = error as { message?: string };
+      return thunkAPI.rejectWithValue(
+        err.message || "Failed to update profile"
+      );
+    }
+  }
+);
+
+export const updateUserPassword = createAsyncThunk(
+  "auth/updateUserPassword",
+  async (password: string, thunkAPI) => {
+    try {
+      await api.changePassword(password);
+      return true;
+    } catch (error) {
+      const err = error as { message?: string };
+      return thunkAPI.rejectWithValue(
+        err.message || "Failed to change password"
+      );
+    }
+  }
+);
+
 export const loginUser = createAsyncThunk(
   "auth/login",
   async (credentials: { email: string; password: string }, thunkAPI) => {
@@ -35,7 +78,8 @@ export const loginUser = createAsyncThunk(
       const response = await api.login(credentials.email, credentials.password);
       return response;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message || "Failed to log in");
+      const err = error as { message?: string };
+      return thunkAPI.rejectWithValue(err.message || "Failed to log in");
     }
   }
 );
@@ -54,7 +98,8 @@ export const registerUser = createAsyncThunk(
       );
       return response;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message || "Failed to register");
+      const err = error as { message?: string };
+      return thunkAPI.rejectWithValue(err.message || "Failed to register");
     }
   }
 );
@@ -66,7 +111,8 @@ export const logoutUser = createAsyncThunk(
       await api.logout();
       return null;
     } catch (error) {
-      return thunkAPI.rejectWithValue(error.message || "Failed to log out");
+      const err = error as { message?: string };
+      return thunkAPI.rejectWithValue(err.message || "Failed to log out");
     }
   }
 );
@@ -78,9 +124,8 @@ export const refreshToken = createAsyncThunk(
       const response = await api.refresh();
       return response;
     } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.message || "No valid session found"
-      );
+      const err = error as { message?: string };
+      return thunkAPI.rejectWithValue(err.message || "No valid session found");
     }
   }
 );
@@ -100,6 +145,16 @@ export const authSlice = createSlice({
       if (typeof localStorage !== "undefined") {
         localStorage.removeItem("auth_refresh_token");
       }
+    },
+    resetProfileStatus: (state) => {
+      state.updateProfileLoading = false;
+      state.profileError = null;
+      state.profileSuccess = false;
+    },
+    resetPasswordStatus: (state) => {
+      state.changePasswordLoading = false;
+      state.passwordError = null;
+      state.passwordSuccess = false;
     },
   },
   extraReducers: (builder) => {
@@ -158,6 +213,35 @@ export const authSlice = createSlice({
         state.accessToken = null;
         state.isAuthenticated = false;
         state.isInitialLoading = false;
+      })
+      .addCase(updateUserProfile.pending, (state) => {
+        state.updateProfileLoading = true;
+        state.profileError = null;
+        state.profileSuccess = false;
+      })
+      .addCase(updateUserProfile.fulfilled, (state, action) => {
+        state.updateProfileLoading = false;
+        state.user = action.payload;
+        state.profileSuccess = true;
+      })
+      .addCase(updateUserProfile.rejected, (state, action) => {
+        state.updateProfileLoading = false;
+        state.profileError = action.payload as string;
+        state.profileSuccess = false;
+      })
+      .addCase(updateUserPassword.pending, (state) => {
+        state.changePasswordLoading = true;
+        state.passwordError = null;
+        state.passwordSuccess = false;
+      })
+      .addCase(updateUserPassword.fulfilled, (state) => {
+        state.changePasswordLoading = false;
+        state.passwordSuccess = true;
+      })
+      .addCase(updateUserPassword.rejected, (state, action) => {
+        state.changePasswordLoading = false;
+        state.passwordError = action.payload as string;
+        state.passwordSuccess = false;
       });
   },
 });
