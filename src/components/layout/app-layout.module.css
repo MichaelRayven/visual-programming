@@ -1,0 +1,23 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--color-background);
+}
+
+.bodyWrapper {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 4rem); /* subtract header height */
+  overflow: hidden;
+}
+
+.mainContent {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--color-background);
+}

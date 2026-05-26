@@ -1,0 +1,113 @@
+.btn {
+  display: inline-flex;
+  gap: var(--spacing-2);
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-2) var(--spacing-4);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  line-height: var(--line-height-tight);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  text-decoration: none;
+  outline: none;
+  background-color: var(--color-background);
+  border: 0.0625rem solid var(--color-border-base);
+  border-radius: var(--radius-md);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.btn:hover {
+  background-color: var(--color-surface);
+  border-color: var(--color-border-dark);
+}
+
+.btn:focus-visible {
+  border-color: var(--color-primary-500);
+  box-shadow: 0 0 0 0.1875rem rgb(59 130 246 / 20%);
+}
+
+.btn:active {
+  background-color: var(--color-surface);
+}
+
+.btn:disabled {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+  background-color: var(--color-surface);
+  border-color: var(--color-border-light);
+}
+
+.primary {
+  color: var(--color-text-inverse);
+  background-color: var(--color-primary-600);
+  border-color: var(--color-primary-600);
+}
+
+.primary:hover {
+  background-color: var(--color-primary-700);
+  border-color: var(--color-primary-700);
+}
+
+.primary:active {
+  background-color: var(--color-primary-800);
+}
+
+.primary:disabled {
+  color: var(--color-text-inverse);
+  background-color: var(--color-primary-300);
+  border-color: var(--color-primary-300);
+}
+
+.destructive {
+  color: var(--color-text-inverse);
+  background-color: var(--color-error);
+  border-color: var(--color-error);
+}
+
+.destructive:hover {
+  background-color: var(--color-error-dark);
+  border-color: var(--color-error-dark);
+}
+
+.outline {
+  color: var(--color-text-primary);
+  background-color: transparent;
+  border-color: var(--color-border-base);
+}
+
+.outline:hover {
+  background-color: var(--color-surface);
+}
+
+.ghost {
+  color: var(--color-text-secondary);
+  background-color: transparent;
+  border-color: transparent;
+}
+
+.ghost:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+  border-color: transparent;
+}
+
+.sm {
+  padding: var(--spacing-1) var(--spacing-2_5);
+  font-size: var(--font-size-xs);
+}
+
+.lg {
+  padding: var(--spacing-3) var(--spacing-6);
+  font-size: var(--font-size-base);
+}
+
+.icon {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+}

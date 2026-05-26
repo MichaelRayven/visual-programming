@@ -1,0 +1,181 @@
+.toastOverlay {
+  position: fixed;
+  right: var(--spacing-6);
+  bottom: var(--spacing-6);
+  z-index: var(--z-toast);
+  pointer-events: none;
+}
+
+.toastWrapper {
+  position: relative;
+  display: flex;
+  gap: var(--spacing-4);
+  align-items: flex-start;
+  width: 24rem;
+  max-width: calc(100vw - var(--spacing-12));
+  padding: var(--spacing-4) var(--spacing-5);
+  overflow: hidden;
+  pointer-events: auto;
+  background-color: var(--color-surface-elevated);
+  border: 0.0625rem solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+/* Accent strip on the left border */
+.toastWrapper::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 0.25rem;
+  content: "";
+}
+
+/* Animations */
+.slideIn {
+  animation: slideInDesktop 250ms var(--transition-smooth) forwards;
+}
+
+.slideOut {
+  animation: slideOutDesktop 250ms var(--transition-smooth) forwards;
+}
+
+/* Type variations */
+.success::before {
+  background-color: var(--color-success);
+}
+.successIcon {
+  color: var(--color-success);
+}
+
+.error::before {
+  background-color: var(--color-error);
+}
+.errorIcon {
+  color: var(--color-error);
+}
+
+.info::before {
+  background-color: var(--color-info);
+}
+.infoIcon {
+  color: var(--color-info);
+}
+
+.default::before {
+  background-color: var(--color-neutral-400);
+}
+.defaultIcon {
+  color: var(--color-text-secondary);
+}
+
+/* Content styles */
+.iconContainer {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.125rem;
+}
+
+.textContainer {
+  flex: 1;
+  min-width: 0;
+  padding-right: var(--spacing-4);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-normal);
+  color: var(--color-text-primary);
+  overflow-wrap: break-word;
+}
+
+.closeButton {
+  position: absolute;
+  top: var(--spacing-3);
+  right: var(--spacing-3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-1);
+  color: var(--color-text-tertiary);
+  border-radius: var(--radius-md);
+  transition:
+    color var(--transition-fast),
+    background-color var(--transition-fast);
+}
+
+.closeButton:hover {
+  color: var(--color-text-primary);
+  background-color: var(--color-surface);
+}
+
+/* Keyframes for Desktop (Slide in from right) */
+@keyframes slideInDesktop {
+  from {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutDesktop {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(120%);
+  }
+}
+
+/* Keyframes for Mobile (Slide in from top) */
+@keyframes slideInMobile {
+  from {
+    opacity: 0;
+    transform: translateY(-150%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOutMobile {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-150%);
+  }
+}
+
+/* Mobile Responsive Override */
+@media (max-width: 48rem) {
+  .toastOverlay {
+    top: var(--spacing-4);
+    right: var(--spacing-4);
+    bottom: auto;
+    left: var(--spacing-4);
+    display: flex;
+    justify-content: center;
+  }
+
+  .toastWrapper {
+    width: 100%;
+    box-shadow: var(--shadow-md);
+  }
+
+  .slideIn {
+    animation: slideInMobile 250ms var(--transition-smooth) forwards;
+  }
+
+  .slideOut {
+    animation: slideOutMobile 250ms var(--transition-smooth) forwards;
+  }
+}

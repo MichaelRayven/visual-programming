@@ -1,0 +1,85 @@
+.modalOverlay {
+  position: absolute;
+  inset: var(--spacing-0);
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-2);
+  width: 90%;
+  max-width: 32rem;
+  overflow: hidden;
+  background-color: var(--color-surface-elevated);
+  border: var(--spacing-px) solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.dialogHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: var(--spacing-4);
+  padding-inline: var(--spacing-6);
+  border-bottom: var(--spacing-px) solid var(--color-border-light);
+}
+
+.dialogTitle {
+  margin: var(--spacing-0);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.dialogAction {
+  display: flex;
+  align-items: center;
+}
+
+.dialogClose {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-1_5);
+  color: var(--color-text-tertiary);
+  cursor: pointer;
+  background: transparent;
+  border: none;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-base);
+}
+
+.dialogClose:hover {
+  color: var(--color-text-secondary);
+  background-color: var(--color-surface);
+}
+
+.dialogClose svg {
+  width: var(--spacing-5);
+  height: var(--spacing-5);
+}
+
+.dialogContent {
+  max-height: 60vh;
+  padding-inline: var(--spacing-6);
+  overflow-y: auto;
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-relaxed);
+  color: var(--color-text-secondary);
+}
+
+.dialogFooter {
+  display: flex;
+  gap: var(--spacing-3);
+  justify-content: flex-end;
+  padding-block: var(--spacing-4);
+  padding-inline: var(--spacing-6);
+  border-top: var(--spacing-px) solid var(--color-border-light);
+}

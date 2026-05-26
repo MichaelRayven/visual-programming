@@ -1,0 +1,95 @@
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDocumentList, useUIModals } from "@/hooks/useDocumentStore";
+import {
+  downloadDocumentFile,
+  exportDocToCsv,
+  exportDocToJson,
+  importDocFromCsv,
+} from "@/lib/document";
+import { useAppDispatch } from "@/store";
+import { type Document, documentsActions } from "@/store/documentsSlice";
+import { type SortOption } from "../components/sort-dropdown";
+
+export const SORT_STRATEGIES: Record<
+  SortOption,
+  (a: Document, b: Document) => number
+> = {
+  name: (a, b) => a.title.localeCompare(b.title),
+  dateCreated: (a, b) => b.createdAt - a.createdAt,
+  dateModified: (a, b) => b.updatedAt - a.updatedAt,
+};
+
+export function useDashboardPage() {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const documents = useDocumentList();
+  const { deleteOpen } = useUIModals();
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("dateModified");
+  const importInputRef = useRef<HTMLInputElement>(null);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Only fetch documents once on mount
+  useEffect(() => {
+    dispatch(documentsActions.fetchDocuments());
+  }, []);
+
+  const filteredAndSortedDocuments = useMemo(() => {
+    let filtered = documents;
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = documents.filter((doc) =>
+        doc.title.toLowerCase().includes(query)
+      );
+    }
+
+    return [...filtered].sort(SORT_STRATEGIES[sortBy]);
+  }, [documents, searchQuery, sortBy]);
+
+  const handleExportCsv = (doc: Document) => {
+    const csv = exportDocToCsv(doc);
+    downloadDocumentFile(csv, `${doc.title}.csv`, "text/csv");
+  };
+
+  const handleExportJson = (doc: Document) => {
+    const json = exportDocToJson(doc);
+    downloadDocumentFile(json, `${doc.title}.json`, "application/json");
+  };
+
+  const handleImportCsv = (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const fileName = file.name.replace(/\.csv$/i, "");
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result;
+      if (typeof text === "string") {
+        const newDoc = importDocFromCsv(text, fileName);
+        dispatch(documentsActions.importDocument(newDoc));
+        navigate(`/documents/${newDoc.id}`);
+      }
+    };
+    reader.readAsText(file, "utf-8");
+    if (importInputRef.current) importInputRef.current.value = "";
+  };
+
+  const handleOpenDocument = (id: string) => {
+    navigate(`/documents/${id}`);
+  };
+
+  return {
+    filteredAndSortedDocuments,
+    searchQuery,
+    setSearchQuery,
+    sortBy,
+    setSortBy,
+    deleteOpen,
+    importInputRef,
+    handleExportCsv,
+    handleExportJson,
+    handleImportCsv,
+    handleOpenDocument,
+  };
+}
