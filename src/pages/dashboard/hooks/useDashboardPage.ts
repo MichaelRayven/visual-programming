@@ -1,17 +1,14 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  useDocumentList,
-  useDocumentStore,
-  useUIModals,
-} from "@/hooks/useDocumentStore";
+import { useDocumentList, useUIModals } from "@/hooks/useDocumentStore";
 import {
   downloadDocumentFile,
   exportDocToCsv,
   exportDocToJson,
   importDocFromCsv,
 } from "@/lib/document";
-import { type Document } from "@/store/documentsSlice";
+import { useAppDispatch } from "@/store";
+import { type Document, documentsActions } from "@/store/documentsSlice";
 import { type SortOption } from "../components/sort-dropdown";
 
 export const SORT_STRATEGIES: Record<
@@ -25,8 +22,8 @@ export const SORT_STRATEGIES: Record<
 
 export function useDashboardPage() {
   const navigate = useNavigate();
+  const dispatch = useAppDispatch();
   const documents = useDocumentList();
-  const docStore = useDocumentStore();
   const { deleteOpen } = useUIModals();
 
   const [searchQuery, setSearchQuery] = useState("");
@@ -35,7 +32,7 @@ export function useDashboardPage() {
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: Only fetch documents once on mount
   useEffect(() => {
-    docStore.fetchDocuments();
+    dispatch(documentsActions.fetchDocuments());
   }, []);
 
   const filteredAndSortedDocuments = useMemo(() => {
@@ -70,7 +67,7 @@ export function useDashboardPage() {
       const text = ev.target?.result;
       if (typeof text === "string") {
         const newDoc = importDocFromCsv(text, fileName);
-        docStore.importDocument(newDoc);
+        dispatch(documentsActions.importDocument(newDoc));
         navigate(`/documents/${newDoc.id}`);
       }
     };
@@ -90,7 +87,6 @@ export function useDashboardPage() {
     setSortBy,
     deleteOpen,
     importInputRef,
-    docStore,
     handleExportCsv,
     handleExportJson,
     handleImportCsv,

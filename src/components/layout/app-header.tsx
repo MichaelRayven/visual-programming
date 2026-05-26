@@ -8,10 +8,9 @@ import {
   UserIcon,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Dropdown, MenuItem } from "@/components/ui/menu";
-import { useDocumentById, useDocumentStore } from "@/hooks/useDocumentStore";
 import {
   downloadDocumentFile,
   exportDocToCsv,
@@ -20,6 +19,7 @@ import {
 import { store as reduxStore, useAppDispatch, useAppSelector } from "@/store";
 import { logoutUser } from "@/store/authSlice";
 import { documentsActions } from "@/store/documentsSlice";
+import { selectOpenDocument } from "@/store/selectors/document";
 import { spreadsheetActions } from "@/store/spreadsheetSlice";
 import { AppBreadcrumbs } from "./app-breadcrumbs";
 import styles from "./app-header.module.css";
@@ -30,27 +30,31 @@ type AppHeaderProps = {
 };
 
 export function AppHeader({ onToggleSidebar }: AppHeaderProps) {
-  const { documentId } = useParams<{ documentId: string }>();
-  const activeDocument = useDocumentById(documentId || "");
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
-  const docStore = useDocumentStore();
   const user = useAppSelector((state) => state.auth.user);
+  const document = useAppSelector(selectOpenDocument);
+  const location = useLocation();
 
   const [titleValue, setTitleValue] = useState("");
 
   useEffect(() => {
-    if (activeDocument) {
-      setTitleValue(activeDocument.title);
+    if (document) {
+      setTitleValue(document.title);
     }
-  }, [activeDocument]);
+  }, [document]);
 
-  const isDocumentPage = !!documentId && !!activeDocument;
+  const isDocumentPage = location.pathname.startsWith("/documents/");
 
   const handleTitleBlur = () => {
     const trimmedTitle = titleValue.trim();
-    if (!trimmedTitle || !activeDocument) return;
-    docStore.updateDocument(activeDocument.id, trimmedTitle);
+    if (!trimmedTitle || !document) return;
+    dispatch(
+      documentsActions.updateDocument({
+        id: document.id,
+        title: trimmedTitle,
+      })
+    );
   };
 
   const handleSave = () => {
@@ -68,21 +72,17 @@ export function AppHeader({ onToggleSidebar }: AppHeaderProps) {
   };
 
   const handleExportCsv = () => {
-    if (!activeDocument) return;
-    const liveDoc = { ...activeDocument, tableSnapshot: getLiveSnapshot() };
+    if (!document) return;
+    const liveDoc = { ...document, tableSnapshot: getLiveSnapshot() };
     const csv = exportDocToCsv(liveDoc);
-    downloadDocumentFile(csv, `${activeDocument.title}.csv`, "text/csv");
+    downloadDocumentFile(csv, `${document.title}.csv`, "text/csv");
   };
 
   const handleExportJson = () => {
-    if (!activeDocument) return;
-    const liveDoc = { ...activeDocument, tableSnapshot: getLiveSnapshot() };
+    if (!document) return;
+    const liveDoc = { ...document, tableSnapshot: getLiveSnapshot() };
     const json = exportDocToJson(liveDoc);
-    downloadDocumentFile(
-      json,
-      `${activeDocument.title}.json`,
-      "application/json"
-    );
+    downloadDocumentFile(json, `${document.title}.json`, "application/json");
   };
 
   const handleLogout = () => {
@@ -114,7 +114,7 @@ export function AppHeader({ onToggleSidebar }: AppHeaderProps) {
       </div>
 
       <div className={styles.right}>
-        {isDocumentPage && activeDocument && (
+        {isDocumentPage && document && (
           <div className={styles.documentActions}>
             <ExportMenu
               onExportCsv={handleExportCsv}

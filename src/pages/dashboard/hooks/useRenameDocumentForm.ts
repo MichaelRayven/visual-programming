@@ -1,9 +1,5 @@
 import { type SubmitEventHandler, useEffect, useState } from "react";
-import {
-  useDocumentById,
-  useDocumentStore,
-  useUIModals,
-} from "@/hooks/useDocumentStore";
+import { useDocumentById, useUIModals } from "@/hooks/useDocumentStore";
 import {
   type RenameDocumentErrors,
   type RenameDocumentState,
@@ -11,10 +7,10 @@ import {
 import { validateRenameDocument } from "@/pages/dashboard/utils/validateRenameDocument";
 import { useAppDispatch } from "@/store";
 import { documentsActions } from "@/store/documentsSlice";
+import { uiActions } from "@/store/uiSlice";
 
 export function useRenameDocumentForm() {
   const dispatch = useAppDispatch();
-  const documentStore = useDocumentStore();
   const { renameOpen } = useUIModals();
   const document = useDocumentById(renameOpen?.id ?? "");
 
@@ -76,7 +72,7 @@ export function useRenameDocumentForm() {
         })
       ).unwrap();
       setFormState({ name: "" });
-      documentStore.setRenameModal(null);
+      dispatch(uiActions.setRenameModal(null));
     } catch (err) {
       setErrors({
         form: (err as string) || "Не удалось переименовать документ",

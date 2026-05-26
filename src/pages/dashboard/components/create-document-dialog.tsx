@@ -6,12 +6,14 @@ import {
   FieldInput,
   FieldLabel,
 } from "@/components/ui/field";
-import { useDocumentStore, useUIModals } from "@/hooks/useDocumentStore";
-import { useCreateDocumentForm } from "../hooks/useCreateDocumentForm"; // Adjust path accordingly
+import { useUIModals } from "@/hooks/useDocumentStore";
+import { useAppDispatch } from "@/store";
+import { uiActions } from "@/store/uiSlice";
+import { useCreateDocumentForm } from "../hooks/useCreateDocumentForm";
 import styles from "./create-document-dialog.module.css";
 
 export function CreateDocumentDialog() {
-  const documentStore = useDocumentStore();
+  const dispatch = useAppDispatch();
   const { createOpen } = useUIModals();
 
   const { formState, errors, loading, handleChange, handleSubmit } =
@@ -20,7 +22,7 @@ export function CreateDocumentDialog() {
   return (
     <Dialog
       open={createOpen}
-      onOpenChange={(open) => documentStore.setCreateModalOpen(open)}
+      onOpenChange={(open) => dispatch(uiActions.setCreateModalOpen(open))}
       trigger="Создать файл"
       title="Новый документ"
       content={

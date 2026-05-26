@@ -147,7 +147,7 @@ export const importDoc = createAsyncThunk(
 
       const importedDoc: Document = {
         ...doc,
-        userId: activeUserId, // Strict ownership mapping
+        userId: activeUserId,
         updatedAt: Date.now(),
       };
 

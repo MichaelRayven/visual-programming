@@ -1,16 +1,9 @@
-import { useCallback, useEffect, useState } from "react";
-import {
-  type BlockerFunction,
-  useBlocker,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
-import {
-  useDocumentById,
-  useDocumentSaveStatus,
-} from "@/hooks/useDocumentStore";
-import { useAppDispatch } from "@/store";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "@/store";
 import { documentsActions } from "@/store/documentsSlice";
+import { selectOpenDocument } from "@/store/selectors/document";
+import { selectSaveStatus } from "@/store/selectors/ui";
 import { spreadsheetActions } from "@/store/spreadsheetSlice";
 
 export function useDocumentPage() {
@@ -18,8 +11,8 @@ export function useDocumentPage() {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
 
-  const document = useDocumentById(documentId || "");
-  const saveStatus = useDocumentSaveStatus();
+  const document = useAppSelector(selectOpenDocument);
+  const saveStatus = useAppSelector(selectSaveStatus);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -115,13 +108,6 @@ export function useDocumentPage() {
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
   }, [saveStatus]);
 
-  const shouldBlock = useCallback<BlockerFunction>(
-    () => saveStatus === "saving",
-    [saveStatus]
-  );
-
-  const blocker = useBlocker(shouldBlock);
-
   const handleBackToDashboard = () => {
     navigate("/dashboard");
   };
@@ -130,7 +116,6 @@ export function useDocumentPage() {
     document,
     loading,
     error,
-    blocker,
     handleBackToDashboard,
   };
 }

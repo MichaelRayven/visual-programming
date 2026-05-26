@@ -1,5 +1,6 @@
-import { NavLink, useLocation, useParams } from "react-router-dom";
-import { useDocumentById } from "@/hooks/useDocumentStore";
+import { NavLink, useLocation } from "react-router-dom";
+import { useAppSelector } from "@/store";
+import { selectOpenDocument } from "@/store/selectors/document";
 import styles from "./app-breadcrumbs.module.css";
 
 type AppBreadcrumbsProps = {
@@ -13,13 +14,12 @@ export function AppBreadcrumbs({
   onTitleChange,
   onTitleBlur,
 }: AppBreadcrumbsProps) {
-  const { documentId } = useParams<{ documentId: string }>();
-  const activeDocument = useDocumentById(documentId || "");
+  const document = useAppSelector(selectOpenDocument);
   const location = useLocation();
 
   const isDocumentPage = location.pathname.startsWith("/documents/");
 
-  if (isDocumentPage && activeDocument) {
+  if (isDocumentPage && document) {
     return (
       <div className={styles.breadcrumbs}>
         <NavLink to="/dashboard" className={styles.link}>

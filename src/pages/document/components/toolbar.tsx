@@ -19,14 +19,15 @@ import {
 } from "lucide-react";
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { useDocumentSaveStatus } from "@/hooks/useDocumentStore";
 import { useActiveCellStyles, useTableStore } from "@/hooks/useTableStore";
+import { useAppSelector } from "@/store";
+import { selectSaveStatus } from "@/store/selectors/ui";
 import styles from "./toolbar.module.css";
 
 export function TableToolbar() {
   const store = useTableStore();
   const activeStyles = useActiveCellStyles();
-  const saveStatus = useDocumentSaveStatus();
+  const saveStatus = useAppSelector(selectSaveStatus);
 
   const handleFormatChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const value = e.target.value;

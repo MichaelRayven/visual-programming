@@ -7,11 +7,13 @@ import {
   FieldLabel,
 } from "@/components/ui/field";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { useDocumentStore, useUIModals } from "@/hooks/useDocumentStore";
+import { useUIModals } from "@/hooks/useDocumentStore";
 import { useRenameDocumentForm } from "@/pages/dashboard/hooks/useRenameDocumentForm";
+import { useAppDispatch } from "@/store";
+import { uiActions } from "@/store/uiSlice";
 
 export function RenameDocumentDialog() {
-  const documentStore = useDocumentStore();
+  const dispatch = useAppDispatch();
   const { renameOpen } = useUIModals();
   const { formState, errors, loading, handleChange, handleSubmit } =
     useRenameDocumentForm();
@@ -19,7 +21,7 @@ export function RenameDocumentDialog() {
   return (
     <Dialog
       open={!!renameOpen}
-      onOpenChange={() => documentStore.setRenameModal(null)}
+      onOpenChange={() => dispatch(uiActions.setRenameModal(null))}
       title="Переименовать документ"
       content={
         <form id="rename-document-form" onSubmit={handleSubmit}>
@@ -40,7 +42,7 @@ export function RenameDocumentDialog() {
         <>
           <Button
             variant="outline"
-            onClick={() => documentStore.setRenameModal(null)}
+            onClick={() => dispatch(uiActions.setRenameModal(null))}
           >
             Отмена
           </Button>

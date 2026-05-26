@@ -1,5 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { Dialog } from "@/components/ui/dialog";
+import { useAppDispatch } from "@/store";
+import { documentsActions } from "@/store/documentsSlice";
+import { uiActions } from "@/store/uiSlice";
 import { DashboardControls } from "./components/dashboard-controls";
 import { DocumentCard } from "./components/document-card";
 import { EmptyState } from "./components/empty-state";
@@ -16,12 +19,12 @@ export function DashboardPage() {
     setSortBy,
     deleteOpen,
     importInputRef,
-    docStore,
     handleExportCsv,
     handleExportJson,
     handleImportCsv,
     handleOpenDocument,
   } = useDashboardPage();
+  const dispatch = useAppDispatch();
 
   return (
     <div className={styles.container}>
@@ -44,12 +47,20 @@ export function DashboardPage() {
                 key={doc.id}
                 doc={doc}
                 onOpen={handleOpenDocument}
-                onUpdateTitle={(id, t) => docStore.updateDocument(id, t)}
-                onSetRenameModal={docStore.setRenameModal}
-                onDuplicate={docStore.duplicateDocument}
+                onUpdateTitle={(id, title) =>
+                  dispatch(documentsActions.updateDocument({ id, title }))
+                }
+                onSetRenameModal={(data) =>
+                  dispatch(uiActions.setRenameModal(data))
+                }
+                onDuplicate={(id) =>
+                  dispatch(documentsActions.duplicateDocument(id))
+                }
                 onExportCsv={handleExportCsv}
                 onExportJson={handleExportJson}
-                onSetDeleteModal={docStore.setDeleteModal}
+                onSetDeleteModal={(id) =>
+                  dispatch(uiActions.setDeleteModal(id))
+                }
               />
             ))}
           </div>
@@ -57,22 +68,22 @@ export function DashboardPage() {
 
         <Dialog
           open={!!deleteOpen}
-          onOpenChange={() => docStore.setDeleteModal(null)}
+          onOpenChange={() => dispatch(uiActions.setDeleteModal(null))}
           title="Удаление документа"
           content="Вы уверены? Это действие нельзя отменить."
           footer={
             <>
               <Button
                 variant="outline"
-                onClick={() => docStore.setDeleteModal(null)}
+                onClick={() => dispatch(uiActions.setDeleteModal(null))}
               >
                 Отмена
               </Button>
               <Button
                 variant="destructive"
                 onClick={() => {
-                  docStore.deleteDocument(deleteOpen!);
-                  docStore.setDeleteModal(null);
+                  dispatch(documentsActions.deleteDocument(deleteOpen!));
+                  dispatch(uiActions.setDeleteModal(null));
                 }}
               >
                 Удалить

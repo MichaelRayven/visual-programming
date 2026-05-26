@@ -1,7 +1,7 @@
 import { type SubmitEventHandler, useState } from "react";
-import { useDocumentStore } from "@/hooks/useDocumentStore";
 import { useAppDispatch } from "@/store";
 import { documentsActions } from "@/store/documentsSlice";
+import { uiActions } from "@/store/uiSlice";
 import type {
   CreateDocumentErrors,
   CreateDocumentState,
@@ -10,7 +10,6 @@ import { validateCreateDocument } from "../utils/validateCreateDocument";
 
 export function useCreateDocumentForm(onSuccess?: () => void) {
   const dispatch = useAppDispatch();
-  const documentStore = useDocumentStore();
 
   const [formState, setFormState] = useState<CreateDocumentState>({
     title: "",
@@ -66,7 +65,7 @@ export function useCreateDocumentForm(onSuccess?: () => void) {
       );
 
       setFormState({ title: "", rows: "", cols: "" });
-      documentStore.setCreateModalOpen(false);
+      dispatch(uiActions.setCreateModalOpen(false));
       onSuccess?.();
     } catch (err) {
       setErrors({
