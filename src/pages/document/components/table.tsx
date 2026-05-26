@@ -27,8 +27,6 @@ import { useVirtualTable } from "@/hooks/useVirtualTable";
 import { debounce } from "@/lib/utils";
 import { TableToolbar } from "@/pages/document/components/toolbar";
 import { store as reduxStore, useAppDispatch, useAppSelector } from "@/store";
-import { documentsActions } from "@/store/documentsSlice";
-import { selectActiveDocumentId } from "@/store/selectors/document";
 
 // Registry for cell textarea refs, keyed by "row_col"
 const cellInputRegistry = new Map<string, HTMLTextAreaElement>();
