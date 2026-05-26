@@ -24,8 +24,11 @@ import {
 import "./table.css";
 import { useTableStore } from "@/hooks/useTableStore";
 import { useVirtualTable } from "@/hooks/useVirtualTable";
+import { debounce } from "@/lib/utils";
 import { TableToolbar } from "@/pages/document/components/toolbar";
 import { store as reduxStore, useAppDispatch, useAppSelector } from "@/store";
+import { documentsActions } from "@/store/documentsSlice";
+import { selectActiveDocumentId } from "@/store/selectors/document";
 
 // Registry for cell textarea refs, keyed by "row_col"
 const cellInputRegistry = new Map<string, HTMLTextAreaElement>();
@@ -425,6 +428,10 @@ export const TableCell = React.memo(
     const [isFocused, setIsFocused] = useState(false);
     const internalInputRef = useRef<HTMLTextAreaElement>(null);
 
+    const debouncedSave = debounce((value) => {
+      store.updateCell(row, col, value);
+    }, 300);
+
     const { rawValue, displayValue } = useCellData(row, col);
     const {
       isSelected,
@@ -445,6 +452,7 @@ export const TableCell = React.memo(
     const [value, setValue] = useState(
       isFocused ? rawValue : String(displayValue)
     );
+
     useEffect(() => {
       setValue(isFocused ? rawValue : String(displayValue));
     }, [isFocused, rawValue, displayValue]);
@@ -533,7 +541,10 @@ export const TableCell = React.memo(
             color: cellStyles?.textColor || undefined,
           }}
           value={value}
-          onChange={(e) => setValue(e.target.value)}
+          onChange={(e) => {
+            setValue(e.target.value);
+            debouncedSave(e.target.value);
+          }}
           onKeyDown={handleKeyDown}
           onFocus={() => setIsFocused(true)}
           onBlur={() => {
