@@ -1,8 +1,8 @@
 import { CheckIcon, Loader2, MailIcon, UserIcon } from "lucide-react";
 import { type SubmitEventHandler, useEffect, useState } from "react";
-import { toast } from "@/components/toast";
 import { Button } from "@/components/ui/button";
 import { FieldGroup, FieldInput, FieldLabel } from "@/components/ui/field";
+import { toast } from "@/lib/toast";
 import type {
   PersonalInfoErrors,
   PersonalInfoState,

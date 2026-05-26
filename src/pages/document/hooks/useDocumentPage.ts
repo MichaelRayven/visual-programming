@@ -39,7 +39,7 @@ export function useDocumentPage() {
         ).unwrap();
         dispatch(spreadsheetActions.initTable(doc.tableSnapshot));
       } catch (err) {
-        setError(err || "Failed to load document");
+        setError((err as string) || "Failed to load document");
       } finally {
         setLoading(false);
       }

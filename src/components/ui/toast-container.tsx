@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import { Toast } from "@/components/ui/toast";
+import { toast } from "@/lib/toast";
 import { useAppSelector } from "@/store";
 import type { Notification } from "@/store/uiSlice";
-import { Toast } from "./toast";
 import styles from "./toast.module.css";
-import { toast } from "./toastManager";
 
 export function ToastContainer() {
   const queue = useAppSelector((state) => state.ui.notifications);

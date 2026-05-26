@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
-import { ToastContainer } from "@/components/toast";
+import { ToastContainer } from "@/components/ui/toast-container";
 import { AppHeader } from "./app-header";
 import styles from "./app-layout.module.css";
 import { AppSidebar } from "./app-sidebar";

@@ -451,7 +451,7 @@ export const spreadsheetSlice = createSlice({
         };
       }
     },
-    setBgColor: (state, action: PayloadAction<string>) => {
+    setBgColor: (state, action: PayloadAction<string | undefined>) => {
       pushToHistory(state);
       const { rowStart, rowEnd, colStart, colEnd } = state.selection;
       if (!state.gridSnapshot.cellStyles) {
@@ -471,7 +471,7 @@ export const spreadsheetSlice = createSlice({
         }
       }
     },
-    setTextColor: (state, action: PayloadAction<string>) => {
+    setTextColor: (state, action: PayloadAction<string | undefined>) => {
       pushToHistory(state);
       const { rowStart, rowEnd, colStart, colEnd } = state.selection;
       if (!state.gridSnapshot.cellStyles) {
